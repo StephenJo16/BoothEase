@@ -45,7 +45,7 @@
                         <button
                             type="button"
                             id="organizer-tab"
-                            class="hover:cursor-pointer flex-1 py-1 px-4 text-center font-medium rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 text-gray-700 tab-button"
+                            class="hover:cursor-pointer flex-1 py-1 px-4 text-center font-medium rounded-r-lg border border-l-0 border-gray-300 bg-white text-gray-700 tab-button"
                             onclick="switchTab('organizer')">
                             I'm an Event Organizer
                         </button>
@@ -90,10 +90,10 @@
 
                         <!-- Mobile Number -->
                         <div>
-                            <div class="flex">
+                            <div class="flex border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700] transition-all duration-200">
                                 <!-- Country Code Dropdown -->
                                 <div class="relative">
-                                    <select name="country_code" class="appearance-none bg-white border border-gray-300 rounded-l-lg px-3 py-3 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]">
+                                    <select name="country_code" class="appearance-none bg-white border-0 rounded-l-lg px-3 py-3 pr-8 text-gray-700 focus:outline-none focus:ring-0">
                                         <option value="+62">🇮🇩 +62</option>
                                         <option value="+1">🇺🇸 +1</option>
                                         <option value="+44">🇬🇧 +44</option>
@@ -110,7 +110,7 @@
                                     type="tel"
                                     name="mobile_number"
                                     id="mobile_number"
-                                    class="flex-1 block w-full border border-l-0 border-gray-300 rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                    class="flex-1 block w-full border-0 border-l border-gray-300 rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-0"
                                     placeholder="Mobile Number"
                                     required>
                             </div>
@@ -197,9 +197,9 @@
 
             if (type === 'tenant') {
                 // Activate tenant tab
-                tenantTab.classList.add('active', 'bg-white');
+                tenantTab.classList.add('active');
                 tenantTab.classList.remove('bg-gray-100');
-                organizerTab.classList.remove('active', 'bg-white');
+                organizerTab.classList.remove('active');
                 organizerTab.classList.add('bg-gray-100');
 
                 // Hide business category fields
@@ -213,9 +213,9 @@
                 userTypeInput.value = 'tenant';
             } else {
                 // Activate organizer tab
-                organizerTab.classList.add('active', 'bg-white');
+                organizerTab.classList.add('active');
                 organizerTab.classList.remove('bg-gray-100');
-                tenantTab.classList.remove('active', 'bg-white');
+                tenantTab.classList.remove('active');
                 tenantTab.classList.add('bg-gray-100');
 
                 // Show business category field
@@ -254,9 +254,9 @@
 
     <style>
         .tab-button.active {
-            background-color: white;
+            background-color: #ff7700;
             border-color: #ff7700;
-            color: #ff7700;
+            color: white;
         }
     </style>
 </body>

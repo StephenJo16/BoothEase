@@ -36,31 +36,29 @@
                         @csrf
                         <!-- Mobile Number Input -->
                         <div>
-                            <div class="relative">
-                                <div class="flex">
-                                    <!-- Country Code Dropdown -->
-                                    <div class="relative">
-                                        <select class="appearance-none bg-white border border-gray-300 rounded-l-lg px-3 py-3 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] h-12">
-                                            <option value="+62">🇮🇩 +62</option>
-                                            <option value="+1">🇺🇸 +1</option>
-                                            <option value="+44">🇬🇧 +44</option>
-                                            <option value="+81">🇯🇵 +81</option>
-                                        </select>
-                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                            </svg>
-                                        </div>
+                            <div class="flex border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700] transition-all duration-200 h-12">
+                                <!-- Country Code Dropdown -->
+                                <div class="relative">
+                                    <select class="appearance-none bg-white border-0 rounded-l-lg px-3 py-3 pr-8 text-gray-700 focus:outline-none focus:ring-0 h-full">
+                                        <option value="+62">🇮🇩 +62</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+44">🇬🇧 +44</option>
+                                        <option value="+81">🇯🇵 +81</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                        </svg>
                                     </div>
-                                    <!-- Mobile Number Input -->
-                                    <input
-                                        type="tel"
-                                        name="mobile_number"
-                                        id="mobile_number"
-                                        class="flex-1 block w-full border border-l-0 border-gray-300 rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] h-12"
-                                        placeholder="Mobile Number"
-                                        required>
                                 </div>
+                                <!-- Mobile Number Input -->
+                                <input
+                                    type="tel"
+                                    name="mobile_number"
+                                    id="mobile_number"
+                                    class="flex-1 block w-full border-0 border-l border-gray-300 rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-0 h-full"
+                                    placeholder="Mobile Number"
+                                    required>
                             </div>
                         </div>
 
