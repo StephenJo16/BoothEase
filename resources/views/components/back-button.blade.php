@@ -1,10 +1,10 @@
-<div class="absolute top-6 left-6 z-10 ">
+<div class="absolute top-4 left-4 sm:top-6 sm:left-6 z-10">
     <button
         onclick="history.back()"
-        class="hover:cursor-pointer rounded-full flex items-center justify-center shadow-sm hover:bg-[#ff7700] hover:border-[#ff7700] transition-all duration-200 group"
+        class="rounded-full flex items-center justify-center shadow-sm hover:bg-[#ff7700] hover:border-[#ff7700] transition-all duration-200 group"
         aria-label="Go back">
         <svg
-            class="w-10 h-10 text-gray-600 group-hover:text-white transition-colors duration-200"
+            class="hover:cursor-pointer w-10 h-10 text-gray-600 group-hover:text-white transition-colors duration-200"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

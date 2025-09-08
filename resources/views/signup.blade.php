@@ -19,7 +19,7 @@
     @include('components.navbar')
 
     <!-- Content Container with Back Button -->
-    <div class="relative">
+    <div class="relative pt-16 sm:pt-20">
         <!-- Back Button -->
         @include('components.back-button')
 

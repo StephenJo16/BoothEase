@@ -19,12 +19,12 @@
     @include('components.navbar')
 
     <!-- Content Container with Back Button -->
-    <div class="relative">
+    <div class="relative pt-16 sm:pt-20 min-h-screen">
         <!-- Back Button -->
         @include('components.back-button')
 
         <!-- Sign In Form -->
-        <div class="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-center flex-1 py-12 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full">
                 <div class="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
                     <div class="mb-8">
