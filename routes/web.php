@@ -21,3 +21,7 @@ Route::get('/faq', function () {
 Route::get('/events', function () {
     return view('events.index');
 })->name('events');
+
+Route::get('/event/details', function () {
+    return view('events.details');
+})->name('eventdetails');

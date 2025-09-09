@@ -75,9 +75,9 @@
                                     <span>Starting from: Rp 500,000</span>
                                 </div>
                             </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
+                            <a href="/event/details" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
                                 View Details
-                            </button>
+                            </a>
                         </div>
                     </div>
 

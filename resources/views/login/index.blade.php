@@ -14,17 +14,14 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 overflow-hidden">
     <!-- Navbar -->
     @include('components.navbar')
 
     <!-- Content Container with Back Button -->
-    <div class="relative pt-16 sm:pt-20 min-h-screen">
-        <!-- Back Button -->
-        @include('components.back-button')
-
+    <div class="pt-2 lg:pt-0">
         <!-- Sign In Form -->
-        <div class="flex items-center justify-center flex-1 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="flex items-start lg:items-center justify-center h-[calc(100vh-6.5rem)] lg:h-[calc(100vh-4rem)] py-2 lg:py-0 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full">
                 <div class="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
                     <div class="mb-8">

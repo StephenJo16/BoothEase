@@ -1,17 +1,19 @@
-<div class="absolute top-4 left-4 sm:top-6 sm:left-6 z-10">
-    <button
-        onclick="history.back()"
-        class="group" aria-label="Go back">
-        <svg
-            class="hover:cursor-pointer w-10 h-10 text-gray-400 group-hover:text-[#ff7700] transition-colors duration-200" fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg">
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
+@props(['text' => null, 'url' => null])
+
+<div class="inline-flex">
+    @if($url)
+    <a href="{{ $url }}" class="inline-flex items-center text-gray-600 hover:text-[#ff7700] transition-colors duration-200 group" aria-label="Go back">
+        <i class="fas fa-arrow-left {{ $text ? 'mr-2' : '' }} group-hover:text-[#ff7700] transition-colors duration-200"></i>
+        @if($text)
+        <span>{{ $text }}</span>
+        @endif
+    </a>
+    @else
+    <button onclick="history.back()" class="inline-flex items-center text-gray-600 hover:text-[#ff7700] transition-colors duration-200 group" aria-label="Go back">
+        <i class="fas fa-arrow-left {{ $text ? 'mr-2' : '' }} group-hover:text-[#ff7700] transition-colors duration-200"></i>
+        @if($text)
+        <span>{{ $text }}</span>
+        @endif
     </button>
+    @endif
 </div>
