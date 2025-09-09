@@ -17,6 +17,168 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
+@php
+// Events Data
+$events = [
+[
+'name' => 'Tech Innovation Expo 2025',
+'category' => 'Technology',
+'categoryColor' => 'text-blue-600',
+'gradientFrom' => 'from-blue-400',
+'gradientTo' => 'to-blue-600',
+'location' => 'Convention Center, Jakarta',
+'date' => '15 December 2025',
+'booths' => '50 Booths Available',
+'price' => 'Rp 500,000',
+'url' => '/event/details',
+'buttonType' => 'link'
+],
+[
+'name' => 'Green Tech Summit 2025',
+'category' => 'Technology',
+'categoryColor' => 'text-green-600',
+'gradientFrom' => 'from-green-400',
+'gradientTo' => 'to-green-600',
+'location' => 'Convention Center, Jakarta',
+'date' => '15 December 2025',
+'booths' => '30 Booths Available',
+'price' => 'Rp 750,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Digital Innovation Expo',
+'category' => 'Technology',
+'categoryColor' => 'text-purple-600',
+'gradientFrom' => 'from-purple-400',
+'gradientTo' => 'to-purple-600',
+'location' => 'Convention Center, Jakarta',
+'date' => '15 December 2025',
+'booths' => '25 Booths Available',
+'price' => 'Rp 600,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Food & Beverage Festival',
+'category' => 'Food & Beverage',
+'categoryColor' => 'text-red-600',
+'gradientFrom' => 'from-red-400',
+'gradientTo' => 'to-red-600',
+'location' => 'Grand Mall, Surabaya',
+'date' => '20 January 2026',
+'booths' => '40 Booths Available',
+'price' => 'Rp 400,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Startup Showcase 2025',
+'category' => 'Business',
+'categoryColor' => 'text-orange-600',
+'gradientFrom' => 'from-yellow-400',
+'gradientTo' => 'to-orange-500',
+'location' => 'Tech Hub, Bandung',
+'date' => '10 March 2026',
+'booths' => '35 Booths Available',
+'price' => 'Rp 300,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Fashion Week Indonesia',
+'category' => 'Fashion',
+'categoryColor' => 'text-indigo-600',
+'gradientFrom' => 'from-indigo-400',
+'gradientTo' => 'to-indigo-600',
+'location' => 'Fashion Center, Jakarta',
+'date' => '25 April 2026',
+'booths' => '60 Booths Available',
+'price' => 'Rp 800,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Wellness Retreat 2026',
+'category' => 'Lifestyle',
+'categoryColor' => 'text-pink-600',
+'gradientFrom' => 'from-pink-400',
+'gradientTo' => 'to-pink-600',
+'location' => 'Resort & Spa, Bali',
+'date' => '5 June 2026',
+'booths' => '20 Booths Available',
+'price' => 'Rp 1,200,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Indie Music Fest 2026',
+'category' => 'Music',
+'categoryColor' => 'text-teal-600',
+'gradientFrom' => 'from-teal-400',
+'gradientTo' => 'to-teal-600',
+'location' => 'City Park, Yogyakarta',
+'date' => '18 July 2026',
+'booths' => '30 Booths Available',
+'price' => 'Rp 350,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Art & Culture Fair',
+'category' => 'Art & Culture',
+'categoryColor' => 'text-cyan-600',
+'gradientFrom' => 'from-cyan-400',
+'gradientTo' => 'to-cyan-600',
+'location' => 'National Gallery, Jakarta',
+'date' => '22 August 2026',
+'booths' => '45 Booths Available',
+'price' => 'Rp 450,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Weekend Market',
+'category' => 'Lifestyle',
+'categoryColor' => 'text-red-600',
+'gradientFrom' => 'from-red-400',
+'gradientTo' => 'to-yellow-500',
+'location' => 'City Square, Bandung',
+'date' => '10 September 2026',
+'booths' => '100 Booths Available',
+'price' => 'Rp 200,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Education Fair 2026',
+'category' => 'Education',
+'categoryColor' => 'text-green-600',
+'gradientFrom' => 'from-green-400',
+'gradientTo' => 'to-blue-500',
+'location' => 'University Hall, Surabaya',
+'date' => '15 October 2026',
+'booths' => '80 Booths Available',
+'price' => 'Rp 250,000',
+'url' => '#',
+'buttonType' => 'button'
+],
+[
+'name' => 'Comics & Hobbies Expo',
+'category' => 'Hobbies',
+'categoryColor' => 'text-purple-600',
+'gradientFrom' => 'from-purple-400',
+'gradientTo' => 'to-pink-500',
+'location' => 'Expo Center, Jakarta',
+'date' => '20 November 2026',
+'booths' => '120 Booths Available',
+'price' => 'Rp 300,000',
+'url' => '#',
+'buttonType' => 'button'
+]
+];
+@endphp
+
 <body class="bg-gray-50 min-h-screen">
     <!-- Navbar -->
     @include('components.navbar')
@@ -50,407 +212,47 @@
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Event Card 1 -->
+                    @foreach($events as $event)
                     <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-blue-600 text-xs font-semibold px-2 py-1 rounded-full">Technology</span>
+                        <div class="h-48 bg-gradient-to-br {{ $event['gradientFrom'] }} {{ $event['gradientTo'] }} relative">
+                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $event['categoryColor'] }} text-xs font-semibold px-2 py-1 rounded-full">{{ $event['category'] }}</span>
                         </div>
                         <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Tech Innovation Expo 2025</h3>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event['name'] }}</h3>
                             <div class="space-y-2 text-sm text-gray-600 mb-4">
                                 <div class="flex items-center">
                                     <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Convention Center, Jakarta</span>
+                                    <span>{{ $event['location'] }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 15 December 2025</span>
+                                    <span>{{ $event['date'] }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>50 Booths Available</span>
+                                    <span>{{ $event['booths'] }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 500,000</span>
+                                    <span>Starting from: {{ $event['price'] }}</span>
                                 </div>
                             </div>
-                            <a href="/event/details" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
+                            @if($event['buttonType'] === 'link')
+                            <a href="{{ $event['url'] }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
                                 View Details
                             </a>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 2 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-green-400 to-green-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-green-600 text-xs font-semibold px-2 py-1 rounded-full">Technology</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Tech Innovation Expo 2025</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Convention Center, Jakarta</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 15 December 2025</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>30 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 750,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
+                            @else
+                            <button class="w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 hover:cursor-pointer">
                                 View Details
                             </button>
+                            @endif
                         </div>
                     </div>
-
-                    <!-- Event Card 3 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-purple-400 to-purple-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-purple-600 text-xs font-semibold px-2 py-1 rounded-full">Technology</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Tech Innovation Expo 2025</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Convention Center, Jakarta</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 15 December 2025</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>25 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 600,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 4 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-red-400 to-red-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-red-600 text-xs font-semibold px-2 py-1 rounded-full">Food & Beverage</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Food & Beverage Festival</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Grand Mall, Surabaya</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 20 January 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>40 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 400,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 5 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-yellow-400 to-orange-500 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-orange-600 text-xs font-semibold px-2 py-1 rounded-full">Business</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Startup Showcase 2025</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Tech Hub, Bandung</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 10 March 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>35 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 300,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 6 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-indigo-400 to-indigo-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-indigo-600 text-xs font-semibold px-2 py-1 rounded-full">Fashion</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Fashion Week Indonesia</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Fashion Center, Jakarta</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 25 April 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>60 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 800,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 7 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-pink-400 to-pink-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-pink-600 text-xs font-semibold px-2 py-1 rounded-full">Lifestyle</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Wellness Retreat 2026</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Resort & Spa, Bali</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 5 June 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>20 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 1,200,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 8 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-teal-400 to-teal-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-teal-600 text-xs font-semibold px-2 py-1 rounded-full">Music</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Indie Music Fest 2026</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: City Park, Yogyakarta</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 18 July 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>30 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 350,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 9 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-cyan-400 to-cyan-600 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-cyan-600 text-xs font-semibold px-2 py-1 rounded-full">Art & Culture</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Art & Culture Fair</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: National Gallery, Jakarta</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 22 August 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>45 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 450,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 10 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-red-400 to-yellow-500 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-red-600 text-xs font-semibold px-2 py-1 rounded-full">Lifestyle</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Weekend Market</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: City Square, Bandung</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 10 September 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>100 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 200,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 11 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-green-400 to-blue-500 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-green-600 text-xs font-semibold px-2 py-1 rounded-full">Education</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Education Fair 2026</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: University Hall, Surabaya</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 15 October 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>80 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 250,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 12 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br from-purple-400 to-pink-500 relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 text-purple-600 text-xs font-semibold px-2 py-1 rounded-full">Hobbies</span>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Comics & Hobbies Expo</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Location: Expo Center, Jakarta</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Date: 20 November 2026</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>120 Booths Available</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: Rp 300,000</span>
-                                </div>
-                            </div>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 cursor-pointer">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-
-
-
+                    @endforeach
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-12 flex justify-center">
-                    <nav class="relative z-0 inline-flex rounded-lg shadow-md bg-white overflow-hidden" aria-label="Pagination">
-                        <a href="#" class="relative inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-[#ff7700] hover:text-white transition-colors duration-200">
-                            <span class="sr-only">Previous</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                        <a href="#" aria-current="page" class="z-10 bg-[#ff7700] border-[#ff7700] text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium shadow-sm"> 1 </a>
-                        <a href="#" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200"> 2 </a>
-                        <a href="#" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium transition-colors duration-200"> 3 </a>
-                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-200 bg-gray-50 text-sm font-medium text-gray-500"> ... </span>
-                        <a href="#" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium transition-colors duration-200"> 8 </a>
-                        <a href="#" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200"> 9 </a>
-                        <a href="#" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200"> 10 </a>
-                        <a href="#" class="relative inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-[#ff7700] hover:text-white transition-colors duration-200">
-                            <span class="sr-only">Next</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    </nav>
-                </div>
+                @include('components.pagination', ['showEllipsis' => true])
             </div>
         </section>
     </div>

@@ -25,3 +25,7 @@ Route::get('/events', function () {
 Route::get('/event/details', function () {
     return view('events.details');
 })->name('eventdetails');
+
+Route::get('/my-bookings', function () {
+    return view('my-bookings.index');
+})->name('my-bookings');
