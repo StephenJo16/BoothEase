@@ -29,3 +29,7 @@ Route::get('/event/details', function () {
 Route::get('/my-bookings', function () {
     return view('my-bookings.index');
 })->name('my-bookings');
+
+Route::get('/my-events', function () {
+    return view('my-events.index');
+})->name('my-events');

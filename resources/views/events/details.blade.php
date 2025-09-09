@@ -195,7 +195,7 @@ $reviews = [
                         <div class="border-b border-gray-200">
                             <nav class="flex">
                                 @foreach($tabs as $index => $tab)
-                                <button class="hover:cursor-pointer {{ $tab['active'] ? 'bg-[#ff7700] text-white border-[#ff7700]' : 'text-gray-600 hover:text-gray-800 border-transparent hover:border-gray-300' }} px-6 py-3 font-medium border-b-2 transition-colors duration-200" onclick="showTab('{{ strtolower($tab['name']) }}')">
+                                <button class="hover:cursor-pointer px-6 py-3 font-medium border-b-2 transition-colors duration-200 @if($tab['active']) bg-[#ff7700] text-white border-[#ff7700] @else text-gray-600 hover:text-gray-800 border-transparent hover:border-gray-300 @endif" onclick="showTab('{{ strtolower($tab['name']) }}')">
                                     {{ $tab['name'] }}
                                 </button>
                                 @endforeach
