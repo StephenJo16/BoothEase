@@ -3,7 +3,7 @@
         onclick="history.back()"
         class="group" aria-label="Go back">
         <svg
-            class="w-10 h-10 text-gray-400 group-hover:text-[#ff7700] transition-colors duration-200" fill="none"
+            class="hover:cursor-pointer w-10 h-10 text-gray-400 group-hover:text-[#ff7700] transition-colors duration-200" fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg">

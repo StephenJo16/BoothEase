@@ -13,7 +13,7 @@
                 <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">Event List</a>
                 <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">How it Works</a>
                 <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">Pricing</a>
-                <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">FAQ</a>
+                <a href="{{ route('faq') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">FAQ</a>
 
                 <!-- User Icon/Profile -->
                 <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:cursor-pointer">
@@ -40,7 +40,9 @@
             <a href="#" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">Event List</a>
             <a href="#" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">How it Works</a>
             <a href="#" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">Pricing</a>
-            <a href="#" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">FAQ</a>
+            <a href="{{ route('faq') }}" class="text-gray-700 hover:text-[#ff7700] px-3 py-2 text-sm font-medium transition-colors">
+                FAQ
+            </a>
         </div>
     </div>
 </nav>
