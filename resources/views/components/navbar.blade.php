@@ -10,7 +10,7 @@
 
             <!-- Navigation Links and User Menu -->
             <div class="hidden md:flex items-center space-x-8">
-                <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">Event List</a>
+                <a href="{{ route('events') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">Events</a>
                 <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">How it Works</a>
                 <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">Pricing</a>
                 <a href="{{ route('faq') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">FAQ</a>
