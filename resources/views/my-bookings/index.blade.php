@@ -74,10 +74,6 @@ $bookings = [
     <!-- Main Content -->
     <div class="min-h-screen py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Back Button -->
-            <div class="mb-6">
-                @include('components.back-button', ['url' => '/', 'text' => 'Back'])
-            </div>
 
             <!-- Header -->
             <div class="text-center mb-8">
@@ -142,7 +138,7 @@ $bookings = [
 
             <!-- Booking Cards -->
             <div class="space-y-6">
-                @foreach($bookings as $booking)
+                @foreach($bookings as $index => $booking)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
@@ -205,9 +201,15 @@ $bookings = [
                             <button class="hover:cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 Request Refund
                             </button>
+                            @if($index === 0)
+                            <a href="{{ route('my-booking-details')}}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
+                                View Details
+                            </a>
+                            @else
                             <button class="hover:cursor-pointer bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 View Details
                             </button>
+                            @endif
                         </div>
                     </div>
                 </div>

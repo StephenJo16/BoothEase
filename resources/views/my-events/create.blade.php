@@ -45,8 +45,8 @@
 
     <!-- Main Content -->
     <div class="min-h-screen py-8">
-        @include('components.back-button')
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events')])
 
             <!-- Header Section -->
             <div class="flex justify-between items-center mb-8">

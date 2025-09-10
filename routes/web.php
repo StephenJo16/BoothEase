@@ -30,6 +30,10 @@ Route::get('/my-bookings', function () {
     return view('my-bookings.index');
 })->name('my-bookings');
 
+Route::get('/my-bookings/details', function () {
+    return view('my-bookings.details');
+})->name('my-booking-details');
+
 Route::get('/my-events', function () {
     return view('my-events.index');
 })->name('my-events');
