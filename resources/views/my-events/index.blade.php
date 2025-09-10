@@ -124,8 +124,10 @@ $myEvents = [
                     </div>
                 </div>
                 <button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                    <i class="fas fa-plus mr-2"></i>
-                    Create New Event
+                    <a href="{{ route('create-event') }}">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create New Event
+                    </a>
                 </button>
             </div>
 

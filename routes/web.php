@@ -33,3 +33,7 @@ Route::get('/my-bookings', function () {
 Route::get('/my-events', function () {
     return view('my-events.index');
 })->name('my-events');
+
+Route::get('/my-events/create', function () {
+    return view('my-events.create');
+})->name('create-event');
