@@ -152,9 +152,7 @@ $reviews = [
     <div class="min-h-screen py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
-            <div class="mb-6">
-                @include('components.back-button', ['url' => '/events', 'text' => 'Back to Events'])
-            </div>
+            @include('components.back-button', ['url' => '/events', 'text' => 'Back to Events'])
 
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 <!-- Left Column - Event Info -->
@@ -482,6 +480,81 @@ $reviews = [
                                     Contact Organizer
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Requests -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-semibold text-gray-900">Booking Requests</h2>
+                            <button class="text-[#ff7700] hover:text-orange-600 text-sm font-medium">View All</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Booth</th>
+                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Company</th>
+                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Requested On</th>
+                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Amount</th>
+                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Status</th>
+                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr>
+                                        <td class="py-3 text-sm font-medium text-gray-900">A01</td>
+                                        <td class="py-3 text-sm text-gray-600">Tech Innovators Inc.</td>
+                                        <td class="py-3 text-sm text-gray-600">15 Oct 2025</td>
+                                        <td class="py-3 text-sm text-gray-900">Rp1,200,000</td>
+                                        <td class="py-3">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Pending
+                                            </span>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="flex gap-2">
+                                                <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
+                                                <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 text-sm font-medium text-gray-900">B05</td>
+                                        <td class="py-3 text-sm text-gray-600">Future Tech Ltd.</td>
+                                        <td class="py-3 text-sm text-gray-600">12 Oct 2025</td>
+                                        <td class="py-3 text-sm text-gray-900">Rp1,200,000</td>
+                                        <td class="py-3">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Pending
+                                            </span>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="flex gap-2">
+                                                <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
+                                                <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 text-sm font-medium text-gray-900">A06</td>
+                                        <td class="py-3 text-sm text-gray-600">Sustainable Tech Co.</td>
+                                        <td class="py-3 text-sm text-gray-600">10 Oct 2025</td>
+                                        <td class="py-3 text-sm text-gray-900">Rp1,200,000</td>
+                                        <td class="py-3">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Pending
+                                            </span>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="flex gap-2">
+                                                <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
+                                                <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -185,28 +185,20 @@ $events = [
 
     <!-- Main Content -->
     <div class="min-h-screen">
-        <!-- Header Section -->
-        <section class="bg-white py-16 border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">All Events</h1>
-                <p class="text-lg text-gray-600">Browse through our extensive list of events</p>
-            </div>
-        </section>
+        @include('components.header', ['title' => 'All Events', 'subtitle' => 'Browse through our extensive list of events'])
 
         <!-- Search and Filter Section -->
-        <section class="py-8 bg-gray-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                    <div class="w-full sm:w-96">
-                        @include('components.search-bar', ['placeholder' => 'Search events...'])
-                    </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                <div class="w-full sm:w-96">
+                    @include('components.search-bar', ['placeholder' => 'Search events...'])
+                </div>
 
-                    <div class="w-full sm:w-auto">
-                        @include('components.filter-button', ['label' => 'Filter'])
-                    </div>
+                <div class="w-full sm:w-auto">
+                    @include('components.filter-button', ['label' => 'Filter'])
                 </div>
             </div>
-        </section>
+        </div>
 
         <!-- Events Grid -->
         <section class="py-8">

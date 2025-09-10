@@ -72,14 +72,10 @@ $bookings = [
     @include('components.navbar')
 
     <!-- Main Content -->
-    <div class="min-h-screen py-8">
+    <div class="min-h-screen">
+        <!-- Header -->
+        @include('components.header', ['title' => 'My Bookings', 'subtitle' => 'Manage Your Booth Reservations'])
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">My Bookings</h1>
-                <p class="text-gray-600">Manage Your Booth Reservations</p>
-            </div>
 
             <!-- Statistics Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

@@ -106,14 +106,12 @@ $myEvents = [
     @include('components.navbar')
 
     <!-- Main Content -->
-    <div class="min-h-screen py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Header Section -->
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-bold text-gray-900">My Events</h1>
-            </div>
+    <div class="min-h-screen">
+        <!-- Header Section -->
+        @include('components.header', ['title' => 'My Events', 'subtitle' => 'Manage your events'])
 
-            <!-- Search, Filter, and Create New Event Section -->
+        <!-- Search, Filter, and Create New Event Section -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-8">
                 <div class="flex w-full md:w-auto gap-2 flex-1">
                     <div class="w-full md:w-96">
@@ -123,17 +121,18 @@ $myEvents = [
                         @include('components.filter-button', ['label' => 'Filter'])
                     </div>
                 </div>
-                <button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                    <a href="{{ route('create-event') }}">
-                        <i class="fas fa-plus mr-2"></i>
-                        Create New Event
-                    </a>
-                </button>
+                <a href="{{ route('create-event') }}" class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 inline-flex items-center">
+                    <i class="fas fa-plus mr-2"></i>
+                    Create New Event
+                </a>
             </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- Events Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($myEvents as $event)
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @foreach($myEvents as $index => $event)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                     <!-- Event Header -->
                     <div class="p-6 border-b border-gray-100">
@@ -194,12 +193,15 @@ $myEvents = [
                                 Edit
                             </button>
                             @elseif($event['status'] === 'Active')
-                            <button class="flex-1 bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
-                                Manage
-                            </button>
-                            <button class="flex-1 bg-gray-100 hover:bg-gray-200 hover:cursor-pointer text-gray-800 text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
+                            @if($index === 0)
+                            <a href="{{ url('/my-events/details') }}" class="flex-1 bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200 inline-block text-center">
+                                View
+                            </a>
+                            @else
+                            <button class="flex-1 bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
                                 View
                             </button>
+                            @endif
                             @elseif($event['status'] === 'Completed')
                             <button class="flex-1 bg-gray-100 hover:bg-gray-200 hover:cursor-pointer text-gray-800 text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
                                 View Report

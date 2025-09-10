@@ -170,7 +170,7 @@
                             <div class="border-t pt-4">
                                 <div class="flex justify-between text-lg font-semibold">
                                     <span>Total Amount</span>
-                                    <span class="text-[#ff7700]">Rp100.000</span>
+                                    <span class="text-[#ff7700]">Rp500.000</span>
                                 </div>
                             </div>
                         </div>
@@ -238,14 +238,16 @@
 
                     <!-- Action Buttons -->
                     <div class="space-y-3">
-                        <button class="w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                        <button class="mb-2 w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             <i class="fas fa-download mr-2"></i>
                             Download Invoice
                         </button>
-                        <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            <i class="fas fa-undo mr-2"></i>
-                            Request Refund
-                        </button>
+                        <a href="{{ route('request-refund') }}">
+                            <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-undo mr-2"></i>
+                                Request Refund
+                            </button>
+                        </a>
                     </div>
                 </div>
             </div>

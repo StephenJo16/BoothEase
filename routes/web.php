@@ -41,3 +41,11 @@ Route::get('/my-events', function () {
 Route::get('/my-events/create', function () {
     return view('my-events.create');
 })->name('create-event');
+
+Route::get('/my-events/details', function () {
+    return view('my-events.details');
+})->name('my-event-details');
+
+Route::get('/request-refund', function () {
+    return view('request-refund.index');
+})->name('request-refund');
