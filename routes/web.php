@@ -49,3 +49,7 @@ Route::get('/my-events/details', function () {
 Route::get('/request-refund', function () {
     return view('request-refund.index');
 })->name('request-refund');
+
+Route::get('refund-requests', function () {
+    return view('refund-requests.index');
+})->name('refund-requests');

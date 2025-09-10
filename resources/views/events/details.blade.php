@@ -190,15 +190,7 @@ $reviews = [
 
                     <!-- Event Details Tabs -->
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div class="border-b border-gray-200">
-                            <nav class="flex">
-                                @foreach($tabs as $index => $tab)
-                                <button class="hover:cursor-pointer px-6 py-3 font-medium border-b-2 transition-colors duration-200 @if($tab['active']) bg-[#ff7700] text-white border-[#ff7700] @else text-gray-600 hover:text-gray-800 border-transparent hover:border-gray-300 @endif" onclick="showTab('{{ strtolower($tab['name']) }}')">
-                                    {{ $tab['name'] }}
-                                </button>
-                                @endforeach
-                            </nav>
-                        </div>
+                        @include('components.tabs', ['tabs' => $tabs, 'onclick' => 'showTab'])
 
                         <!-- Booths Tab -->
                         <div id="booths" class="tab-content p-6">
@@ -483,115 +475,41 @@ $reviews = [
                         </div>
                     </div>
 
-                    <!-- Booking Requests -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-semibold text-gray-900">Booking Requests</h2>
-                            <button class="text-[#ff7700] hover:text-orange-600 text-sm font-medium">View All</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-200">
-                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Booth</th>
-                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Company</th>
-                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Requested On</th>
-                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Amount</th>
-                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Status</th>
-                                        <th class="text-left text-sm font-medium text-gray-700 pb-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr>
-                                        <td class="py-3 text-sm font-medium text-gray-900">A01</td>
-                                        <td class="py-3 text-sm text-gray-600">Tech Innovators Inc.</td>
-                                        <td class="py-3 text-sm text-gray-600">15 Oct 2025</td>
-                                        <td class="py-3 text-sm text-gray-900">Rp1,200,000</td>
-                                        <td class="py-3">
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                Pending
-                                            </span>
-                                        </td>
-                                        <td class="py-3">
-                                            <div class="flex gap-2">
-                                                <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
-                                                <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-3 text-sm font-medium text-gray-900">B05</td>
-                                        <td class="py-3 text-sm text-gray-600">Future Tech Ltd.</td>
-                                        <td class="py-3 text-sm text-gray-600">12 Oct 2025</td>
-                                        <td class="py-3 text-sm text-gray-900">Rp1,200,000</td>
-                                        <td class="py-3">
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                Pending
-                                            </span>
-                                        </td>
-                                        <td class="py-3">
-                                            <div class="flex gap-2">
-                                                <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
-                                                <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-3 text-sm font-medium text-gray-900">A06</td>
-                                        <td class="py-3 text-sm text-gray-600">Sustainable Tech Co.</td>
-                                        <td class="py-3 text-sm text-gray-600">10 Oct 2025</td>
-                                        <td class="py-3 text-sm text-gray-900">Rp1,200,000</td>
-                                        <td class="py-3">
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                Pending
-                                            </span>
-                                        </td>
-                                        <td class="py-3">
-                                            <div class="flex gap-2">
-                                                <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
-                                                <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Footer -->
-    @include('components.footer')
+        <!-- Footer -->
+        @include('components.footer')
 
-    <script>
-        function showTab(tabName) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
+        <script>
+            function showTab(tabName) {
+                // Hide all tab contents
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
 
-            // Remove active styles from all tab buttons
-            const tabButtons = document.querySelectorAll('nav button');
-            tabButtons.forEach(button => {
-                button.classList.remove('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
-                button.classList.add('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
-            });
+                // Remove active styles from all tab buttons
+                const tabButtons = document.querySelectorAll('nav button');
+                tabButtons.forEach(button => {
+                    button.classList.remove('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
+                    button.classList.add('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
+                });
 
-            // Show the selected tab content
-            const selectedTab = document.getElementById(tabName);
-            if (selectedTab) {
-                selectedTab.classList.remove('hidden');
+                // Show the selected tab content
+                const selectedTab = document.getElementById(tabName);
+                if (selectedTab) {
+                    selectedTab.classList.remove('hidden');
+                }
+
+                // Add active styles to the clicked button
+                const clickedButton = event.target;
+                clickedButton.classList.remove('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
+                clickedButton.classList.add('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
             }
-
-            // Add active styles to the clicked button
-            const clickedButton = event.target;
-            clickedButton.classList.remove('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
-            clickedButton.classList.add('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
-        }
-    </script>
+        </script>
 </body>
 
 </html>

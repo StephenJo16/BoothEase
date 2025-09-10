@@ -110,7 +110,7 @@ $bookings = [
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
                             <p class="text-sm text-gray-600 mb-1">Total Spent</p>
-                            <p class="text-3xl font-bold text-gray-900">Rp300.000</p>
+                            <p class="text-3xl font-bold text-gray-900">Rp1.500.000</p>
                         </div>
                         <div class="bg-orange-100 p-3 rounded-full">
                             <i class="fas fa-money-bill text-[#ff7700] text-xl"></i>
@@ -121,15 +121,7 @@ $bookings = [
 
             <!-- Filter Tabs -->
             <div class="bg-white rounded-lg shadow-md mb-6">
-                <div class="border-b border-gray-200">
-                    <nav class="flex">
-                        @foreach($filterTabs as $index => $tab)
-                        <button class="hover:cursor-pointer {{ $tab['active'] ? 'bg-[#ff7700] text-white border-[#ff7700]' : 'text-gray-600 hover:text-gray-800 border-transparent hover:border-gray-300' }} px-6 py-3 font-medium border-b-2 transition-colors duration-200 {{ $index === 0 ? 'rounded-tl-lg' : '' }}">
-                            {{ $tab['name'] }}
-                        </button>
-                        @endforeach
-                    </nav>
-                </div>
+                @include('components.tabs', ['tabs' => $filterTabs])
             </div>
 
             <!-- Booking Cards -->
@@ -194,7 +186,7 @@ $bookings = [
 
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
-                            <button class="hover:cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                            <button class="hover:cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 Request Refund
                             </button>
                             @if($index === 0)
