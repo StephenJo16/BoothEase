@@ -121,28 +121,28 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
-                                    <input type="date" name="start_date" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none">
+                                    @include('components.date-selector', ['name' => 'start_date', 'required' => true])
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
-                                    <input type="date" name="end_date" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none">
+                                    @include('components.date-selector', ['name' => 'end_date', 'required' => true])
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
-                                    <input type="time" name="start_time" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none">
+                                    @include('components.time-selector', ['name' => 'start_time'])
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
-                                    <input type="time" name="end_time" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none">
+                                    @include('components.time-selector', ['name' => 'end_time'])
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Registration Deadline</label>
-                                <input type="date" name="registration_deadline" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none">
+                                @include('components.date-selector', ['name' => 'registration_deadline'])
                             </div>
                         </div>
                     </div>

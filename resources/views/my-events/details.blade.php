@@ -30,7 +30,7 @@
     ];
 
     // Prepare table headers
-    $tableHeaders = [
+    $headers = [
     ['title' => 'Booth', 'class' => 'text-sm'],
     ['title' => 'Business Name', 'class' => 'text-sm'],
     ['title' => 'Requested On', 'class' => 'text-sm'],
@@ -40,29 +40,28 @@
     ];
 
     // Prepare table rows
-    $tableRows = [];
-    foreach($bookingRequests as $request) {
+    $rows = [];
+    foreach ($bookingRequests as $request) {
     // Determine status badge HTML
     $statusBadge = '';
-    if($request['status'] === 'Pending') {
+    if ($request['status'] === 'Pending') {
     $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>';
-    } elseif($request['status'] === 'Approved') {
+    } elseif ($request['status'] === 'Approved') {
     $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>';
-    } elseif($request['status'] === 'Rejected') {
+    } elseif ($request['status'] === 'Rejected') {
     $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>';
     } else {
     $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">' . $request['status'] . '</span>';
     }
 
     // Action buttons HTML
-    $actionButtons = '
-    <div class="flex gap-2">
-        <button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>
-        <button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>
-    </div>
-    ';
+    $actionButtons = '<div class="flex gap-2">'
+        . '<button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>'
+        . '<button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>'
+        . '</div>';
 
-    $tableRows[] = [
+    $rows[] = [
+    'rowClass' => 'h-20',
     'cells' => [
     ['content' => $request['booth'], 'class' => 'text-sm font-medium text-gray-900'],
     ['content' => $request['business'], 'class' => 'text-sm text-gray-600'],
@@ -175,12 +174,12 @@
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-semibold text-gray-900">Booking Requests</h2>
-                            <button class="text-[#ff7700] hover:text-orange-600 text-sm font-medium">View All</button>
+                            <a href="{{ route('booking-requests') }}" class="text-[#ff7700] hover:text-orange-600 text-sm font-medium">View All</a>
                         </div>
 
                         @include('components.table', [
-                        'headers' => $tableHeaders,
-                        'rows' => $tableRows,
+                        'headers' => $headers,
+                        'rows' => $rows,
                         'tableClass' => 'w-full',
                         'containerClass' => 'overflow-x-auto'
                         ])

@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,6 +30,8 @@ $event = [
 'address' => 'Jl. Gatot Subroto No.1, Jakarta Selatan, DKI Jakarta 12930'
 ];
 
+
+
 // Tabs Data
 $tabs = [
 ['name' => 'Booths', 'active' => true],
@@ -45,7 +44,7 @@ $tabs = [
 // Booths Data
 $booths = [
 [
-'number' => 'A01',
+'booth' => 'A01',
 'size' => '5x4m',
 'location' => 'Main Hall - Front',
 'price' => 'Rp500,000',
@@ -54,7 +53,7 @@ $booths = [
 'available' => false
 ],
 [
-'number' => 'A02',
+'booth' => 'A02',
 'size' => '5x4m',
 'location' => 'Main Hall - Front',
 'price' => 'Rp500,000',
@@ -63,7 +62,7 @@ $booths = [
 'available' => true
 ],
 [
-'number' => 'A03',
+'booth' => 'A03',
 'size' => '3x3m',
 'location' => 'Main Hall - Middle',
 'price' => 'Rp350,000',
@@ -72,7 +71,7 @@ $booths = [
 'available' => true
 ],
 [
-'number' => 'B01',
+'booth' => 'B01',
 'size' => '4x4m',
 'location' => 'Side Hall - Premium',
 'price' => 'Rp750,000',
@@ -81,6 +80,51 @@ $booths = [
 'available' => true
 ]
 ];
+
+$headers = [
+['title' => 'Booth booth', 'class' => 'w-24'],
+['title' => 'Size', 'class' => 'w-16'],
+['title' => 'Location', 'class' => 'w-40'],
+['title' => 'Price', 'class' => 'w-24'],
+['title' => 'Status', 'class' => 'w-20'],
+['title' => 'Action', 'class' => 'w-28'],
+];
+
+// Transform booths data into rows format
+$rows = [];
+foreach($booths as $booth) {
+$rows[] = [
+'rowClass' => 'h-20',
+'cells' => [
+[
+'content' => $booth['booth'],
+'class' => 'font-medium text-gray-900'
+],
+[
+'content' => $booth['size'],
+'class' => 'text-gray-600'
+],
+[
+'content' => $booth['location'],
+'class' => 'text-gray-600'
+],
+[
+'content' => $booth['price'],
+'class' => 'text-gray-900 font-medium'
+],
+[
+'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $booth['statusColor'] . '">' . $booth['status'] . '</span>',
+'class' => ''
+],
+[
+'content' => $booth['available']
+? '<button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm px-4 py-2 rounded-lg transition-colors duration-200">Select</button>'
+: '<span class="text-gray-400 text-sm whitespace-nowrap">Not Available</span>',
+'class' => ''
+]
+]
+];
+}
 
 // Schedule Data
 $schedule = [
@@ -200,42 +244,10 @@ $reviews = [
                             </div>
 
                             <div class="overflow-x-auto">
-                                <table class="w-full">
-                                    <thead>
-                                        <tr class="border-b border-gray-200">
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700 w-20">Booth Number</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700 w-16">Size</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700 w-40">Location</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700 w-24">Price</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700 w-20">Status</th>
-                                            <th class="text-left py-3 px-4 font-medium text-gray-700 w-28">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200">
-                                        @foreach($booths as $booth)
-                                        <tr class="h-20">
-                                            <td class="py-4 px-4 font-medium text-gray-900 align-middle">{{ $booth['number'] }}</td>
-                                            <td class="py-4 px-4 text-gray-600 align-middle">{{ $booth['size'] }}</td>
-                                            <td class="py-4 px-4 text-gray-600 align-middle">{{ $booth['location'] }}</td>
-                                            <td class="py-4 px-4 text-gray-900 font-medium align-middle">{{ $booth['price'] }}</td>
-                                            <td class="py-4 px-4 align-middle">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $booth['statusColor'] }}">
-                                                    {{ $booth['status'] }}
-                                                </span>
-                                            </td>
-                                            <td class="py-4 px-4 align-middle">
-                                                @if($booth['available'])
-                                                <button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm px-4 py-2 rounded-lg transition-colors duration-200">
-                                                    Select
-                                                </button>
-                                                @else
-                                                <span class="text-gray-400 text-sm whitespace-nowrap">Not Available</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                @include(' components.table', [
+                                'headers' => $headers,
+                                'rows' => $rows,
+                                ])
                             </div>
                         </div>
 
@@ -316,11 +328,11 @@ $reviews = [
                                             <div class="flex-1 ml-4">
                                                 <p class="font-medium text-gray-900">{{ $scheduleEvent['title'] }}</p>
                                                 <span class="inline-block mt-1 px-2 py-1 text-xs font-medium rounded-full
-                                                    @if($scheduleEvent['type'] === 'Keynote') bg-blue-100 text-blue-800
-                                                    @elseif($scheduleEvent['type'] === 'Panel') bg-green-100 text-green-800
-                                                    @elseif($scheduleEvent['type'] === 'Workshop') bg-purple-100 text-purple-800
-                                                    @elseif($scheduleEvent['type'] === 'Break') bg-yellow-100 text-yellow-800
-                                                    @else bg-gray-100 text-gray-800
+                                                    @if($scheduleEvent['type'] === 'Keynote'){ bg-blue-100 text-blue-800}
+                                                    @elseif($scheduleEvent['type'] === 'Panel'){ bg-green-100 text-green-800}
+                                                    @elseif($scheduleEvent['type'] === 'Workshop'){ bg-purple-100 text-purple-800}
+                                                    @elseif($scheduleEvent['type'] === 'Break'){ bg-yellow-100 text-yellow-800}
+                                                    @else{ bg-gray-100 text-gray-800}
                                                     @endif">
                                                     {{ $scheduleEvent['type'] }}
                                                 </span>

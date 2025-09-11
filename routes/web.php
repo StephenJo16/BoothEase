@@ -53,3 +53,8 @@ Route::get('/request-refund', function () {
 Route::get('refund-requests', function () {
     return view('refund-requests.index');
 })->name('refund-requests');
+
+
+Route::get('/booking-requests', function () {
+    return view('booking-requests.index');
+})->name('booking-requests');
