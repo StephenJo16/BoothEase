@@ -13,66 +13,81 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+@php
+// Define booking requests data
+$bookingRequests = [
+['booth' => 'A01', 'business' => 'Pegasus Peripherals', 'requestedOn' => '15 Oct 2025', 'price' => '1200000', 'status' => 'Pending'],
+['booth' => 'B05', 'business' => 'BallYards', 'requestedOn' => '12 Oct 2025', 'price' => '1200000', 'status' => 'Pending'],
+['booth' => 'A06', 'business' => 'HealthyGo', 'requestedOn' => '10 Oct 2025', 'price' => '1200000', 'status' => 'Pending'],
+];
 
-<body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
+// Revenue numbers (integers, in IDR)
+$boothFees = 20250000; // amount that goes to organizer
+$serviceFees = 405000; // platform/service fees
+$totalCollected = $boothFees + $serviceFees; // total money collected
+$organizerRevenue = $boothFees - $serviceFees; // organizer receives booth fees minus service fees
+
+// Prepare table headers
+$headers = [
+['title' => 'Booth', 'class' => 'text-sm'],
+['title' => 'Business Name', 'class' => 'text-sm'],
+['title' => 'Requested On', 'class' => 'text-sm'],
+['title' => 'Price', 'class' => 'text-sm'],
+['title' => 'Status', 'class' => 'text-sm'],
+['title' => 'Action', 'class' => 'text-sm']
+];
+
+// Prepare table rows
+$rows = [];
+foreach ($bookingRequests as $request) {
+// Determine status badge HTML
+$statusBadge = '';
+if ($request['status'] === 'Pending') {
+$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>';
+} elseif ($request['status'] === 'Approved') {
+$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>';
+} elseif ($request['status'] === 'Rejected') {
+$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>';
+} else {
+$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">' . $request['status'] . '</span>';
+}
+
+// Action buttons HTML
+$actionButtons = '<div class="flex gap-2">'
+    . '<button class="hover:cursor-pointer bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded transition-colors">Approve</button>'
+    . '<button class="hover:cursor-pointer bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded transition-colors">Reject</button>'
+    . '</div>';
+
+
+$rows[] = [
+'rowClass' => 'h-20',
+'cells' => [
+['content' => $request['booth'], 'class' => 'text-sm font-medium text-gray-900'],
+['content' => $request['business'], 'class' => 'text-sm text-gray-600'],
+['content' => $request['requestedOn'], 'class' => 'text-sm text-gray-600'],
+['content' => formatRupiah($request['price']), 'class' => 'text-sm text-gray-900'],
+['content' => $statusBadge, 'class' => ''],
+['content' => $actionButtons, 'class' => '']
+]
+];
+}
+@endphp
+
+<body class="bg-gray-50 min-h-screen">
     <!-- Navbar -->
     @include('components.navbar')
-
-    @php
-    // Define booking requests data
-    $bookingRequests = [
-    ['booth' => 'A01', 'business' => 'Pegasus Peripherals', 'requestedOn' => '15 Oct 2025', 'price' => 'Rp1,200,000', 'status' => 'Pending'],
-    ['booth' => 'B05', 'business' => 'BallYards', 'requestedOn' => '12 Oct 2025', 'price' => 'Rp1,200,000', 'status' => 'Pending'],
-    ['booth' => 'A06', 'business' => 'HealthyGo', 'requestedOn' => '10 Oct 2025', 'price' => 'Rp1,200,000', 'status' => 'Pending'],
-    ];
-
-    // Prepare table headers
-    $headers = [
-    ['title' => 'Booth', 'class' => 'text-sm'],
-    ['title' => 'Business Name', 'class' => 'text-sm'],
-    ['title' => 'Requested On', 'class' => 'text-sm'],
-    ['title' => 'Price', 'class' => 'text-sm'],
-    ['title' => 'Status', 'class' => 'text-sm'],
-    ['title' => 'Action', 'class' => 'text-sm']
-    ];
-
-    // Prepare table rows
-    $rows = [];
-    foreach ($bookingRequests as $request) {
-    // Determine status badge HTML
-    $statusBadge = '';
-    if ($request['status'] === 'Pending') {
-    $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>';
-    } elseif ($request['status'] === 'Approved') {
-    $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>';
-    } elseif ($request['status'] === 'Rejected') {
-    $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>';
-    } else {
-    $statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">' . $request['status'] . '</span>';
-    }
-
-    // Action buttons HTML
-    $actionButtons = '<div class="flex gap-2">'
-        . '<button class="bg-green-100 hover:bg-green-200 text-green-800 text-sm px-3 py-1 rounded-lg">Approve</button>'
-        . '<button class="bg-red-100 hover:bg-red-200 text-red-800 text-sm px-3 py-1 rounded-lg">Reject</button>'
-        . '</div>';
-
-    $rows[] = [
-    'rowClass' => 'h-20',
-    'cells' => [
-    ['content' => $request['booth'], 'class' => 'text-sm font-medium text-gray-900'],
-    ['content' => $request['business'], 'class' => 'text-sm text-gray-600'],
-    ['content' => $request['requestedOn'], 'class' => 'text-sm text-gray-600'],
-    ['content' => $request['price'], 'class' => 'text-sm text-gray-900'],
-    ['content' => $statusBadge, 'class' => ''],
-    ['content' => $actionButtons, 'class' => '']
-    ]
-    ];
-    }
-    @endphp
 
     <!-- Main Content -->
     <div class="min-h-screen py-8">
@@ -86,7 +101,7 @@
                         <p class="text-gray-600">Technology • 16 - 20 November 2025</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button class="bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                        <button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                             <i class="fas fa-edit mr-2"></i>
                             Edit Event
                         </button>
@@ -101,7 +116,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600 mb-1">Total Revenue</p>
-                            <p class="text-2xl font-bold text-gray-900">Rp25,500,000</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ formatRupiah($organizerRevenue) }}</p>
                         </div>
                         <div class="bg-green-100 p-3 rounded-full">
                             <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
@@ -192,17 +207,13 @@
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
                         <div class="space-y-3">
-                            <button class="w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
+                            <button class="w-full bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
                                 <i class="fas fa-download mr-2"></i>
                                 Download Report
                             </button>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
+                            <button class="w-full bg-gray-100 hover:bg-gray-200 hover:cursor-pointer text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
                                 <i class="fas fa-edit mr-2"></i>
                                 Edit Details
-                            </button>
-                            <button class="w-full bg-green-100 hover:bg-green-200 text-green-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
-                                <i class="fas fa-copy mr-2"></i>
-                                Duplicate Event
                             </button>
                         </div>
                     </div>
@@ -213,16 +224,16 @@
                         <div class="space-y-4">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Booth Fees</span>
-                                <span class="font-medium">Rp20,250,000</span>
+                                <span class="font-medium">{{ formatRupiah($boothFees) }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Service Fees</span>
-                                <span class="font-medium">Rp5,250,000</span>
+                                <span class="font-medium">{{ formatRupiah($serviceFees) }}</span>
                             </div>
                             <div class="border-t pt-3">
                                 <div class="flex justify-between text-lg font-semibold">
-                                    <span>Total Revenue</span>
-                                    <span class="text-[#ff7700]">Rp25,500,000</span>
+                                    <span>Organizer Revenue</span>
+                                    <span class="text-[#ff7700]">{{ formatRupiah($organizerRevenue) }}</span>
                                 </div>
                             </div>
                         </div>

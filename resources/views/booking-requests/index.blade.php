@@ -23,16 +23,25 @@
 @php
 // Add this to your controller or at the top of your blade file in @php block
 
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
 // Sample booking requests data
 $bookingRequests = [
 [
 'id' => 'REQ001',
 'booth_number' => 'A01',
 'location' => 'Hall 1',
-'company_name' => 'Pegasus Peripherals',
+'tenant' => 'Pegasus Peripherals',
 'contact_person' => 'Darth Vader',
 'phone' => '+62 812-3456-7890',
-'price' => 'Rp 500,000',
+'price' => '500000',
 'request_date' => '2025-09-01',
 'status' => 'pending',
 'notes' => 'Need power outlet near booth'
@@ -41,10 +50,10 @@ $bookingRequests = [
 'id' => 'REQ002',
 'booth_number' => 'A02',
 'location' => 'Hall 2',
-'company_name' => 'BallYards',
+'tenant' => 'BallYards',
 'contact_person' => 'Obi Wan',
 'phone' => '+62 813-9876-5432',
-'price' => 'Rp 500,000',
+'price' => '500000',
 'request_date' => '2025-09-02',
 'status' => 'approved',
 'notes' => ''
@@ -53,10 +62,10 @@ $bookingRequests = [
 'id' => 'REQ003',
 'booth_number' => 'B01',
 'location' => 'Main Hall',
-'company_name' => 'HealthyGo',
+'tenant' => 'HealthyGo',
 'contact_person' => 'Jackie Chan',
 'phone' => '+62 814-5555-1234',
-'price' => 'Rp 750,000',
+'price' => '750000',
 'request_date' => '2025-09-03',
 'status' => 'rejected',
 'notes' => 'Booth not suitable for equipment requirements'
@@ -65,10 +74,10 @@ $bookingRequests = [
 'id' => 'REQ004',
 'booth_number' => 'A03',
 'location' => 'In front of entrance',
-'company_name' => 'NourishScan',
+'tenant' => 'NourishScan',
 'contact_person' => 'Chris Tucker',
 'phone' => '+62 815-7777-8888',
-'price' => 'Rp 350,000',
+'price' => '350000',
 'request_date' => '2025-09-04',
 'status' => 'pending',
 'notes' => 'First-time exhibitor'
@@ -126,7 +135,7 @@ $rows[] = [
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => $request['company_name'],
+'content' => $request['tenant'],
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
@@ -145,7 +154,7 @@ $rows[] = [
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => $request['price'],
+'content' => formatRupiah($request['price']),
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [

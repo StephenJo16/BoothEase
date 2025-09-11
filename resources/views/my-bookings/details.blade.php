@@ -17,6 +17,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
+@php
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+@endphp
+
 <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
     <!-- Navbar -->
     @include('components.navbar')
@@ -170,7 +181,7 @@
                             <div class="border-t pt-4">
                                 <div class="flex justify-between text-lg font-semibold">
                                     <span>Total Amount</span>
-                                    <span class="text-[#ff7700]">Rp500.000</span>
+                                    <span class="text-[#ff7700]">{{ formatRupiah(500000) }}</span>
                                 </div>
                             </div>
                         </div>

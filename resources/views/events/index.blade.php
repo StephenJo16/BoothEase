@@ -18,6 +18,15 @@
 </head>
 
 @php
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
 // Events Data
 $events = [
 [
@@ -29,7 +38,7 @@ $events = [
 'location' => 'Convention Center, Jakarta',
 'date' => '15 December 2025',
 'booths' => '50 Booths Available',
-'price' => 'Rp 500,000',
+'price' => 500000,
 'url' => '/event/details',
 'buttonType' => 'link'
 ],
@@ -42,7 +51,7 @@ $events = [
 'location' => 'Convention Center, Jakarta',
 'date' => '15 December 2025',
 'booths' => '30 Booths Available',
-'price' => 'Rp 750,000',
+'price' => 750000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -55,7 +64,7 @@ $events = [
 'location' => 'Convention Center, Jakarta',
 'date' => '15 December 2025',
 'booths' => '25 Booths Available',
-'price' => 'Rp 600,000',
+'price' => 600000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -68,7 +77,7 @@ $events = [
 'location' => 'Grand Mall, Surabaya',
 'date' => '20 January 2026',
 'booths' => '40 Booths Available',
-'price' => 'Rp 400,000',
+'price' => 400000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -81,7 +90,7 @@ $events = [
 'location' => 'Tech Hub, Bandung',
 'date' => '10 March 2026',
 'booths' => '35 Booths Available',
-'price' => 'Rp 300,000',
+'price' => 300000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -94,7 +103,7 @@ $events = [
 'location' => 'Fashion Center, Jakarta',
 'date' => '25 April 2026',
 'booths' => '60 Booths Available',
-'price' => 'Rp 800,000',
+'price' => 800000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -107,7 +116,7 @@ $events = [
 'location' => 'Resort & Spa, Bali',
 'date' => '5 June 2026',
 'booths' => '20 Booths Available',
-'price' => 'Rp 1,200,000',
+'price' => 1200000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -120,7 +129,7 @@ $events = [
 'location' => 'City Park, Yogyakarta',
 'date' => '18 July 2026',
 'booths' => '30 Booths Available',
-'price' => 'Rp 350,000',
+'price' => 350000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -133,7 +142,7 @@ $events = [
 'location' => 'National Gallery, Jakarta',
 'date' => '22 August 2026',
 'booths' => '45 Booths Available',
-'price' => 'Rp 450,000',
+'price' => 450000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -146,7 +155,7 @@ $events = [
 'location' => 'City Square, Bandung',
 'date' => '10 September 2026',
 'booths' => '100 Booths Available',
-'price' => 'Rp 200,000',
+'price' => 200000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -159,7 +168,7 @@ $events = [
 'location' => 'University Hall, Surabaya',
 'date' => '15 October 2026',
 'booths' => '80 Booths Available',
-'price' => 'Rp 250,000',
+'price' => 250000,
 'url' => '#',
 'buttonType' => 'button'
 ],
@@ -172,7 +181,7 @@ $events = [
 'location' => 'Expo Center, Jakarta',
 'date' => '20 November 2026',
 'booths' => '120 Booths Available',
-'price' => 'Rp 300,000',
+'price' => 300000,
 'url' => '#',
 'buttonType' => 'button'
 ]
@@ -226,7 +235,7 @@ $events = [
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: {{ $event['price'] }}</span>
+                                    <span>Starting from: {{ formatRupiah($event['price']) }}</span>
                                 </div>
                             </div>
                             @if($event['buttonType'] === 'link')

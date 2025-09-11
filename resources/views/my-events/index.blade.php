@@ -18,6 +18,17 @@
 </head>
 
 @php
+
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+// strip non-digits
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
 // My Events Data
 $myEvents = [
 [
@@ -30,7 +41,7 @@ $myEvents = [
 'endDate' => '20 Nov 2025',
 'bookedBooths' => 45,
 'totalBooths' => 100,
-'revenue' => 'Rp 25,500,000',
+'revenue' => 19845000,
 'bookingRate' => 45
 ],
 [
@@ -43,7 +54,7 @@ $myEvents = [
 'endDate' => '7 Dec 2025',
 'bookedBooths' => 28,
 'totalBooths' => 50,
-'revenue' => 'Rp 14,000,000',
+'revenue' => 14000000,
 'bookingRate' => 56
 ],
 [
@@ -56,7 +67,7 @@ $myEvents = [
 'endDate' => '18 Jan 2026',
 'bookedBooths' => 0,
 'totalBooths' => 75,
-'revenue' => 'Rp 0',
+'revenue' => 0,
 'bookingRate' => 0
 ],
 [
@@ -69,7 +80,7 @@ $myEvents = [
 'endDate' => '15 Sep 2024',
 'bookedBooths' => 60,
 'totalBooths' => 60,
-'revenue' => 'Rp 48,000,000',
+'revenue' => 48000000,
 'bookingRate' => 100
 ],
 [
@@ -82,7 +93,7 @@ $myEvents = [
 'endDate' => '22 Aug 2024',
 'bookedBooths' => 35,
 'totalBooths' => 40,
-'revenue' => 'Rp 10,500,000',
+'revenue' => 10500000,
 'bookingRate' => 87
 ],
 [
@@ -95,7 +106,7 @@ $myEvents = [
 'endDate' => '27 Jul 2024',
 'bookedBooths' => 12,
 'totalBooths' => 80,
-'revenue' => 'Rp 6,000,000',
+'revenue' => 6000000,
 'bookingRate' => 15
 ]
 ];
@@ -167,7 +178,7 @@ $myEvents = [
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500 uppercase tracking-wide">Revenue</p>
-                                    <p class="text-lg font-semibold text-gray-900">{{ $event['revenue'] }}</p>
+                                    <p class="text-lg font-semibold text-gray-900">{{ formatRupiah($event['revenue']) }}</p>
                                 </div>
                             </div>
 

@@ -17,6 +17,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
+@php
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+@endphp
+
 <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
     <!-- Navbar -->
     @include('components.navbar')
@@ -28,7 +39,7 @@
             @include('components.back-button', ['url' => '/my-bookings/details', 'text' => 'Back to Booking Details'])
 
             <!-- Header -->
-            <div class="text-center mb-8">
+            <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Request Refund</h1>
                 <p class="text-gray-600">Booking ID: ID-618261</p>
             </div>
@@ -120,16 +131,16 @@
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Original Amount</span>
-                            <span class="font-medium">Rp.500.000</span>
+                            <span class="font-medium">{{ formatRupiah(500000) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Processing Fee</span>
-                            <span class="font-medium text-red-600">-Rp.150.000</span>
+                            <span class="font-medium text-red-600">-{{ formatRupiah(150000) }}</span>
                         </div>
                         <div class="border-t pt-3">
                             <div class="flex justify-between text-lg font-semibold">
                                 <span>Refund Amount</span>
-                                <span class="text-[#ff7700]">Rp.350.000</span>
+                                <span class="text-[#ff7700]">{{ formatRupiah(350000) }}</span>
                             </div>
                         </div>
                     </div>

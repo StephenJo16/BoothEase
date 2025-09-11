@@ -18,6 +18,16 @@
 </head>
 
 @php
+
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
 // Filter Tabs Data
 $filterTabs = [
 ['name' => 'All Bookings', 'active' => true],
@@ -110,7 +120,7 @@ $bookings = [
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
                             <p class="text-sm text-gray-600 mb-1">Total Spent</p>
-                            <p class="text-3xl font-bold text-gray-900">Rp1.500.000</p>
+                            <p class="text-3xl font-bold text-gray-900">{{formatRupiah(1500000)}}</p>
                         </div>
                         <div class="bg-orange-100 p-3 rounded-full">
                             <i class="fas fa-money-bill text-[#ff7700] text-xl"></i>

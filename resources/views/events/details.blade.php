@@ -30,7 +30,15 @@ $event = [
 'address' => 'Jl. Gatot Subroto No.1, Jakarta Selatan, DKI Jakarta 12930'
 ];
 
-
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+// strip non-digits
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
 
 // Tabs Data
 $tabs = [
@@ -47,7 +55,7 @@ $booths = [
 'booth' => 'A01',
 'size' => '5x4m',
 'location' => 'Main Hall - Front',
-'price' => 'Rp500,000',
+'price' => '500000',
 'status' => 'Booked',
 'statusColor' => 'bg-red-100 text-red-800',
 'available' => false
@@ -56,7 +64,7 @@ $booths = [
 'booth' => 'A02',
 'size' => '5x4m',
 'location' => 'Main Hall - Front',
-'price' => 'Rp500,000',
+'price' => '500000',
 'status' => 'Available',
 'statusColor' => 'bg-green-100 text-green-800',
 'available' => true
@@ -65,7 +73,7 @@ $booths = [
 'booth' => 'A03',
 'size' => '3x3m',
 'location' => 'Main Hall - Middle',
-'price' => 'Rp350,000',
+'price' => '350000',
 'status' => 'Available',
 'statusColor' => 'bg-green-100 text-green-800',
 'available' => true
@@ -74,7 +82,7 @@ $booths = [
 'booth' => 'B01',
 'size' => '4x4m',
 'location' => 'Side Hall - Premium',
-'price' => 'Rp750,000',
+'price' => '750000',
 'status' => 'Available',
 'statusColor' => 'bg-green-100 text-green-800',
 'available' => true
@@ -82,7 +90,7 @@ $booths = [
 ];
 
 $headers = [
-['title' => 'Booth booth', 'class' => 'w-24'],
+['title' => 'Booth', 'class' => 'w-24'],
 ['title' => 'Size', 'class' => 'w-16'],
 ['title' => 'Location', 'class' => 'w-40'],
 ['title' => 'Price', 'class' => 'w-24'],
@@ -109,7 +117,7 @@ $rows[] = [
 'class' => 'text-gray-600'
 ],
 [
-'content' => $booth['price'],
+'content' => formatRupiah($booth['price']),
 'class' => 'text-gray-900 font-medium'
 ],
 [
@@ -188,7 +196,7 @@ $reviews = [
 ];
 @endphp
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen ">
     <!-- Navbar -->
     @include('components.navbar')
 
@@ -445,7 +453,7 @@ $reviews = [
                         <div class="space-y-4">
                             <div class="text-sm text-gray-600">
                                 <span>Starting from:</span>
-                                <span class="text-xl font-bold text-gray-900 ml-1">Rp 500,000 - 1,000,000</span>
+                                <span class="text-xl font-bold text-gray-900 ml-1">{{ formatRupiah(500000) }} - {{ formatRupiah(1000000) }}</span>
                             </div>
 
                             <!-- Date Selection -->
@@ -492,8 +500,7 @@ $reviews = [
             </div>
         </div>
 
-        <!-- Footer -->
-        @include('components.footer')
+
 
         <script>
             function showTab(tabName) {
@@ -522,6 +529,8 @@ $reviews = [
                 clickedButton.classList.add('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
             }
         </script>
+        <!-- Footer -->
+        @include('components.footer')
 </body>
 
 </html>
