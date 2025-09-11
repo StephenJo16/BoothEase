@@ -126,7 +126,9 @@ $rows[] = [
 ],
 [
 'content' => $booth['available']
-? '<button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm px-4 py-2 rounded-lg transition-colors duration-200">Select</button>'
+? ($booth['booth'] === 'A02'
+? '<a href="' . url('/book-booth') . '" class="inline-flex items-center justify-center bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm px-4 py-2 rounded-lg transition-colors duration-200">Select</a>'
+: '<button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm px-4 py-2 rounded-lg transition-colors duration-200">Select</button>')
 : '<span class="text-gray-400 text-sm whitespace-nowrap">Not Available</span>',
 'class' => ''
 ]

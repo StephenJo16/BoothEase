@@ -26,6 +26,20 @@ $num = $digits === '' ? 0 : intval($digits);
 return 'Rp' . number_format($num, 0, ',', '.');
 }
 }
+
+// Mock booking data (data-driven rendering)
+$booking = [
+'id' => 'ID-618261',
+'event' => 'Tech Innovation Expo 2025',
+'venue' => 'Jakarta Convention Center',
+'eventDateRange' => '20 - 28 October 2025',
+'bookingDate' => '18-10-2025',
+'eventDate' => '20-11-2025',
+'originalAmount' => 500000,
+'processingFee' => 150000,
+];
+
+$refundAmount = $booking['originalAmount'] - $booking['processingFee'];
 @endphp
 
 <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
@@ -41,25 +55,30 @@ return 'Rp' . number_format($num, 0, ',', '.');
             <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Request Refund</h1>
-                <p class="text-gray-600">Booking ID: ID-618261</p>
+                <p class="text-gray-600">Booking ID: {{ $booking['id'] }}</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Refund Request Form -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">Refund Request Details</h2>
-                    <p class="text-sm text-gray-600 mb-6">Please provide a reason for your refund request and bank details</p>
+                    <p class="text-sm text-gray-600 mb-6">Please provide a reason for your refund request and bank details
+                    </p>
 
                     <form class="space-y-6">
                         <!-- Account Holder Name -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Account Holder Name</label>
-                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent" placeholder="Enter account holder name">
+                                <input type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent"
+                                    placeholder="Enter account holder name">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
-                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent" placeholder="Enter bank name">
+                                <input type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent"
+                                    placeholder="Enter bank name">
                             </div>
                         </div>
 
@@ -67,13 +86,17 @@ return 'Rp' . number_format($num, 0, ',', '.');
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
-                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent" placeholder="Enter account number">
+                                <input type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent"
+                                    placeholder="Enter account number">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Document (Optional)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Document (Optional)
+                                </label>
                                 <div class="relative">
                                     <input type="file" id="fileUpload" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
-                                    <button type="button" onclick="document.getElementById('fileUpload').click()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                    <button type="button" onclick="document.getElementById('fileUpload').click()"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                                         Choose File
                                     </button>
                                 </div>
@@ -83,19 +106,23 @@ return 'Rp' . number_format($num, 0, ',', '.');
                         <!-- Refund Reason -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason</label>
-                            <textarea rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none" placeholder="Please explain why you need a refund..."></textarea>
+                            <textarea rows="4"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none"
+                                placeholder="Please explain why you need a refund..."></textarea>
                         </div>
 
                         <!-- Refund Policy -->
                         <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
                             <h4 class="text-sm font-semibold text-orange-800 mb-2">Refund Policy</h4>
                             <p class="text-xs text-orange-700 leading-relaxed">
-                                Refunds are subject to event organizer approval. Processing may take 5-10 business days. Cancellations within 30 days of the event may incur additional fees.
+                                Refunds are subject to event organizer approval. Processing may take 5-10 business days.
+                                Cancellations within 30 days of the event may incur additional fees.
                             </p>
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                        <button type="submit"
+                            class="w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             Submit Refund Request
                         </button>
                     </form>
@@ -107,9 +134,9 @@ return 'Rp' . number_format($num, 0, ',', '.');
 
                     <div class="space-y-4 mb-6">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Tech Innovation Expo 2025</h3>
-                            <p class="text-gray-600">Jakarta Convention Center</p>
-                            <p class="text-gray-600">19 - 28 October 2025</p>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ $booking['event'] }}</h3>
+                            <p class="text-gray-600">{{ $booking['venue'] }}</p>
+                            <p class="text-gray-600">{{ $booking['eventDateRange'] }}</p>
                         </div>
                     </div>
 
@@ -118,11 +145,11 @@ return 'Rp' . number_format($num, 0, ',', '.');
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Booking Date</span>
-                            <span class="font-medium">01-11-2025</span>
+                            <span class="font-medium">{{ $booking['bookingDate'] }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Event Date</span>
-                            <span class="font-medium">08-11-2025</span>
+                            <span class="font-medium">{{ $booking['eventDate'] }}</span>
                         </div>
                     </div>
 
@@ -131,16 +158,16 @@ return 'Rp' . number_format($num, 0, ',', '.');
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Original Amount</span>
-                            <span class="font-medium">{{ formatRupiah(500000) }}</span>
+                            <span class="font-medium">{{ formatRupiah($booking['originalAmount']) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Processing Fee</span>
-                            <span class="font-medium text-red-600">-{{ formatRupiah(150000) }}</span>
+                            <span class="font-medium text-red-600">-{{ formatRupiah($booking['processingFee']) }}</span>
                         </div>
                         <div class="border-t pt-3">
                             <div class="flex justify-between text-lg font-semibold">
                                 <span>Refund Amount</span>
-                                <span class="text-[#ff7700]">{{ formatRupiah(350000) }}</span>
+                                <span class="text-[#ff7700]">{{ formatRupiah($refundAmount) }}</span>
                             </div>
                         </div>
                     </div>
