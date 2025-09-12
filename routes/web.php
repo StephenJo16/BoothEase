@@ -46,18 +46,30 @@ Route::get('/my-events/details', function () {
     return view('my-events.details');
 })->name('my-event-details');
 
+Route::get('/my-events/edit', function () {
+    return view('my-events.edit');
+})->name('my-event-edit');
+
 Route::get('/request-refund', function () {
     return view('request-refund.index');
 })->name('request-refund');
 
-Route::get('refund-requests', function () {
-    return view('refund-requests.index');
-})->name('refund-requests');
+Route::get('refund-request', function () {
+    return view('refund-request.index');
+})->name('refund-request');
+
+Route::get('/refund-request/details', function () {
+    return view('refund-request.details');
+})->name('refund-request-details');
 
 
 Route::get('/booking-requests', function () {
     return view('booking-requests.index');
 })->name('booking-requests');
+
+Route::get('/booking-requests/details', function () {
+    return view('booking-requests.details');
+})->name('booking-request-details');
 
 Route::get('/book-booth', function () {
     return view('book-booth.index');

@@ -124,7 +124,7 @@ $deposit = 250000; // mocked deposit or partial amount
 
                     <!-- Special Requests -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Special Requests (Optional)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
                         <textarea rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none" placeholder="Any special requirements or requests..."></textarea>
                     </div>
 
