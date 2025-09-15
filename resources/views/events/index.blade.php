@@ -39,7 +39,7 @@ $events = [
 'date' => '15 December 2025',
 'booths' => '50 Booths Available',
 'price' => 500000,
-'url' => '/event/details',
+'url' => '/events/details',
 'buttonType' => 'link'
 ],
 [
@@ -239,11 +239,11 @@ $events = [
                                 </div>
                             </div>
                             @if($event['buttonType'] === 'link')
-                            <a href="{{ $event['url'] }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
+                            <a href="{{ $event['url'] }}" class="block w-full bg-[#ff7700] hover:bg-orange-600 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
                                 View Details
                             </a>
                             @else
-                            <button class="w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 hover:cursor-pointer">
+                            <button class="w-full bg-[#ff7700] hover:bg-orange-600 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 hover:cursor-pointer">
                                 View Details
                             </button>
                             @endif

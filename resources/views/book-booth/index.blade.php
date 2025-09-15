@@ -46,7 +46,7 @@ $deposit = 250000; // mocked deposit or partial amount
     <div class="min-h-screen py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
-            @include('components.back-button', ['text' => 'Back to Event Details', 'url' => '/event/details'])
+            @include('components.back-button', ['text' => 'Back to Event Details', 'url' => '/events/details'])
 
             <!-- Booth Header -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">

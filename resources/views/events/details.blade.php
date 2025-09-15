@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -198,12 +201,12 @@ $reviews = [
 ];
 @endphp
 
-<body class="bg-gray-50 min-h-screen ">
+<body class="bg-gray-50 m-0 min-h-screen flex flex-col">
     <!-- Navbar -->
     @include('components.navbar')
 
     <!-- Main Content -->
-    <div class="min-h-screen py-8">
+    <main class="flex-1 py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
             @include('components.back-button', ['url' => '/events', 'text' => 'Back to Events'])
@@ -501,9 +504,8 @@ $reviews = [
                 </div>
             </div>
         </div>
-
-
-
+    </main>
+    
         <script>
             function showTab(tabName) {
                 // Hide all tab contents
@@ -532,7 +534,7 @@ $reviews = [
             }
         </script>
         <!-- Footer -->
-        @include('components.footer')
+        @include('components.footer', ['class' => '!mt-0'])
 </body>
 
 </html>
