@@ -122,7 +122,7 @@ $refundAmount = $booking['originalAmount'] - $booking['processingFee'];
 
                         <!-- Submit Button -->
                         <button type="submit"
-                            class="w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             Submit Refund Request
                         </button>
                     </form>

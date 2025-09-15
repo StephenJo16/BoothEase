@@ -61,7 +61,7 @@ $statusColors = [
 $statusColor = $statusColors[strtolower($req['status'])] ?? 'bg-gray-100 text-gray-800';
 
 // Action: single View link
-$actionButtons = '<a href="' . ($req['id'] === 1 ? url('/refund-request/details') : url('/refund-request/' . $req['id'])) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-orange-600 text-white text-sm">View</a>';
+$actionButtons = '<a href="' . ($req['id'] === 1 ? url('/refund-request/details') : url('/refund-request/' . $req['id'])) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-[#e66600] text-white text-sm">View</a>';
 
 $rows[] = [
 'rowClass' => 'h-16 hover:bg-gray-50',
@@ -259,7 +259,7 @@ $rejectedCount = count(array_filter($refundRequests, fn($r) => $r['status'] === 
                         <button id="modalCancel" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">
                             Cancel
                         </button>
-                        <button id="modalConfirm" class="px-4 py-2 bg-[#ff7700] text-white rounded hover:bg-orange-600 transition-colors">
+                        <button id="modalConfirm" class="px-4 py-2 bg-[#ff7700] text-white rounded hover:bg-[#e66600] transition-colors">
                             Confirm
                         </button>
                     </div>

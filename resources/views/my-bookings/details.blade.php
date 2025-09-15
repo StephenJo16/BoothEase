@@ -249,7 +249,7 @@ return 'Rp' . number_format($num, 0, ',', '.');
 
                     <!-- Action Buttons -->
                     <div class="space-y-3">
-                        <button class="mb-2 w-full bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                        <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                             <i class="fas fa-download mr-2"></i>
                             Download Invoice
                         </button>

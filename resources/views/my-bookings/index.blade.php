@@ -200,11 +200,11 @@ $bookings = [
                                 Request Refund
                             </button>
                             @if($index === 0)
-                            <a href="{{ route('my-booking-details')}}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
+                            <a href="{{ route('my-booking-details')}}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
                                 View Details
                             </a>
                             @else
-                            <button class="hover:cursor-pointer bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                            <button class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 View Details
                             </button>
                             @endif

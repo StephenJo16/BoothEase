@@ -132,7 +132,7 @@ $myEvents = [
                         @include('components.filter-button', ['label' => 'Filter'])
                     </div>
                 </div>
-                <a href="{{ route('create-event') }}" class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 inline-flex items-center">
+                <a href="{{ route('create-event') }}" class="bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 inline-flex items-center">
                     <i class="fas fa-plus mr-2"></i>
                     Create New Event
                 </a>
@@ -197,19 +197,21 @@ $myEvents = [
                         <!-- Action Buttons -->
                         <div class="flex gap-2">
                             @if($event['status'] === 'Draft')
-                            <button class="flex-1 bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
+                            <button class="flex-1 bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
                                 Publish
                             </button>
-                            <button class="flex-1 bg-gray-100 hover:bg-gray-200 hover:cursor-pointer text-gray-800 text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
+                            <button
+                                onclick="window.location.href='/my-events/edit';"
+                                class="flex-1 bg-gray-100 hover:bg-gray-200 hover:cursor-pointer text-gray-800 text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
                                 Edit
                             </button>
                             @elseif($event['status'] === 'Active')
                             @if($index === 0)
-                            <a href="{{ url('/my-events/details') }}" class="flex-1 bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200 inline-block text-center">
+                            <a href="{{ url('/my-events/details') }}" class="flex-1 bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200 inline-block text-center">
                                 View
                             </a>
                             @else
-                            <button class="flex-1 bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
+                            <button class="flex-1 bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors duration-200">
                                 View
                             </button>
                             @endif

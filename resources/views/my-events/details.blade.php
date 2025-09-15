@@ -101,7 +101,7 @@ $rows[] = [
                         <p class="text-gray-600">Technology • 16 - 20 November 2025</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button class="bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                        <button class="bg-[#ff7700] hover:bg-[#e66600]hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                             <i class="fas fa-edit mr-2"></i>
                             Edit Event
                         </button>
@@ -207,7 +207,7 @@ $rows[] = [
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
                         <div class="space-y-3">
-                            <button class="w-full bg-[#ff7700] hover:bg-orange-600 hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
+                            <button class="w-full bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
                                 <i class="fas fa-download mr-2"></i>
                                 Download Report
                             </button>

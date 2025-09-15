@@ -291,7 +291,7 @@
                             <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-6 rounded-lg transition-colors duration-200">
                                 Save Draft
                             </button>
-                            <button type="button" id="nextBtn" class="bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200" onclick="nextStep()">
+                            <button type="button" id="nextBtn" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200" onclick="nextStep()">
                                 Next: Configure Booths
                                 <i class="fas fa-arrow-right ml-2"></i>
                             </button>

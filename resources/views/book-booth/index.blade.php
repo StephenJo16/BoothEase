@@ -135,7 +135,7 @@ $deposit = 250000; // mocked deposit or partial amount
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="hover:cursor-pointer w-full bg-[#ff7700] hover:bg-orange-600 text-white font-semibold text-lg py-2.5 px-2 rounded-lg transition-colors duration-200">
+                    <button type="submit" class="hover:cursor-pointer w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-semibold text-lg py-2.5 px-2 rounded-lg transition-colors duration-200">
                         Proceed to Payment
                     </button>
                 </form>
