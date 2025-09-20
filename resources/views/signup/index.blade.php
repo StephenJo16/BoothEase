@@ -6,22 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign Up - {{ config('app.name', 'BoothEase') }}</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
 
-    <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navbar -->
     @include('components.navbar')
 
-    <!-- Content Container with Back Button -->
     <div class="pt-2">
 
-        <!-- Sign Up Form -->
         <div class="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full">
                 <div class="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
@@ -31,7 +26,6 @@
                         </h2>
                     </div>
 
-                    <!-- Tab Buttons -->
                     <div class="flex mb-6">
                         <button
                             type="button"
@@ -49,11 +43,10 @@
                         </button>
                     </div>
 
-                    <form class="space-y-4" action="#" method="POST">
+                    <form class="space-y-4" action="{{ route('signup') }}" method="POST">
                         @csrf
                         <input type="hidden" name="user_type" id="user_type" value="tenant">
 
-                        <!-- Full Name -->
                         <div>
                             <input
                                 type="text"
@@ -64,7 +57,6 @@
                                 required>
                         </div>
 
-                        <!-- Business Name -->
                         <div>
                             <input
                                 type="text"
@@ -75,7 +67,6 @@
                                 required>
                         </div>
 
-                        <!-- Email -->
                         <div>
                             <input
                                 type="email"
@@ -86,16 +77,11 @@
                                 required>
                         </div>
 
-                        <!-- Mobile Number -->
                         <div>
                             <div class="flex border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700] transition-all duration-200">
-                                <!-- Country Code Dropdown -->
                                 <div class="relative">
                                     <select name="country_code" class="appearance-none bg-white border-0 rounded-l-lg px-3 py-3 pr-8 text-gray-700 focus:outline-none focus:ring-0">
                                         <option value="+62">🇮🇩 +62</option>
-                                        <option value="+1">🇺🇸 +1</option>
-                                        <option value="+44">🇬🇧 +44</option>
-                                        <option value="+81">🇯🇵 +81</option>
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -103,7 +89,6 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <!-- Mobile Number Input -->
                                 <input
                                     type="tel"
                                     name="mobile_number"
@@ -114,7 +99,6 @@
                             </div>
                         </div>
 
-                        <!-- Password -->
                         <div>
                             <input
                                 type="password"
@@ -125,15 +109,13 @@
                                 required>
                         </div>
 
-                        <!-- Business Category (only for organizers) -->
-                        <div id="business-category-field" class="hidden">
+                        <div id="business-category-field">
                             <select
                                 name="business_category"
                                 id="business_category"
                                 class="block w-full border border-gray-300 rounded-lg px-3 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none"
-                                onchange="handleBusinessCategoryChange()">
-                                <option value="">Event Category</option>
-                                <option value="technology">Technology</option>
+                                onchange="handleBusinessCategoryChange()"
+                                required> <option value="" id="category-placeholder">Business Category</option> <option value="technology">Technology</option>
                                 <option value="healthcare">Healthcare</option>
                                 <option value="education">Education</option>
                                 <option value="retail">Retail</option>
@@ -151,7 +133,6 @@
                             </div>
                         </div>
 
-                        <!-- Custom Business Category (only when "Other" is selected) -->
                         <div id="custom-business-category-field" class="hidden">
                             <input
                                 type="text"
@@ -161,7 +142,6 @@
                                 placeholder="Please specify your business category">
                         </div>
 
-                        <!-- Sign Up Button -->
                         <div class="pt-4">
                             <button
                                 type="submit"
@@ -170,10 +150,9 @@
                             </button>
                         </div>
 
-                        <!-- Sign In Link -->
                         <div class="text-center pt-2">
                             <span class="text-gray-600">Already have an account?</span>
-                            <a href="/login" class="text-[#ff7700] hover:text-[#e66600] font-medium ml-1 transition-colors">
+                            <a href="{{ route('login') }}" class="text-[#ff7700] hover:text-[#e66600] font-medium ml-1 transition-colors">
                                 Sign In
                             </a>
                         </div>
@@ -188,10 +167,13 @@
             const tenantTab = document.getElementById('tenant-tab');
             const organizerTab = document.getElementById('organizer-tab');
             const userTypeInput = document.getElementById('user_type');
-            const businessCategoryField = document.getElementById('business-category-field');
-            const businessCategorySelect = document.getElementById('business_category');
-            const customBusinessCategoryField = document.getElementById('custom-business-category-field');
             const businessNameInput = document.getElementById('business_name');
+            const categoryPlaceholder = document.getElementById('category-placeholder'); // MODIFIED
+
+            // --- MODIFIED SCRIPT LOGIC ---
+            // Business category field is now always visible and required via HTML.
+            // This script now only changes placeholder text.
+            // ---
 
             if (type === 'tenant') {
                 // Activate tenant tab
@@ -200,13 +182,9 @@
                 organizerTab.classList.remove('active');
                 organizerTab.classList.add('bg-gray-100');
 
-                // Hide business category fields
-                businessCategoryField.classList.add('hidden');
-                customBusinessCategoryField.classList.add('hidden');
-                businessCategorySelect.removeAttribute('required');
-
-                // Change placeholder to Business Name
+                // Change placeholder texts
                 businessNameInput.placeholder = 'Business Name';
+                categoryPlaceholder.textContent = 'Business Category'; // MODIFIED
 
                 userTypeInput.value = 'tenant';
             } else {
@@ -216,12 +194,9 @@
                 tenantTab.classList.remove('active');
                 tenantTab.classList.add('bg-gray-100');
 
-                // Show business category field
-                businessCategoryField.classList.remove('hidden');
-                businessCategorySelect.setAttribute('required', 'required');
-
-                // Change placeholder to Organization Name
+                // Change placeholder texts
                 businessNameInput.placeholder = 'Organization Name';
+                categoryPlaceholder.textContent = 'Event Category'; // MODIFIED
 
                 userTypeInput.value = 'organizer';
             }
@@ -258,5 +233,4 @@
         }
     </style>
 </body>
-
 </html>
