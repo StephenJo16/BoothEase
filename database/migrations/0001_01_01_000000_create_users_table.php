@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('display_name')->unique();
             $table->string('email')->unique();
             $table->string('phone_number')->unique();
+            $table->string('business_category');
             $table->string('profile_photo_path')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
