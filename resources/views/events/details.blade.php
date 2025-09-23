@@ -201,24 +201,26 @@ $reviews = [
 ];
 @endphp
 
-<body class="bg-gray-50 m-0 min-h-screen flex flex-col">
-    <!-- Navbar -->
-    @include('components.navbar')
+<body class="bg-gray-50">
 
-    <!-- Main Content -->
-    <main class="flex-1 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Back Button -->
-            @include('components.back-button', ['url' => '/events', 'text' => 'Back to Events'])
+    <body class="bg-gray-50 m-0 min-h-screen flex flex-col">
+        <!-- Navbar -->
+        @include('components.navbar')
 
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <!-- Left Column - Event Info -->
-                <div class="lg:col-span-3">
-                    <!-- Event Header -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                        <div class="h-80 bg-gradient-to-br from-blue-400 to-blue-600 relative">
-                            <span class="absolute top-4 right-4 bg-white bg-opacity-90 text-blue-600 text-sm font-semibold px-3 py-1 rounded-full">Technology</span>
-                            <!-- <div class="absolute top-4 right-4 mt-10 flex gap-2">
+        <!-- Main Content -->
+        <div class="pt-8 pb-0">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Back Button -->
+                @include('components.back-button', ['url' => '/events', 'text' => 'Back to Events'])
+
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <!-- Left Column - Event Info -->
+                    <div class="lg:col-span-3">
+                        <!-- Event Header -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                            <div class="h-80 bg-gradient-to-br from-blue-400 to-blue-600 relative">
+                                <span class="absolute top-4 right-4 bg-white bg-opacity-90 text-blue-600 text-sm font-semibold px-3 py-1 rounded-full">Technology</span>
+                                <!-- <div class="absolute top-4 right-4 mt-10 flex gap-2">
                                 <button class="bg-white bg-opacity-90 text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                                     <i class="fas fa-heart"></i>
                                 </button>
@@ -226,315 +228,364 @@ $reviews = [
                                     <i class="fas fa-share"></i>
                                 </button>
                             </div> -->
-                        </div>
-                        <div class="p-8">
-                            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $event['name'] }}</h1>
-                            <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
-                                <div class="flex items-center">
-                                    <i class="fas fa-star mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $event['rating'] }} ({{ $event['reviews'] }} Reviews)</span>
+                            </div>
+                            <div class="p-8">
+                                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $event['name'] }}</h1>
+                                <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star mr-2 text-[#ff7700]"></i>
+                                        <span>{{ $event['rating'] }} ({{ $event['reviews'] }} Reviews)</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-store mr-2 text-[#ff7700]"></i>
+                                        <span>{{ $event['availableBooths'] }} / {{ $event['totalBooths'] }} Booths Available</span>
+                                    </div>
                                 </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $event['availableBooths'] }} / {{ $event['totalBooths'] }} Booths Available</span>
+                                <p class="text-gray-700 leading-relaxed">
+                                    {{ $event['description'] }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Booking Card (Mobile) -->
+                        <div class="lg:hidden mt-6 mb-8">
+                            <div class="bg-white rounded-lg shadow-md p-6">
+                                <h2 class="text-xl font-semibold text-gray-900 mb-4">Book Your Booth</h2>
+
+                                <div class="space-y-4">
+                                    <div class="text-sm text-gray-600">
+                                        <span>Starting from:</span>
+                                        <span class="text-xl font-bold text-gray-900 ml-1">{{ formatRupiah(500000) }} - {{ formatRupiah(1000000) }}</span>
+                                    </div>
+
+                                    <!-- Date Selection -->
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                            <div class="relative">
+                                                <input type="text" value="16 November 2025" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
+                                                <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-1">08:00</div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                            <div class="relative">
+                                                <input type="text" value="20 November 2025" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
+                                                <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-1">17:00</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Location -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                        <div class="flex items-center text-sm text-gray-600">
+                                            <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
+                                            <span>Jakarta Convention Center</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">Jl. Gatot Subroto No.1, Jakarta Selatan, DKI Jakarta 12930</div>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="space-y-2 pt-4">
+                                        <button class="w-full hover:cursor-pointer bg-[#ff7700] hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                            Contact Organizer
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <p class="text-gray-700 leading-relaxed">
-                                {{ $event['description'] }}
-                            </p>
                         </div>
-                    </div>
+                        <!-- Event Details Tabs -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            @include('components.tabs', ['tabs' => $tabs, 'onclick' => 'showTab'])
 
-                    <!-- Event Details Tabs -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                        @include('components.tabs', ['tabs' => $tabs, 'onclick' => 'showTab'])
+                            <!-- Booths Tab -->
+                            <div id="booths" class="tab-content p-6">
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Available Booths</h3>
+                                    <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
+                                </div>
 
-                        <!-- Booths Tab -->
-                        <div id="booths" class="tab-content p-6">
-                            <div class="mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Available Booths</h3>
-                                <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
+                                <div class="overflow-x-auto">
+                                    @include(' components.table', [
+                                    'headers' => $headers,
+                                    'rows' => $rows,
+                                    ])
+                                </div>
                             </div>
 
-                            <div class="overflow-x-auto">
-                                @include(' components.table', [
-                                'headers' => $headers,
-                                'rows' => $rows,
-                                ])
-                            </div>
-                        </div>
-
-                        <!-- Details Tab -->
-                        <div id="details" class="tab-content p-6 hidden">
-                            <div class="space-y-6">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Event Information</h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
-                                            <div>
-                                                <p class="text-sm text-gray-600">Start Date</p>
-                                                <p class="font-medium">{{ $event['startDate'] }}</p>
+                            <!-- Details Tab -->
+                            <div id="details" class="tab-content p-6 hidden">
+                                <div class="space-y-6">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Event Information</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-600">Start Date</p>
+                                                    <p class="font-medium">{{ $event['startDate'] }}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
-                                            <div>
-                                                <p class="text-sm text-gray-600">End Date</p>
-                                                <p class="font-medium">{{ $event['endDate'] }}</p>
+                                            <div class="flex items-center">
+                                                <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-600">End Date</p>
+                                                    <p class="font-medium">{{ $event['endDate'] }}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-map-marker-alt mr-3 text-[#ff7700]"></i>
-                                            <div>
-                                                <p class="text-sm text-gray-600">Location</p>
-                                                <p class="font-medium">{{ $event['location'] }}</p>
-                                                <p class="text-sm text-gray-500">{{ $event['address'] }}</p>
+                                            <div class="flex items-center">
+                                                <i class="fas fa-map-marker-alt mr-3 text-[#ff7700]"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-600">Location</p>
+                                                    <p class="font-medium">{{ $event['location'] }}</p>
+                                                    <p class="text-sm text-gray-500">{{ $event['address'] }}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-tag mr-3 text-[#ff7700]"></i>
-                                            <div>
-                                                <p class="text-sm text-gray-600">Category</p>
-                                                <p class="font-medium">{{ $event['category'] }}</p>
+                                            <div class="flex items-center">
+                                                <i class="fas fa-tag mr-3 text-[#ff7700]"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-600">Category</p>
+                                                    <p class="font-medium">{{ $event['category'] }}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900 mb-2">What's Included</h4>
-                                    <ul class="space-y-2">
-                                        <li class="flex items-center text-sm">
-                                            <i class="fas fa-check text-green-600 mr-2"></i>
-                                            Power outlets and WiFi connectivity
-                                        </li>
-                                        <li class="flex items-center text-sm">
-                                            <i class="fas fa-check text-green-600 mr-2"></i>
-                                            Basic booth furniture and lighting
-                                        </li>
-                                        <li class="flex items-center text-sm">
-                                            <i class="fas fa-check text-green-600 mr-2"></i>
-                                            Event marketing and promotion
-                                        </li>
-                                        <li class="flex items-center text-sm">
-                                            <i class="fas fa-check text-green-600 mr-2"></i>
-                                            Access to networking events
-                                        </li>
-                                    </ul>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900 mb-2">What's Included</h4>
+                                        <ul class="space-y-2">
+                                            <li class="flex items-center text-sm">
+                                                <i class="fas fa-check text-green-600 mr-2"></i>
+                                                Power outlets and WiFi connectivity
+                                            </li>
+                                            <li class="flex items-center text-sm">
+                                                <i class="fas fa-check text-green-600 mr-2"></i>
+                                                Basic booth furniture and lighting
+                                            </li>
+                                            <li class="flex items-center text-sm">
+                                                <i class="fas fa-check text-green-600 mr-2"></i>
+                                                Event marketing and promotion
+                                            </li>
+                                            <li class="flex items-center text-sm">
+                                                <i class="fas fa-check text-green-600 mr-2"></i>
+                                                Access to networking events
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Schedule Tab -->
-                        <div id="schedule" class="tab-content p-6 hidden">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Event Schedule</h3>
-                            <div class="space-y-6">
-                                @foreach($schedule as $day)
-                                <div>
-                                    <h4 class="font-semibold text-gray-900 mb-3">{{ $day['date'] }}</h4>
-                                    <div class="space-y-3">
-                                        @foreach($day['events'] as $scheduleEvent)
-                                        <div class="flex items-center py-2 px-3 bg-gray-50 rounded-lg">
-                                            <div class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">
-                                                {{ $scheduleEvent['time'] }}
-                                            </div>
-                                            <div class="flex-1 ml-4">
-                                                <p class="font-medium text-gray-900">{{ $scheduleEvent['title'] }}</p>
-                                                <span class="inline-block mt-1 px-2 py-1 text-xs font-medium rounded-full
+                            <!-- Schedule Tab -->
+                            <div id="schedule" class="tab-content p-6 hidden">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Event Schedule</h3>
+                                <div class="space-y-6">
+                                    @foreach($schedule as $day)
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900 mb-3">{{ $day['date'] }}</h4>
+                                        <div class="space-y-3">
+                                            @foreach($day['events'] as $scheduleEvent)
+                                            <div class="flex items-center py-2 px-3 bg-gray-50 rounded-lg">
+                                                <div class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">
+                                                    {{ $scheduleEvent['time'] }}
+                                                </div>
+                                                <div class="flex-1 ml-4">
+                                                    <p class="font-medium text-gray-900">{{ $scheduleEvent['title'] }}</p>
+                                                    <span class="inline-block mt-1 px-2 py-1 text-xs font-medium rounded-full
                                                     @if($scheduleEvent['type'] === 'Keynote'){ bg-blue-100 text-blue-800}
                                                     @elseif($scheduleEvent['type'] === 'Panel'){ bg-green-100 text-green-800}
                                                     @elseif($scheduleEvent['type'] === 'Workshop'){ bg-purple-100 text-purple-800}
                                                     @elseif($scheduleEvent['type'] === 'Break'){ bg-yellow-100 text-yellow-800}
                                                     @else{ bg-gray-100 text-gray-800}
                                                     @endif">
-                                                    {{ $scheduleEvent['type'] }}
-                                                </span>
+                                                        {{ $scheduleEvent['type'] }}
+                                                    </span>
+                                                </div>
                                             </div>
+                                            @endforeach
                                         </div>
-                                        @endforeach
                                     </div>
+                                    @endforeach
                                 </div>
-                                @endforeach
                             </div>
-                        </div>
 
-                        <!-- Organizer Tab -->
-                        <div id="organizer" class="tab-content p-6 hidden">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Event Organizer</h3>
-                            <div class="space-y-6">
-                                <div class="flex items-start space-x-4">
-                                    <div class="bg-[#ff7700] text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">
-                                        {{ substr($organizer['name'], 0, 1) }}
-                                    </div>
-                                    <div class="flex-1">
-                                        <h4 class="text-xl font-semibold text-gray-900">{{ $organizer['name'] }}</h4>
-                                        <p class="text-gray-600 mt-2">{{ $organizer['description'] }}</p>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
-                                        <div>
-                                            <p class="text-sm text-gray-600">Experience</p>
-                                            <p class="font-medium">{{ $organizer['experience'] }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <i class="fas fa-trophy mr-3 text-[#ff7700]"></i>
-                                        <div>
-                                            <p class="text-sm text-gray-600">Events Organized</p>
-                                            <p class="font-medium">{{ $organizer['events'] }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="border-t pt-4">
-                                    <h5 class="font-semibold text-gray-900 mb-3">Contact Information</h5>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-envelope mr-3 text-[#ff7700]"></i>
-                                            <span class="text-sm">{{ $organizer['contact']['email'] }}</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-phone mr-3 text-[#ff7700]"></i>
-                                            <span class="text-sm">{{ $organizer['contact']['phone'] }}</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <i class="fas fa-globe mr-3 text-[#ff7700]"></i>
-                                            <span class="text-sm">{{ $organizer['contact']['website'] }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Reviews Tab -->
-                        <div id="reviews" class="tab-content p-6 hidden">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-lg font-semibold text-gray-900">Reviews ({{ $event['reviews'] }})</h3>
-                                <div class="flex items-center">
-                                    <div class="flex text-[#ff7700] mr-2">
-                                        @for($i = 0; $i < 5; $i++)
-                                            <i class="fas fa-star"></i>
-                                            @endfor
-                                    </div>
-                                    <span class="text-sm font-medium">{{ $event['rating'] }}</span>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                @foreach($reviews as $review)
-                                <div class="border-b border-gray-200 pb-4 last:border-b-0">
-                                    <div class="flex items-start space-x-3">
-                                        <div class="bg-[#ff7700] text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold">
-                                            {{ $review['avatar'] }}
+                            <!-- Organizer Tab -->
+                            <div id="organizer" class="tab-content p-6 hidden">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Event Organizer</h3>
+                                <div class="space-y-6">
+                                    <div class="flex items-start space-x-4">
+                                        <div class="bg-[#ff7700] text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">
+                                            {{ substr($organizer['name'], 0, 1) }}
                                         </div>
                                         <div class="flex-1">
-                                            <div class="flex items-center justify-between mb-1">
-                                                <h4 class="font-medium text-gray-900">{{ $review['name'] }}</h4>
-                                                <span class="text-sm text-gray-500">{{ $review['date'] }}</span>
+                                            <h4 class="text-xl font-semibold text-gray-900">{{ $organizer['name'] }}</h4>
+                                            <p class="text-gray-600 mt-2">{{ $organizer['description'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Experience</p>
+                                                <p class="font-medium">{{ $organizer['experience'] }}</p>
                                             </div>
-                                            <div class="flex text-[#ff7700] mb-2">
-                                                @for($i = 0; $i < $review['rating']; $i++)
-                                                    <i class="fas fa-star text-xs"></i>
-                                                    @endfor
-                                                    @for($i = $review['rating']; $i < 5; $i++)
-                                                        <i class="far fa-star text-xs"></i>
-                                                        @endfor
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-trophy mr-3 text-[#ff7700]"></i>
+                                            <div>
+                                                <p class="text-sm text-gray-600">Events Organized</p>
+                                                <p class="font-medium">{{ $organizer['events'] }}</p>
                                             </div>
-                                            <p class="text-sm text-gray-700">{{ $review['comment'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="border-t pt-4">
+                                        <h5 class="font-semibold text-gray-900 mb-3">Contact Information</h5>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-envelope mr-3 text-[#ff7700]"></i>
+                                                <span class="text-sm">{{ $organizer['contact']['email'] }}</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <i class="fas fa-phone mr-3 text-[#ff7700]"></i>
+                                                <span class="text-sm">{{ $organizer['contact']['phone'] }}</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <i class="fas fa-globe mr-3 text-[#ff7700]"></i>
+                                                <span class="text-sm">{{ $organizer['contact']['website'] }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column - Booking Card -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow-md p-6  top-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Book Your Booth</h2>
-
-                        <div class="space-y-4">
-                            <div class="text-sm text-gray-600">
-                                <span>Starting from:</span>
-                                <span class="text-xl font-bold text-gray-900 ml-1">{{ formatRupiah(500000) }} - {{ formatRupiah(1000000) }}</span>
                             </div>
 
-                            <!-- Date Selection -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                    <div class="relative">
-                                        <input type="text" value="16 November 2025" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
-                                        <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
+                            <!-- Reviews Tab -->
+                            <div id="reviews" class="tab-content p-6 hidden">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-gray-900">Reviews ({{ $event['reviews'] }})</h3>
+                                    <div class="flex items-center">
+                                        <div class="flex text-[#ff7700] mr-2">
+                                            @for($i = 0; $i < 5; $i++)
+                                                <i class="fas fa-star"></i>
+                                                @endfor
+                                        </div>
+                                        <span class="text-sm font-medium">{{ $event['rating'] }}</span>
                                     </div>
-                                    <div class="text-xs text-gray-500 mt-1">08:00</div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                    <div class="relative">
-                                        <input type="text" value="20 November 2025" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
-                                        <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
+                                <div class="space-y-4">
+                                    @foreach($reviews as $review)
+                                    <div class="border-b border-gray-200 pb-4 last:border-b-0">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="bg-[#ff7700] text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold">
+                                                {{ $review['avatar'] }}
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <h4 class="font-medium text-gray-900">{{ $review['name'] }}</h4>
+                                                    <span class="text-sm text-gray-500">{{ $review['date'] }}</span>
+                                                </div>
+                                                <div class="flex text-[#ff7700] mb-2">
+                                                    @for($i = 0; $i < $review['rating']; $i++)
+                                                        <i class="fas fa-star text-xs"></i>
+                                                        @endfor
+                                                        @for($i = $review['rating']; $i < 5; $i++)
+                                                            <i class="far fa-star text-xs"></i>
+                                                            @endfor
+                                                </div>
+                                                <p class="text-sm text-gray-700">{{ $review['comment'] }}</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="text-xs text-gray-500 mt-1">17:00</div>
+                                    @endforeach
                                 </div>
-                            </div>
-
-                            <!-- Location -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                <div class="flex items-center text-sm text-gray-600">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>Jakarta Convention Center</span>
-                                </div>
-                                <div class="text-xs text-gray-500 mt-1">Jl. Gatot Subroto No.1, Jakarta Selatan, DKI Jakarta 12930</div>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="space-y-2 pt-4">
-                                <button class="w-full hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                    Contact Organizer
-                                </button>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Right Column - Booking Card -->
+                    <div class="lg:col-span-2 hidden lg:block">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Book Your Booth</h2>
 
+                            <div class="space-y-4">
+                                <div class="text-sm text-gray-600">
+                                    <span>Starting from:</span>
+                                    <span class="text-xl font-bold text-gray-900 ml-1">{{ formatRupiah(500000) }} - {{ formatRupiah(1000000) }}</span>
+                                </div>
+
+                                <!-- Date Selection -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                        <div class="relative">
+                                            <input type="text" value="16 November 2025" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
+                                            <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">08:00</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                        <div class="relative">
+                                            <input type="text" value="20 November 2025" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
+                                            <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">17:00</div>
+                                    </div>
+                                </div>
+
+                                <!-- Location -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
+                                        <span>Jakarta Convention Center</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">Jl. Gatot Subroto No.1, Jakarta Selatan, DKI Jakarta 12930</div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="space-y-2 pt-4">
+                                    <button class="w-full hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                        Contact Organizer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </div>
-    </main>
+        <script>
+            function showTab(tabName) {
+                // Hide all tab contents
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
 
-    <script>
-        function showTab(tabName) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
+                // Remove active styles from all tab buttons
+                const tabButtons = document.querySelectorAll('nav button');
+                tabButtons.forEach(button => {
+                    button.classList.remove('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
+                    button.classList.add('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
+                });
 
-            // Remove active styles from all tab buttons
-            const tabButtons = document.querySelectorAll('nav button');
-            tabButtons.forEach(button => {
-                button.classList.remove('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
-                button.classList.add('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
-            });
+                // Show the selected tab content
+                const selectedTab = document.getElementById(tabName);
+                if (selectedTab) {
+                    selectedTab.classList.remove('hidden');
+                }
 
-            // Show the selected tab content
-            const selectedTab = document.getElementById(tabName);
-            if (selectedTab) {
-                selectedTab.classList.remove('hidden');
+                // Add active styles to the clicked button
+                const clickedButton = event.target;
+                clickedButton.classList.remove('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
+                clickedButton.classList.add('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
             }
+        </script>
+        <!-- Footer -->
+        <div class="mt-12">@include('components.footer')</div>
 
-            // Add active styles to the clicked button
-            const clickedButton = event.target;
-            clickedButton.classList.remove('text-gray-600', 'hover:text-gray-800', 'border-transparent', 'hover:border-gray-300');
-            clickedButton.classList.add('bg-[#ff7700]', 'text-white', 'border-[#ff7700]');
-        }
-    </script>
-    <!-- Footer -->
-    @include('components.footer', ['class' => '!mt-0'])
-</body>
+    </body>
 
 </html>

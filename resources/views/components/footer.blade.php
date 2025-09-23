@@ -1,5 +1,5 @@
 <!-- Footer -->
-<footer class="bg-gray-900 text-white py-12 mt-12 {{ $class ?? '' }}">
+<footer class="bg-gray-900 text-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div class="flex justify-center items-center mb-6">
             <img src="{{ asset('images/boothease-logo-cropped.png') }}" alt="BoothEase" class="h-10 mr-3">

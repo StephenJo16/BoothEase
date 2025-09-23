@@ -14,10 +14,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50">
     @include('components.navbar')
 
-    <div class="relative pt-16 sm:pt-20 min-h-screen">
+    <div class="relative">
         @include('components.back-button')
 
         <!-- FAQ Content -->

@@ -242,7 +242,10 @@ $myEvents = [
     </div>
 
     <!-- Footer -->
-    @include('components.footer')
+    <div class="mt-8">
+        @include('components.footer')
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.progress-fill').forEach(function(el) {
