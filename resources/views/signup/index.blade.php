@@ -30,7 +30,7 @@
                         <button
                             type="button"
                             id="tenant-tab"
-                            class="hover:cursor-pointer flex-1 py-1 px-4 text-center font-medium rounded-l-lg border border-gray-300 bg-white text-gray-700 tab-button active"
+                            class="hover:cursor-pointer flex-1 py-1 px-4 text-center font-medium rounded-l-lg border border-gray-300 bg-white text-gray-700 tab-button"
                             onclick="switchTab('tenant')">
                             I'm a Tenant
                         </button>
@@ -38,23 +38,27 @@
                             type="button"
                             id="organizer-tab"
                             class="hover:cursor-pointer flex-1 py-1 px-4 text-center font-medium rounded-r-lg border border-l-0 border-gray-300 bg-white text-gray-700 tab-button"
-                            onclick="switchTab('organizer')">
+                            onclick="switchTab('event_organizer')">
                             I'm an Event Organizer
                         </button>
                     </div>
 
                     <form class="space-y-4" action="{{ route('signup') }}" method="POST">
                         @csrf
-                        <input type="hidden" name="user_type" id="user_type" value="tenant">
+                        <input type="hidden" name="user_type" id="user_type" value="{{ old('user_type', 'tenant') }}">
 
                         <div>
                             <input
                                 type="text"
                                 name="full_name"
                                 id="full_name"
-                                class="block w-full border border-gray-300 rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                class="block w-full border @error('full_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
                                 placeholder="Full Name"
+                                value="{{ old('full_name') }}"
                                 required>
+                            @error('full_name')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -62,9 +66,13 @@
                                 type="text"
                                 name="business_name"
                                 id="business_name"
-                                class="block w-full border border-gray-300 rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                class="block w-full border @error('business_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
                                 placeholder="Business Name"
+                                value="{{ old('business_name') }}"
                                 required>
+                            @error('business_name')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -72,16 +80,20 @@
                                 type="email"
                                 name="email"
                                 id="email"
-                                class="block w-full border border-gray-300 rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                class="block w-full border @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
                                 placeholder="Email"
+                                value="{{ old('email') }}"
                                 required>
+                            @error('email')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
-                            <div class="flex border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700] transition-all duration-200">
+                            <div class="flex border @error('mobile_number') border-red-500 @else border-gray-300 @enderror rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700] transition-all duration-200">
                                 <div class="relative">
                                     <select name="country_code" class="appearance-none bg-white border-0 rounded-l-lg px-3 py-3 pr-8 text-gray-700 focus:outline-none focus:ring-0">
-                                        <option value="+62">🇮🇩 +62</option>
+                                        <option value="+62" {{ old('country_code', '+62') == '+62' ? 'selected' : '' }}>🇮🇩 +62</option>
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -95,8 +107,12 @@
                                     id="mobile_number"
                                     class="flex-1 block w-full border-0 border-l border-gray-300 rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-0"
                                     placeholder="Mobile Number"
+                                    value="{{ old('mobile_number') }}"
                                     required>
                             </div>
+                            @error('mobile_number')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -104,42 +120,54 @@
                                 type="password"
                                 name="password"
                                 id="password"
-                                class="block w-full border border-gray-300 rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                class="block w-full border @error('password') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
                                 placeholder="Password"
                                 required>
+                            @error('password')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div id="business-category-field">
+                        <div id="business-category-field" class="relative">
                             <select
                                 name="business_category"
                                 id="business_category"
-                                class="block w-full border border-gray-300 rounded-lg px-3 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none"
+                                class="block w-full border @error('business_category') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none"
                                 onchange="handleBusinessCategoryChange()"
-                                required> <option value="" id="category-placeholder">Business Category</option> <option value="technology">Technology</option>
-                                <option value="healthcare">Healthcare</option>
-                                <option value="education">Education</option>
-                                <option value="retail">Retail</option>
-                                <option value="food-beverage">Food & Beverage</option>
-                                <option value="automotive">Automotive</option>
-                                <option value="real-estate">Real Estate</option>
-                                <option value="finance">Finance</option>
-                                <option value="entertainment">Entertainment</option>
-                                <option value="other">Other</option>
+                                required>
+                                <option value="" id="category-placeholder" disabled {{ old('business_category') ? '' : 'selected' }}>Business Category</option>
+                                <option value="technology" {{ old('business_category') == 'technology' ? 'selected' : '' }}>Technology</option>
+                                <option value="healthcare" {{ old('business_category') == 'healthcare' ? 'selected' : '' }}>Healthcare</option>
+                                <option value="education" {{ old('business_category') == 'education' ? 'selected' : '' }}>Education</option>
+                                <option value="retail" {{ old('business_category') == 'retail' ? 'selected' : '' }}>Retail</option>
+                                <option value="food-beverage" {{ old('business_category') == 'food-beverage' ? 'selected' : '' }}>Food & Beverage</option>
+                                <option value="automotive" {{ old('business_category') == 'automotive' ? 'selected' : '' }}>Automotive</option>
+                                <option value="real-estate" {{ old('business_category') == 'real-estate' ? 'selected' : '' }}>Real Estate</option>
+                                <option value="finance" {{ old('business_category') == 'finance' ? 'selected' : '' }}>Finance</option>
+                                <option value="entertainment" {{ old('business_category') == 'entertainment' ? 'selected' : '' }}>Entertainment</option>
+                                <option value="other" {{ old('business_category') == 'other' ? 'selected' : '' }}>Other</option>
                             </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700" style="margin-top: -38px; margin-right: 8px;">
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mr-2 text-gray-700">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                                 </svg>
                             </div>
+                            @error('business_category')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div id="custom-business-category-field" class="hidden">
+                        <div id="custom-business-category-field" class="{{ old('business_category') == 'other' ? '' : 'hidden' }}">
                             <input
                                 type="text"
                                 name="custom_business_category"
                                 id="custom_business_category"
-                                class="block w-full border border-gray-300 rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
-                                placeholder="Please specify your business category">
+                                class="block w-full border @error('custom_business_category') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                placeholder="Please specify your business category"
+                                value="{{ old('custom_business_category') }}">
+                             @error('custom_business_category')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="pt-4">
@@ -168,60 +196,45 @@
             const organizerTab = document.getElementById('organizer-tab');
             const userTypeInput = document.getElementById('user_type');
             const businessNameInput = document.getElementById('business_name');
-            const categoryPlaceholder = document.getElementById('category-placeholder'); // MODIFIED
+            const categoryPlaceholder = document.querySelector('#business_category option[disabled]');
 
-            // --- MODIFIED SCRIPT LOGIC ---
-            // Business category field is now always visible and required via HTML.
-            // This script now only changes placeholder text.
-            // ---
+            // Reset styles
+            tenantTab.classList.remove('active');
+            organizerTab.classList.remove('active');
 
             if (type === 'tenant') {
-                // Activate tenant tab
                 tenantTab.classList.add('active');
-                tenantTab.classList.remove('bg-gray-100');
-                organizerTab.classList.remove('active');
-                organizerTab.classList.add('bg-gray-100');
-
-                // Change placeholder texts
                 businessNameInput.placeholder = 'Business Name';
-                categoryPlaceholder.textContent = 'Business Category'; // MODIFIED
-
+                if (categoryPlaceholder) categoryPlaceholder.textContent = 'Business Category';
                 userTypeInput.value = 'tenant';
-            } else {
-                // Activate organizer tab
+            } else { // event_organizer
                 organizerTab.classList.add('active');
-                organizerTab.classList.remove('bg-gray-100');
-                tenantTab.classList.remove('active');
-                tenantTab.classList.add('bg-gray-100');
-
-                // Change placeholder texts
                 businessNameInput.placeholder = 'Organization Name';
-                categoryPlaceholder.textContent = 'Event Category'; // MODIFIED
-
-                userTypeInput.value = 'organizer';
+                if (categoryPlaceholder) categoryPlaceholder.textContent = 'Event Category';
+                userTypeInput.value = 'event_organizer';
             }
         }
 
         function handleBusinessCategoryChange() {
-            const businessCategorySelect = document.getElementById('business_category');
-            const customBusinessCategoryField = document.getElementById('custom-business-category-field');
-            const customBusinessCategoryInput = document.getElementById('custom_business_category');
+            const categorySelect = document.getElementById('business_category');
+            const customField = document.getElementById('custom-business-category-field');
+            const customInput = document.getElementById('custom_business_category');
 
-            if (businessCategorySelect.value === 'other') {
-                // Show custom business category field
-                customBusinessCategoryField.classList.remove('hidden');
-                customBusinessCategoryInput.setAttribute('required', 'required');
+            if (categorySelect.value === 'other') {
+                customField.classList.remove('hidden');
+                customInput.setAttribute('required', 'required');
             } else {
-                // Hide custom business category field
-                customBusinessCategoryField.classList.add('hidden');
-                customBusinessCategoryInput.removeAttribute('required');
-                customBusinessCategoryInput.value = ''; // Clear the input
+                customField.classList.add('hidden');
+                customInput.removeAttribute('required');
+                customInput.value = ''; // Clear the input
             }
         }
 
-        // Initialize with tenant tab active
+        // Initialize tabs and fields on page load based on old input
         document.addEventListener('DOMContentLoaded', function() {
-            switchTab('tenant');
+            const userType = document.getElementById('user_type').value;
+            switchTab(userType);
+            handleBusinessCategoryChange();
         });
     </script>
 
@@ -230,6 +243,10 @@
             background-color: #ff7700;
             border-color: #ff7700;
             color: white;
+            cursor: default;
+        }
+        select:required:invalid {
+            color: #6b7280; /* placeholder-gray-500 */
         }
     </style>
 </body>

@@ -1,19 +1,34 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+// Import AuthController di bagian atas
+use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return view('landingpage.index');
 })->name('home');
 
-Route::get('/signup', function () {
-    return view('signup.index');
+// --- GRUP ROUTE UNTUK USER YANG BELUM LOGIN (GUEST) ---
+Route::middleware('guest')->group(function () {
+    // Menampilkan halaman signup
+    Route::get('/signup', [AuthController::class, 'showSignupForm'])->name('signup');
+    // Memproses data dari form signup
+    Route::post('/signup', [AuthController::class, 'signup']);
+
+    // Menampilkan halaman login
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    // Memproses data dari form login
+    Route::post('/login', [AuthController::class, 'login']);
 });
 
-Route::get('/login', function () {
-    return view('login.index');
+// --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    // Anda bisa menambahkan route lain yang memerlukan otentikasi di sini
 });
 
+
+// --- Route lainnya yang sudah ada ---
 Route::get('/faq', function () {
     return view('faq.index');
 })->name('faq');
@@ -26,6 +41,7 @@ Route::get('/events/details', function () {
     return view('events.details');
 })->name('eventdetails');
 
+// ... (sisa route Anda yang lain tidak perlu diubah)
 Route::get('/my-bookings', function () {
     return view('my-bookings.index');
 })->name('my-bookings');
