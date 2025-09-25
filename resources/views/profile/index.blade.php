@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -18,43 +18,30 @@
 
 </head>
 
+@php
+$categories = ['technology','healthcare','education','retail','food-beverage','automotive','real-estate','finance','entertainment','other'];
+
+$rawCategory = $user->business_category; // what’s stored in DB (could be custom)
+$isCustomSaved = $rawCategory && !in_array($rawCategory, $categories, true);
+
+// if validation fails, old() wins; otherwise map custom -> 'other' for the select
+$current = old('business_category', $isCustomSaved ? 'other' : $rawCategory);
+$customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '');
+
+// --- role badge text + color ---
+$roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
+$roleLabel = $roleMap[$user->role_id] ?? 'Member';
+
+$roleBadgeClasses = match($user->role_id) {
+1 => 'bg-purple-100 text-purple-800',
+2 => 'bg-blue-100 text-blue-800',
+3 => 'bg-green-100 text-green-800',
+default => 'bg-gray-100 text-gray-800',
+};
+@endphp
+
 <body class="bg-gray-50 min-h-screen">
-    @php
-    $categories = ['technology','healthcare','education','retail','food-beverage','automotive','real-estate','finance','entertainment','other'];
 
-    $rawCategory = $user->business_category; // what's stored in DB (could be custom)
-    $isCustomSaved = $rawCategory && !in_array($rawCategory, $categories, true);
-
-    // if validation fails, old() wins; otherwise map custom -> 'other' for the select
-    $current = old('business_category', $isCustomSaved ? 'other' : $rawCategory);
-
-    // custom input value: old() if present, else the saved raw custom text
-    $customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '');
-
-    // Determine user type based on role_id
-    $isEventOrganizer = $user->role_id == 3;
-    $isTenant = $user->role_id == 2;
-    $isAdmin = $user->role_id == 1;
-
-    if ($isAdmin) {
-    $userTypeText = 'Admin';
-    $badgeClasses = 'bg-red-100 text-red-800';
-    $businessLabelText = 'Organization Name'; // optional, adjust if admin doesn’t need this
-    $categoryLabelText = 'System Category'; // or hide if not relevant
-    } elseif ($isEventOrganizer) {
-    $userTypeText = 'Event Organizer';
-    $badgeClasses = 'bg-green-100 text-green-800';
-    $businessLabelText = 'Organization Name';
-    $categoryLabelText = 'Event Category';
-    } else { // Tenant by default
-    $userTypeText = 'Tenant';
-    $badgeClasses = 'bg-blue-100 text-blue-800';
-    $businessLabelText = 'Business Name';
-    $categoryLabelText = 'Business Category';
-    }
-    $businessLabelText = $isEventOrganizer ? 'Organization Name' : 'Business Name';
-    $categoryLabelText = $isEventOrganizer ? 'Event Category' : 'Business Category';
-    @endphp
     <!-- Navbar -->
     @include('components.navbar')
 
@@ -74,8 +61,10 @@
                     </div>
                     <!-- User Type Badge -->
                     <div class="mt-3">
-                        <span id="user-type-badge" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $badgeClasses }}">
-                            {{ $userTypeText }}
+                        <span
+                            id="user-type-badge"
+                            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $roleBadgeClasses }}">
+                            {{ $roleLabel }}
                         </span>
                     </div>
                 </div>
@@ -98,7 +87,7 @@
 
                         <!-- Business/Organization Name -->
                         <div class="flex flex-col sm:flex-row sm:items-center">
-                            <label id="business-label" class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">{{ $businessLabelText }}</label>
+                            <label id="business-label" class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Business Name</label>
                             <div class="w-full sm:w-2/3">
                                 <input id="business_name" name="business_name"
                                     value="{{ old('business_name', $user->name) }}"
@@ -138,7 +127,7 @@
                         <!-- Business/Event Category -->
                         <div class="flex flex-col sm:flex-row sm:items-center">
                             <label id="category-label" class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">
-                                {{ $categoryLabelText }}
+                                Business Category
                             </label>
                             <div class="w-full sm:w-2/3">
                                 <div class="relative">
@@ -259,8 +248,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <span class="text-sm font-medium text-gray-500">Member Since</span>
-                        <p class="text-gray-900">January 15, 2024</p>
+                        <p class="text-gray-900">
+                            {{ optional($user->created_at)->timezone('Asia/Jakarta')->format('F j, Y') }}
+                        </p>
                     </div>
+
                     <div>
                         <span class="text-sm font-medium text-gray-500">Account Status</span>
                         <p class="text-green-600 font-medium">Active</p>
@@ -273,19 +265,6 @@
     <script>
         let isEditMode = false;
         let isPasswordChangeMode = false;
-
-        // Get user type from PHP (passed from server)
-        const userRoleId = {
-            {
-                $user - > role_id ?? 2
-            }
-        };
-        const isEventOrganizer = userRoleId === 3;
-
-        // Initialize UI on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateUIForUserType(isEventOrganizer);
-        });
 
         function toggleEditMode() {
             isEditMode = !isEditMode;
@@ -327,44 +306,6 @@
             }
         }
 
-        function cancelEdit() {
-            isEditMode = false;
-            const editBtn = document.getElementById('edit-btn');
-            const actionButtons = document.getElementById('action-buttons');
-            const profileInputs = document.querySelectorAll('.profile-input');
-            const profileSelects = document.querySelectorAll('.profile-select');
-            const profileFieldContainers = document.querySelectorAll('.profile-field-container');
-
-            editBtn.textContent = 'Edit Profile';
-            editBtn.classList.add('bg-[#ff7700]', 'hover:bg-[#e66600]');
-            editBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
-            actionButtons.classList.add('hidden');
-
-            // Disable inputs
-            profileInputs.forEach(input => {
-                if (input.id !== 'email') {
-                    input.setAttribute('readonly', 'readonly');
-                    input.classList.add('bg-gray-50');
-                    input.classList.remove('bg-white');
-                }
-            });
-
-            profileSelects.forEach(select => {
-                select.setAttribute('disabled', 'disabled');
-                select.classList.add('bg-gray-50');
-                select.classList.remove('bg-white');
-            });
-
-            profileFieldContainers.forEach(container => {
-                container.classList.add('bg-gray-50');
-                container.classList.remove('bg-white');
-            });
-
-            // Hide password change section if it's open
-            if (isPasswordChangeMode) {
-                togglePasswordChange();
-            }
-        }
 
         function togglePasswordChange() {
             isPasswordChangeMode = !isPasswordChangeMode;
@@ -407,12 +348,12 @@
             }
         }
 
-        function updateUIForUserType(isEventOrganizer) {
+        function updateUIForUserType(userType) {
             const userTypeBadge = document.getElementById('user-type-badge');
             const businessLabel = document.getElementById('business-label');
             const categoryLabel = document.getElementById('category-label');
 
-            if (isEventOrganizer) {
+            if (userType === 'event_organizer') {
                 userTypeBadge.textContent = 'Event Organizer';
                 userTypeBadge.classList.remove('bg-blue-100', 'text-blue-800');
                 userTypeBadge.classList.add('bg-green-100', 'text-green-800');
