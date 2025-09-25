@@ -1,8 +1,10 @@
-<?php
+﻿<?php
 
 use Illuminate\Support\Facades\Route;
-// Import AuthController di bagian atas
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+
+use App\Models\User;
 
 Route::get('/', function () {
     return view('landingpage.index');
@@ -24,7 +26,10 @@ Route::middleware('guest')->group(function () {
 // --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    // Anda bisa menambahkan route lain yang memerlukan otentikasi di sini
+
+    Route::get('/profile', [UserController::class, 'show'])->name('profile');
+    Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
 });
 
 
@@ -41,7 +46,6 @@ Route::get('/events/details', function () {
     return view('events.details');
 })->name('eventdetails');
 
-// ... (sisa route Anda yang lain tidak perlu diubah)
 Route::get('/my-bookings', function () {
     return view('my-bookings.index');
 })->name('my-bookings');

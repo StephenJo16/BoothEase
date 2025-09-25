@@ -49,8 +49,8 @@ class AuthController extends Controller
         $role = Role::where('name', $request->user_type)->firstOrFail();
 
         $category = ($request->business_category === 'other')
-                        ? $request->custom_business_category
-                        : $request->business_category;
+            ? $request->custom_business_category
+            : $request->business_category;
 
         $user = User::create([
             'role_id' => $role->id,
@@ -63,7 +63,7 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
-        
+
         // Logika redirect sudah benar
         if ($user->role->name === 'tenant') {
             return redirect()->route('events');
@@ -74,7 +74,6 @@ class AuthController extends Controller
         return redirect()->route('home');
     }
 
-    // Method login dan logout Anda sudah benar, tidak perlu diubah
     // --- SIGN IN ---
     public function showLoginForm()
     {
@@ -84,30 +83,27 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'country_code' => 'required|string',
-            'mobile_number' => 'required|string',
+            'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
-        $fullPhoneNumber = $request->country_code . $request->mobile_number;
-        
-        // Coba login menggunakan phone_number
-        if (Auth::attempt(['phone_number' => $fullPhoneNumber, 'password' => $request->password])) {
+        // Login menggunakan email
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $request->session()->regenerate();
-            
+
             $user = Auth::user();
             if ($user->role->name === 'tenant') {
                 return redirect()->intended(route('events'));
             } elseif ($user->role->name === 'event_organizer') {
                 return redirect()->intended(route('my-events'));
             }
-            
+
             return redirect()->route('home');
         }
 
         return back()->withErrors([
-            'mobile_number' => 'The provided credentials do not match our records.',
-        ])->onlyInput('mobile_number');
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
     }
 
     // --- LOGOUT ---
@@ -116,6 +112,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/'); 
+        return redirect('/');
     }
 }
