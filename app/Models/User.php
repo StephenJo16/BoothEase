@@ -20,7 +20,7 @@ class User extends Authenticatable
         'name', // Dari form: business_name
         'display_name', // Dari form: full_name
         'email',
-        'phone_number', // Gabungan country_code + mobile_number
+        'phone_number', // Gabungan country_code + phone_number
         'business_category',
         'password',
     ];

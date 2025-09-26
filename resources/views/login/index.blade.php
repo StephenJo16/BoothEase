@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
 
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -24,6 +27,26 @@
                             Sign In
                         </h2>
                     </div>
+
+                    <!-- Google Sign In Button -->
+                    <div class="mb-6">
+                        <a href="{{ route('google.redirect') }}"
+                            class="w-full flex gap-x-4 items-center justify-center px-4 py-3 border border-gray-200 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200 h-12">
+                            <i class="fa-brands fa-google"></i>
+                            <span class="font-medium">Continue with Google</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative mb-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">Or continue with email</span>
+                        </div>
+                    </div>
+
                     <form class="space-y-6" action="{{ route('login') }}" method="POST">
                         @csrf
                         <div>
@@ -31,7 +54,7 @@
                                 type="email"
                                 name="email"
                                 id="email"
-                                class="block w-full border @error('email')@else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] h-12"
+                                class="block w-full border @error('email') @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] h-12"
                                 placeholder="Email Address"
                                 value="{{ old('email') }}"
                                 required>

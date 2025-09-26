@@ -21,7 +21,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     // Memproses data dari form login
     Route::post('/login', [AuthController::class, 'login']);
+
+
+    Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect'])->name('google.redirect');
+    Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('google.callback');
 });
+
 
 // --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---
 Route::middleware('auth')->group(function () {
@@ -30,6 +35,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [UserController::class, 'show'])->name('profile');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
+
+
+    //onboarding after first oauth login
+    Route::get('/onboarding', [AuthController::class, 'showOnboarding'])->name('onboarding.show');
+    Route::post('/onboarding', [AuthController::class, 'saveOnboarding'])->name('onboarding.save');
 });
 
 
