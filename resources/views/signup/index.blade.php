@@ -91,25 +91,23 @@
                             @enderror
                         </div>
 
-                        <div>
-                            <div class="flex border @error('mobile_number')@else border-gray-300 @enderror rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700] transition-all duration-200">
-                                <div class="relative">
-                                    <div class="bg-white border-0 rounded-l-lg px-4 py-3 text-gray-700">
-                                        +62
-                                    </div>
+                        <div class="relative">
+                            <div class="flex">
+                                <div class="flex items-center px-3 py-border border-r-0 border-gray-300 rounded-l-lg text-gray-700 font-medium">
+                                    +62
                                 </div>
                                 <input
                                     type="tel"
-                                    name="mobile_number"
-                                    id="mobile_number"
-                                    class="flex-1 block w-full border-0 border-l border-gray-300 rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-0"
+                                    name="phone_number"
+                                    id="phone_number"
+                                    class="block w-full border @error('phone_number')@else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
                                     placeholder="Mobile Number"
-                                    value="{{ old('mobile_number') }}"
+                                    value="{{ old('phone_number') }}"
                                     required>
+                                @error('phone_number')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                            @error('mobile_number')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div>
@@ -168,7 +166,7 @@
                         <div class="pt-4">
                             <button
                                 type="submit"
-                                class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 text-lg">
+                                class="w-full hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 text-lg">
                                 Sign Up
                             </button>
                         </div>

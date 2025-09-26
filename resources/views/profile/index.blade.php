@@ -116,8 +116,8 @@ default => 'bg-gray-100 text-gray-800',
                                             +62
                                         </div>
                                     </div>
-                                    <input id="mobile_number" name="mobile_number"
-                                        value="{{ old('mobile_number', preg_replace('/^\+62/', '', $user->phone_number ?? '')) }}"
+                                    <input id="phone_number" name="phone_number"
+                                        value="{{ old('phone_number', preg_replace('/^\+62/', '', $user->phone_number ?? '')) }}"
                                         class="profile-input flex-1 block w-full border-0 border-l border-gray-300 rounded-r-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-0"
                                         readonly>
                                 </div>
