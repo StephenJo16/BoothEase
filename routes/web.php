@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -120,3 +120,7 @@ Route::get('/testing-layout', function () {
 })->name('testing-layout');
 
 Route::post('/testing-layout/save', [BoothController::class, 'store'])->name('testing-layout.save');
+Route::get('/testing-layout/view', function () {
+    return view('testing-layout.view');
+})->name('testing-layout.view');
+Route::get('/testing-layout/data/{event}', [BoothController::class, 'show'])->name('testing-layout.data');

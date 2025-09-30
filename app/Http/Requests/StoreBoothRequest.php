@@ -10,10 +10,11 @@ class StoreBoothRequest extends FormRequest
     {
         return true;
     }
+
     public function rules(): array
     {
         return [
-            'event_id' => ['required', 'integer'],
+            'event_id' => ['required', 'integer', 'exists:events,id'],
             'layout_json' => ['required', 'string', 'json'],
             'replace_existing' => ['sometimes', 'boolean'],
         ];
