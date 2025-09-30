@@ -119,6 +119,10 @@ Route::get('/testing-layout', function () {
     return view('testing-layout.index');
 })->name('testing-layout');
 
+Route::get('/testing-layout/edit', function () {
+    return view('testing-layout.edit');
+})->name('testing-layout.edit');
+
 Route::post('/testing-layout/save', [BoothController::class, 'store'])->name('testing-layout.save');
 Route::get('/testing-layout/view', function () {
     return view('testing-layout.view');
