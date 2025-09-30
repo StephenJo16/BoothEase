@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BoothController;
 
 use App\Models\User;
 
@@ -104,3 +105,18 @@ Route::get('/booking-requests/details', function () {
 Route::get('/book-booth', function () {
     return view('book-booth.index');
 })->name('book-booth');
+
+
+
+
+
+
+
+
+
+
+Route::get('/testing-layout', function () {
+    return view('testing-layout.index');
+})->name('testing-layout');
+
+Route::post('/testing-layout/save', [BoothController::class, 'store'])->name('testing-layout.save');

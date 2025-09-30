@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Booth extends Model
 {
-    /** @use HasFactory<\Database\Factories\BoothFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'event_id',
+        'number',
+        'size',
+        'type',
+        'price',
+        'status',
+    ];
+
+    protected $casts = [
+        'price' => 'integer',
+    ];
 }
