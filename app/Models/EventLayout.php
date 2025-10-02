@@ -5,20 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Booth extends Model
+class EventLayout extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'event_id',
-        'number',
-        'size',
-        'type',
-        'price',
-        'status',
+        'layout_json',
+        'booth_count',
     ];
 
     protected $casts = [
-        'price' => 'integer',
+        'layout_json' => 'array',
     ];
 }

@@ -2,65 +2,119 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booth;
 use App\Http\Requests\StoreBoothRequest;
-use App\Http\Requests\UpdateBoothRequest;
+use App\Models\Booth;
+use App\Models\Event;
+use App\Models\EventLayout;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BoothController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(StoreBoothRequest $request): JsonResponse
     {
-        //
+        $validated = $request->validated();
+
+        $layoutData = json_decode($validated['layout_json'], true);
+
+        if (! is_array($layoutData)) {
+            throw ValidationException::withMessages([
+                'layout_json' => 'The layout data could not be read.',
+            ]);
+        }
+
+        $objects = $layoutData['objects'] ?? [];
+        $boothObjects = array_values(array_filter($objects, static function (array $object): bool {
+            return ($object['elementType'] ?? null) === 'booth';
+        }));
+
+        if (empty($boothObjects)) {
+            throw ValidationException::withMessages([
+                'layout_json' => 'No booth objects were found in the provided layout data.',
+            ]);
+        }
+
+        $eventId = $validated['event_id'];
+        $replaceExisting = $request->boolean('replace_existing', true);
+        $boothCount = count($boothObjects);
+        $now = now();
+
+        DB::transaction(static function () use ($eventId, $replaceExisting, $boothObjects, $now, $layoutData, $boothCount): void {
+            if ($replaceExisting) {
+                Booth::where('event_id', $eventId)->delete();
+            }
+
+            $payload = [];
+
+            foreach ($boothObjects as $index => $object) {
+                $label = $object['elementLabel'] ?? 'Booth ' . ($index + 1);
+                $width = $object['originalWidth'] ?? $object['width'] ?? null;
+                $height = $object['originalHeight'] ?? $object['height'] ?? null;
+
+                if ($width !== null && isset($object['scaleX'])) {
+                    $width = round((float) $width * (float) $object['scaleX']);
+                }
+
+                if ($height !== null && isset($object['scaleY'])) {
+                    $height = round((float) $height * (float) $object['scaleY']);
+                }
+
+                $size = ($width === null || $height === null)
+                    ? 'unspecified'
+                    : sprintf('%dx%d', (int) $width, (int) $height);
+
+                $payload[] = [
+                    'event_id' => $eventId,
+                    'number' => $label,
+                    'size' => $size,
+                    'type' => $object['boothType'] ?? 'Standard',
+                    'price' => (int) round($object['boothPrice'] ?? 0),
+                    'status' => 'available',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if ($payload !== []) {
+                Booth::insert($payload);
+            }
+
+            EventLayout::updateOrCreate(
+                ['event_id' => $eventId],
+                [
+                    'layout_json' => $layoutData,
+                    'booth_count' => $boothCount,
+                ]
+            );
+        });
+
+        return response()->json([
+            'message' => 'Booths and layout saved successfully.',
+            'saved' => $boothCount,
+        ], 201);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show(int $eventId): JsonResponse
     {
-        //
-    }
+        $layout = EventLayout::where('event_id', $eventId)->first();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreBoothRequest $request)
-    {
-        //
-    }
+        if (! $layout) {
+            return response()->json([
+                'message' => 'No saved layout found for this event.',
+            ], 404);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Booth $booth)
-    {
-        //
-    }
+        $event = Event::find($eventId);
+        $booths = Booth::where('event_id', $eventId)
+            ->orderBy('number')
+            ->get(['id', 'event_id', 'number', 'size', 'type', 'price', 'status']);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Booth $booth)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateBoothRequest $request, Booth $booth)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Booth $booth)
-    {
-        //
+        return response()->json([
+            'event' => $event,
+            'layout' => $layout->layout_json,
+            'booth_count' => $layout->booth_count,
+            'booths' => $booths,
+        ]);
     }
 }

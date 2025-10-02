@@ -1,8 +1,10 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BoothController;
+use App\Http\Controllers\EventController;
 
 use App\Models\User;
 
@@ -64,14 +66,6 @@ Route::get('/my-bookings/details', function () {
     return view('my-bookings.details');
 })->name('my-booking-details');
 
-Route::get('/my-events', function () {
-    return view('my-events.index');
-})->name('my-events');
-
-Route::get('/my-events/create', function () {
-    return view('my-events.create');
-})->name('create-event');
-
 Route::get('/my-events/details', function () {
     return view('my-events.details');
 })->name('my-event-details');
@@ -79,6 +73,16 @@ Route::get('/my-events/details', function () {
 Route::get('/my-events/edit', function () {
     return view('my-events.edit');
 })->name('my-event-edit');
+
+Route::middleware('auth')->prefix('my-events')->name('my-events.')->group(function () {
+    Route::get('/', [EventController::class, 'index'])->name('index');
+    Route::get('/create', [EventController::class, 'create'])->name('create');
+    Route::post('/', [EventController::class, 'store'])->name('store');
+    Route::get('/{event}', [EventController::class, 'show'])->name('show');
+    Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
+    Route::put('/{event}', [EventController::class, 'update'])->name('update');
+    Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+});
 
 Route::get('/request-refund', function () {
     return view('request-refund.index');
@@ -104,3 +108,35 @@ Route::get('/booking-requests/details', function () {
 Route::get('/book-booth', function () {
     return view('book-booth.index');
 })->name('book-booth');
+
+
+
+
+
+
+
+
+
+
+Route::get('/testing-layout', function () {
+    return view('testing-layout.index');
+})->name('testing-layout');
+
+Route::get('/testing-layout/edit', function () {
+    return view('testing-layout.edit');
+})->name('testing-layout.edit');
+
+Route::post('/testing-layout/save', [BoothController::class, 'store'])->name('testing-layout.save');
+Route::get('/testing-layout/view', function () {
+    return view('testing-layout.view');
+})->name('testing-layout.view');
+Route::get('/testing-layout/data/{event}', [BoothController::class, 'show'])->name('testing-layout.data');
+
+
+
+
+
+
+
+
+

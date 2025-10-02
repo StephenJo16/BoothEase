@@ -1,269 +1,159 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tech Innovation Expo 2025 - BoothEase</title>
-
-    <!-- Fonts -->
+    <title>Event Details</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
-
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-@php
-// Define booking requests data
-$bookingRequests = [
-['booth' => 'A01', 'business' => 'Pegasus Peripherals', 'requestedOn' => '15 Oct 2025', 'price' => '1200000', 'status' => 'Pending'],
-['booth' => 'B05', 'business' => 'BallYards', 'requestedOn' => '12 Oct 2025', 'price' => '1200000', 'status' => 'Pending'],
-['booth' => 'A06', 'business' => 'HealthyGo', 'requestedOn' => '10 Oct 2025', 'price' => '1200000', 'status' => 'Pending'],
-];
-
-// Helper to format rupiah with dot thousand separators
-if (!function_exists('formatRupiah')) {
-function formatRupiah($value) {
-$digits = preg_replace('/\D/', '', (string) $value);
-$num = $digits === '' ? 0 : intval($digits);
-return 'Rp' . number_format($num, 0, ',', '.');
-}
-}
-
-// Revenue numbers (integers, in IDR)
-$boothFees = 20250000; // amount that goes to organizer
-$serviceFees = 405000; // platform/service fees
-$totalCollected = $boothFees + $serviceFees; // total money collected
-$organizerRevenue = $boothFees - $serviceFees; // organizer receives booth fees minus service fees
-
-// Prepare table headers
-$headers = [
-['title' => 'Booth', 'class' => 'text-sm'],
-['title' => 'Business Name', 'class' => 'text-sm'],
-['title' => 'Requested On', 'class' => 'text-sm'],
-['title' => 'Price', 'class' => 'text-sm'],
-['title' => 'Status', 'class' => 'text-sm'],
-['title' => 'Action', 'class' => 'text-sm']
-];
-
-// Prepare table rows
-$rows = [];
-foreach ($bookingRequests as $request) {
-// Determine status badge HTML
-$statusBadge = '';
-if ($request['status'] === 'Pending') {
-$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>';
-} elseif ($request['status'] === 'Approved') {
-$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>';
-} elseif ($request['status'] === 'Rejected') {
-$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>';
-} else {
-$statusBadge = '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">' . $request['status'] . '</span>';
-}
-
-// Action buttons HTML
-$actionButtons = '<div class="flex gap-2">'
-    . '<button class="hover:cursor-pointer bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded transition-colors">Approve</button>'
-    . '<button class="hover:cursor-pointer bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded transition-colors">Reject</button>'
-    . '</div>';
-
-
-$rows[] = [
-'rowClass' => 'h-20',
-'cells' => [
-['content' => $request['booth'], 'class' => 'text-sm font-medium text-gray-900'],
-['content' => $request['business'], 'class' => 'text-sm text-gray-600'],
-['content' => $request['requestedOn'], 'class' => 'text-sm text-gray-600'],
-['content' => formatRupiah($request['price']), 'class' => 'text-sm text-gray-900'],
-['content' => $statusBadge, 'class' => ''],
-['content' => $actionButtons, 'class' => '']
-]
-];
-}
-@endphp
-
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navbar -->
     @include('components.navbar')
 
-    <!-- Main Content -->
-    <div class="min-h-screen py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            @include('components.back-button', ['url' => '/my-events', 'text' => 'Back to My Events'])
-            <!-- Header -->
-            <div class="mb-8">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    @php
+        $location = is_array($event->location) ? $event->location : [];
+        $booths = $event->booth_configuration;
+        $status = $event->status;
+        $statusStyles = [
+            'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+            'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+        ];
+        $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+        $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
+        $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
+        $deadline = $location['registration_deadline'] ?? null;
+        $deadlineFormatted = $deadline ? \Carbon\Carbon::parse($deadline)->format('d M Y') : null;
+    @endphp
+
+    <div class="min-h-screen py-10">
+        <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events.index')])
+
+            <div class="flex flex-col gap-4 border-b border-gray-200 pb-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ $event->title }}</h1>
+                    <p class="mt-2 text-sm text-gray-500">Created {{ $event->created_at?->format('d M Y H:i') }} - Last updated {{ $event->updated_at?->format('d M Y H:i') }}</p>
+                </div>
+                <span class="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold {{ $badge['class'] }}">
+                    {{ $badge['label'] }}
+                </span>
+            </div>
+
+            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+                <section class="space-y-6 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+                    <header>
+                        <h2 class="text-lg font-semibold text-gray-900">Overview</h2>
+                        <p class="text-sm text-gray-500">Key information about the event.</p>
+                    </header>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Category</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ optional($event->category)->name ?: 'Uncategorised' }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Capacity</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $event->capacity ?: 'Not specified' }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Starts</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $start ?: 'Schedule to be announced' }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Ends</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $end ?: 'Schedule to be announced' }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Registration deadline</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $deadlineFormatted ?: 'Not set' }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Location</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $event->display_location ?: 'To be confirmed' }}</p>
+                        </div>
+                    </div>
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Tech Innovation Expo 2025</h1>
-                        <p class="text-gray-600">Technology • 16 - 20 November 2025</p>
+                        <h3 class="text-base font-semibold text-gray-900">Description</h3>
+                        <div class="prose mt-3 max-w-none text-sm text-gray-700">
+                            @if($event->description)
+                            {!! nl2br(e($event->description)) !!}
+                            @else
+                            <p>No description has been provided for this event yet.</p>
+                            @endif
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button class="bg-[#ff7700] hover:bg-[#e66600]hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-                            <i class="fas fa-edit mr-2"></i>
-                            Edit Event
-                        </button>
-                    </div>
-                </div>
+                </section>
+
+                <aside class="space-y-6">
+                    <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+                        <h2 class="text-lg font-semibold text-gray-900">Actions</h2>
+                        <div class="mt-4 space-y-3">
+                            <a href="{{ route('my-events.edit', $event) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
+                                <i class="fa-regular fa-pen-to-square mr-2"></i>
+                                Edit event
+                            </a>
+                            <form method="POST" action="{{ route('my-events.destroy', $event) }}" onsubmit="return confirm('Delete this event? This action cannot be undone.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="flex w-full items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">
+                                    <i class="fa-regular fa-trash-can mr-2"></i>
+                                    Delete event
+                                </button>
+                            </form>
+                            <p class="text-xs text-gray-400">Deleting an event permanently removes it and associated booths.</p>
+                        </div>
+                    </section>
+                    <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+                        <h2 class="text-lg font-semibold text-gray-900">Owner</h2>
+                        <p class="mt-3 text-sm text-gray-600">Managed by {{ optional($event->user)->name ?: 'Unknown user' }}</p>
+                        <p class="mt-1 text-xs text-gray-400">User ID: {{ $event->user_id }}</p>
+                    </section>
+                </aside>
             </div>
 
-            <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Total Revenue -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600 mb-1">Total Revenue</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ formatRupiah($organizerRevenue) }}</p>
-                        </div>
-                        <div class="bg-green-100 p-3 rounded-full">
-                            <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                        </div>
+            <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+                <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Booth configuration</h2>
+                        <p class="text-sm text-gray-500">Details for each booth tier currently available.</p>
                     </div>
+                    <span class="text-xs uppercase tracking-wide text-gray-400">Total booth types: {{ is_array($booths) ? count($booths) : 0 }}</span>
                 </div>
-
-                <!-- Booked Booths -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600 mb-1">Booked Booths</p>
-                            <p class="text-2xl font-bold text-gray-900">45/100</p>
-                        </div>
-                        <div class="bg-blue-100 p-3 rounded-full">
-                            <i class="fas fa-store text-blue-600 text-xl"></i>
-                        </div>
-                    </div>
+                @if(!empty($booths))
+                <div class="mt-6 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Size</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Price (IDR)</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white">
+                            @foreach($booths as $type => $config)
+                            <tr>
+                                <td class="px-4 py-3 font-medium capitalize text-gray-900">{{ $type }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $config['size'] ?? 'Not set' }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ isset($config['price']) ? 'Rp'.number_format($config['price'], 0, ',', '.') : 'Not set' }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $config['qty'] ?? 'Not set' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Booking Rate -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600 mb-1">Booking Rate</p>
-                            <p class="text-2xl font-bold text-gray-900">45%</p>
-                        </div>
-                        <div class="bg-purple-100 p-3 rounded-full">
-                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
-                        </div>
-                    </div>
+                @else
+                <div class="mt-6 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+                    No booth configurations have been added yet.
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Main Content -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Event Information -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Information</h2>
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-1">Location</h4>
-                                    <p class="text-gray-900">Tech Convention Center, Jakarta</p>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-1">Category</h4>
-                                    <p class="text-gray-900">Technology</p>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-1">Start Date</h4>
-                                    <p class="text-gray-900">16 November 2025</p>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-1">End Date</h4>
-                                    <p class="text-gray-900">20 November 2025</p>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Description</h4>
-                                <p class="text-gray-600 leading-relaxed">
-                                    Join us for the Tech Innovation Expo 2025, where the latest in technology and innovation will be showcased. This event gathers tech enthusiasts, industry leaders, and media for an insightful and engaging experience.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Booking Requests -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-semibold text-gray-900">Booking Requests</h2>
-                            <a href="{{ route('booking-requests') }}" class="text-[#ff7700] hover:text-orange-600 text-sm font-medium">View All</a>
-                        </div>
-
-                        @include('components.table', [
-                        'headers' => $headers,
-                        'rows' => $rows,
-                        'tableClass' => 'w-full',
-                        'containerClass' => 'overflow-x-auto'
-                        ])
-                    </div>
-                </div>
-
-                <!-- Sidebar -->
-                <div class="space-y-6">
-                    <!-- Quick Actions -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                        <div class="space-y-3">
-                            <button class="w-full bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
-                                <i class="fas fa-download mr-2"></i>
-                                Download Report
-                            </button>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 hover:cursor-pointer text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-left">
-                                <i class="fas fa-edit mr-2"></i>
-                                Edit Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Revenue Breakdown -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Revenue Breakdown</h2>
-                        <div class="space-y-4">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Booth Fees</span>
-                                <span class="font-medium">{{ formatRupiah($boothFees) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Service Fees</span>
-                                <span class="font-medium">{{ formatRupiah($serviceFees) }}</span>
-                            </div>
-                            <div class="border-t pt-3">
-                                <div class="flex justify-between text-lg font-semibold">
-                                    <span>Organizer Revenue</span>
-                                    <span class="text-[#ff7700]">{{ formatRupiah($organizerRevenue) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Contact Info -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
-                        <div class="space-y-3">
-                            <div class="flex items-center">
-                                <i class="fas fa-envelope text-[#ff7700] mr-3"></i>
-                                <span class="text-gray-700 text-sm">info@techinnovationexpo.com</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-phone text-[#ff7700] mr-3"></i>
-                                <span class="text-gray-700 text-sm">+62 21 5555 6789</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-globe text-[#ff7700] mr-3"></i>
-                                <span class="text-gray-700 text-sm">www.techinnovationexpo.com</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                @endif
+            </section>
         </div>
     </div>
-
-    <!-- Footer -->
-    @include('components.footer')
 </body>
-
 </html>
+
+
+
+
