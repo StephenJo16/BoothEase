@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         //     'phone_number' => '1234567890',
         //     'role_id' => 1
         // ]);
-        $this->call(RoleSeeder::class);
+        // $this->call(RoleSeeder::class);
+        $this->call(CategorySeeder::class);
     }
 }

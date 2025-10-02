@@ -12,6 +12,10 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $categories = ['Food & Beverage', 'Retail', 'Technology', 'Health & Wellness', 'Arts & Crafts', 'Education', 'Entertainment', 'Travel & Tourism', 'Automotive', 'Real Estate'];
+
+        foreach ($categories as $category) {
+            \App\Models\Category::create(['name' => $category]);
+        }
     }
 }
