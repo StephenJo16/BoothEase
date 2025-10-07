@@ -51,9 +51,9 @@
                 @php
                 $status = $event->status;
                 $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
-                $booths = $event->booth_configuration;
-                $boothTypes = is_array($booths) ? count($booths) : 0;
-                $boothTotal = is_array($booths) ? collect($booths)->sum('qty') : 0;
+                $boothTypes = $event->booths->pluck('type')->unique()->count();
+                $boothTotal = $event->booths_count ?? 0;
+                $bookedBooths = $event->booked_booths_count ?? 0;
                 $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : 'Schedule to be announced';
                 $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
                 $location = $event->display_location ?: 'Location to be confirmed';
@@ -98,6 +98,16 @@
                                     <span>Total booths</span>
                                     <span class="font-semibold">{{ $boothTotal }}</span>
                                 </div>
+                                <div class="mt-2 flex items-center justify-between">
+                                    <span>Booked booths</span>
+                                    <span class="font-semibold">{{ $bookedBooths }}</span>
+                                </div>
+                                @if($boothTotal > 0)
+                                <div class="mt-2 flex items-center justify-between">
+                                    <span>Availability</span>
+                                    <span class="font-semibold">{{ $boothTotal - $bookedBooths }}/{{ $boothTotal }}</span>
+                                </div>
+                                @endif
                             </div>
                         </div>
                         <div class="mt-4 flex flex-wrap items-center gap-2">

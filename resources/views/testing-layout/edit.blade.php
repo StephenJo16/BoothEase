@@ -13,8 +13,7 @@
 <body class="bg-gray-100 min-h-screen">
     @include('components.navbar')
 
-    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-5">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">🏢 Enhanced Booth Layout Designer</h1>
+    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-5 mt-10">
 
         <div class="bg-gray-100 rounded-lg p-5 mb-5">
             <h4 class="text-lg font-semibold text-gray-700 mb-4">Instructions:</h4>

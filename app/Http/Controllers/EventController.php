@@ -11,7 +11,19 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $events = Event::with('category')
+        $events = Event::with([
+            'category',
+            'booths',
+            'bookings' => function ($query) {
+                $query->where('bookings.status', '!=', 'cancelled');
+            }
+        ])
+            ->withCount([
+                'booths',
+                'bookings as booked_booths_count' => function ($query) {
+                    $query->where('bookings.status', '!=', 'cancelled');
+                }
+            ])
             ->ownedBy($request->user())
             ->latest('created_at')
             ->paginate(9);
