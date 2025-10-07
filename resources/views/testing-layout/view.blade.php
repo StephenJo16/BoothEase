@@ -7,6 +7,7 @@
     <title>View Booth Layout</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
@@ -34,6 +35,10 @@
                         </svg>
                         Edit Layout
                     </button>
+                    <button type="button" onclick="createLayout()" id="createButton" style="display: none;" class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        Create Layout
+                    </button>
                     <button type="button" onclick="clearCanvas()"
                         class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold transition-colors">
                         Clear Canvas
@@ -57,9 +62,7 @@
                 <!-- Event Summary Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
+                        <i class="fa-solid fa-chart-simple"></i>
                         Event Summary
                     </h2>
                     <dl class="space-y-3 text-sm">
@@ -139,6 +142,7 @@
             const body = document.getElementById('boothTableBody');
             body.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No data loaded yet.</td></tr>';
             document.getElementById('editButton').style.display = 'none';
+            document.getElementById('createButton').style.display = 'none';
         }
 
         function clearCanvas() {
@@ -203,7 +207,14 @@
                         message: 'Unable to load layout.'
                     }));
                     clearCanvas();
-                    setStatus(error.message ?? 'Unable to load layout.', 'error');
+
+                    // If it's a 404 (no layout found), show create button
+                    if (response.status === 404) {
+                        setStatus('No saved layout found for this event. You can create a new layout.', 'error');
+                        document.getElementById('createButton').style.display = 'inline-flex';
+                    } else {
+                        setStatus(error.message ?? 'Unable to load layout.', 'error');
+                    }
                     return;
                 }
 
@@ -211,7 +222,8 @@
 
                 if (!data.layout) {
                     clearCanvas();
-                    setStatus('No layout data found for this event.', 'error');
+                    setStatus('No layout data found for this event. You can create a new layout.', 'error');
+                    document.getElementById('createButton').style.display = 'inline-flex';
                     return;
                 }
 
@@ -231,6 +243,8 @@
 
                 populateBoothTable(data.booths ?? []);
                 document.getElementById('editButton').style.display = 'inline-flex';
+                document.getElementById('createButton').style.display = 'none';
+                setStatus('Layout loaded successfully.', 'success');
 
             } catch (error) {
                 console.error('Load layout error:', error);
@@ -243,6 +257,15 @@
             if (eventId) {
                 const editUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
                 window.location.href = editUrl;
+            }
+        }
+
+        function createLayout() {
+            const eventIdInput = document.getElementById('eventIdInput');
+            const eventId = eventIdInput.value.trim();
+            if (eventId) {
+                const createUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+                window.location.href = createUrl;
             }
         }
 

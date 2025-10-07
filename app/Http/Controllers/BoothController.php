@@ -31,11 +31,15 @@ class BoothController extends Controller
 
         if (empty($boothObjects)) {
             throw ValidationException::withMessages([
-                'layout_json' => 'No booth objects were found in the provided layout data.',
+                'layout_json' => 'At least one booth is required. Please add at least one booth to your layout before saving.',
             ]);
         }
 
         $eventId = $validated['event_id'];
+
+        // Ensure the user owns the event before allowing booth creation
+        $event = Event::ownedBy($request->user())->findOrFail($eventId);
+
         $replaceExisting = $request->boolean('replace_existing', true);
         $boothCount = count($boothObjects);
         $now = now();
@@ -87,10 +91,13 @@ class BoothController extends Controller
                     'booth_count' => $boothCount,
                 ]
             );
+
+            // Update event status to finalized when booths are added
+            Event::where('id', $eventId)->update(['status' => Event::STATUS_FINALIZED]);
         });
 
         return response()->json([
-            'message' => 'Booths and layout saved successfully.',
+            'message' => 'Booths and layout saved successfully. Event status updated to finalized.',
             'saved' => $boothCount,
         ], 201);
     }

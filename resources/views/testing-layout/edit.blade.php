@@ -366,7 +366,7 @@
 
             const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
             if (boothCount === 0) {
-                statusElement.textContent = 'Add at least one booth before saving.';
+                statusElement.textContent = 'At least one booth is required. Please add at least one booth to your layout before saving.';
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
             }
@@ -403,6 +403,9 @@
                         const errorData = await response.json();
                         if (errorData.message) {
                             message = errorData.message;
+                        } else if (errorData.errors && errorData.errors.layout_json) {
+                            // Handle Laravel validation errors
+                            message = errorData.errors.layout_json[0];
                         }
                     } catch (error) {
                         console.error('Error parsing save response:', error);
@@ -414,7 +417,7 @@
                 }
 
                 const data = await response.json();
-                statusElement.textContent = data.message || `Layout saved successfully! ${boothCount} booths created.`;
+                statusElement.textContent = data.message || `Layout saved successfully! ${boothCount} booths created and event finalized.`;
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
 
             } catch (error) {

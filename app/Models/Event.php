@@ -22,7 +22,13 @@ class Event extends Model
         'user_id',
         'image_path',
         'capacity',
+        'status',
     ];
+
+    // Status constants
+    const STATUS_DRAFT = 'draft';
+    const STATUS_FINALIZED = 'finalized';
+    const STATUS_PUBLISHED = 'published';
 
     protected $casts = [
         'location' => 'array',
@@ -94,18 +100,28 @@ class Event extends Model
         return $venue ?: $city;
     }
 
-    public function getStatusAttribute(): string
+    // Status helper methods
+    public function isDraft(): bool
     {
-        return $this->image_path === 'published' ? 'published' : 'draft';
+        return $this->status === self::STATUS_DRAFT;
     }
 
-    public function setStatusAttribute(string $status): void
+    public function isFinalized(): bool
     {
-        $this->image_path = $status;
+        return $this->status === self::STATUS_FINALIZED;
     }
 
     public function isPublished(): bool
     {
-        return $this->status === 'published';
+        return $this->status === self::STATUS_PUBLISHED;
+    }
+
+    // Method to check if event can be finalized (has booths set up)
+    public function canBeFinalized(): bool
+    {
+        return $this->booths()->exists() &&
+            !empty($this->title) &&
+            !empty($this->start_time) &&
+            !empty($this->end_time);
     }
 }

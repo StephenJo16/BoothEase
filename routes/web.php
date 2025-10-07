@@ -82,6 +82,7 @@ Route::middleware('auth')->prefix('my-events')->name('my-events.')->group(functi
     Route::get('/{event}', [EventController::class, 'show'])->name('show');
     Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
     Route::put('/{event}', [EventController::class, 'update'])->name('update');
+    Route::post('/{event}/publish', [EventController::class, 'publish'])->name('publish');
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
 });
 
@@ -136,14 +137,3 @@ Route::get('/testing-layout/view', function (Request $request) {
     ]);
 })->name('testing-layout.view');
 Route::get('/testing-layout/data/{event}', [BoothController::class, 'show'])->name('testing-layout.data');
-
-
-
-
-
-
-
-
-
-
-

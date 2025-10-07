@@ -20,6 +20,7 @@
     $status = $event->status;
     $statusStyles = [
     'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+    'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
     'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
     ];
     $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
@@ -91,6 +92,31 @@
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-900">Actions</h2>
                         <div class="mt-4 space-y-3">
+                            @if($event->status === 'draft')
+                            <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-info-circle text-blue-500 mr-2"></i>
+                                    <p class="text-sm text-blue-700 font-medium">Complete booth configuration to finalize this event</p>
+                                </div>
+                                <p class="text-xs text-blue-600 mt-1">Configure your booth layout and pricing before publishing.</p>
+                            </div>
+                            @elseif($event->status === 'finalized')
+                            <form method="POST" action="{{ route('my-events.publish', $event) }}" onsubmit="return confirm('Publish this event? Once published, it will be visible to attendees.');">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">
+                                    <i class="fa-solid fa-rocket mr-2"></i>
+                                    Publish Event
+                                </button>
+                            </form>
+                            @elseif($event->status === 'published')
+                            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-check-circle text-green-500 mr-2"></i>
+                                    <p class="text-sm text-green-700 font-medium">Event is live and accepting bookings</p>
+                                </div>
+                            </div>
+                            @endif
+
                             <a href="{{ route('my-events.edit', $event) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-regular fa-pen-to-square mr-2"></i>
                                 Edit event
