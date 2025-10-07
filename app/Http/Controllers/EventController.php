@@ -38,9 +38,21 @@ class EventController extends Controller
         $event = new Event();
         $this->applyPayload($event, $data, $request->user(), $action);
 
+        if ($action === 'publish') {
+            return redirect()
+                ->route('testing-layout', ['event_id' => $event->id])
+                ->with('status', 'Event published successfully. Set up the booth layout next.');
+        }
+
+        if ($action === 'create_layout') {
+            return redirect()
+                ->route('testing-layout', ['event_id' => $event->id])
+                ->with('status', 'Event created successfully! Now design your booth layout.');
+        }
+
         return redirect()
             ->route('my-events.index')
-            ->with('status', $action === 'publish' ? 'Event published successfully.' : 'Draft saved successfully.');
+            ->with('status', 'Draft saved successfully.');
     }
 
     public function show(Request $request, Event $event)
@@ -91,20 +103,20 @@ class EventController extends Controller
 
     protected function validatePayload(Request $request, string $action): array
     {
-        $publish = $action === 'publish';
+        $requiresFullValidation = in_array($action, ['publish', 'create_layout']);
 
         $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'category_id' => [$publish ? 'required' : 'nullable', 'integer', 'exists:categories,id'],
+            'category_id' => [$requiresFullValidation ? 'required' : 'nullable', 'integer', 'exists:categories,id'],
             'capacity' => ['nullable', 'integer', 'min:0'],
-            'venue' => [$publish ? 'required' : 'nullable', 'string', 'max:255'],
-            'city' => [$publish ? 'required' : 'nullable', 'string', 'max:255'],
+            'venue' => [$requiresFullValidation ? 'required' : 'nullable', 'string', 'max:255'],
+            'city' => [$requiresFullValidation ? 'required' : 'nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
-            'start_date' => [$publish ? 'required' : 'nullable', 'date'],
-            'start_time' => [$publish ? 'required' : 'nullable', 'date_format:H:i'],
-            'end_date' => [$publish ? 'required' : 'nullable', 'date', 'after_or_equal:start_date'],
-            'end_time' => [$publish ? 'required' : 'nullable', 'date_format:H:i'],
+            'start_date' => [$requiresFullValidation ? 'required' : 'nullable', 'date'],
+            'start_time' => [$requiresFullValidation ? 'required' : 'nullable', 'date_format:H:i'],
+            'end_date' => [$requiresFullValidation ? 'required' : 'nullable', 'date', 'after_or_equal:start_date'],
+            'end_time' => [$requiresFullValidation ? 'required' : 'nullable', 'date_format:H:i'],
             'registration_deadline' => ['nullable', 'date'],
             'booth_standard_size' => ['nullable', 'string', 'max:50'],
             'booth_standard_price' => ['nullable', 'integer', 'min:0'],
@@ -115,11 +127,11 @@ class EventController extends Controller
             'booth_vip_size' => ['nullable', 'string', 'max:50'],
             'booth_vip_price' => ['nullable', 'integer', 'min:0'],
             'booth_vip_qty' => ['nullable', 'integer', 'min:0'],
-            'confirm_terms' => $publish ? ['accepted'] : ['nullable'],
+            'confirm_terms' => $requiresFullValidation ? ['accepted'] : ['nullable'],
         ];
 
         $messages = [
-            'confirm_terms.accepted' => 'Please confirm that all event details are accurate before publishing.',
+            'confirm_terms.accepted' => 'Please confirm that all event details are accurate before creating the event.',
         ];
 
         return $request->validate($rules, $messages);
@@ -151,7 +163,7 @@ class EventController extends Controller
             return filled($value);
         });
 
-        $event->status = $action === 'publish' ? 'published' : 'draft';
+        $event->status = in_array($action, ['publish', 'create_layout']) ? 'published' : 'draft';
         $event->user_id = $event->user_id ?: $user->id;
 
         $event->save();
@@ -167,7 +179,7 @@ class EventController extends Controller
                 'size' => $data['booth_' . $type . '_size'] ?? null,
                 'price' => $data['booth_' . $type . '_price'] ?? null,
                 'qty' => $data['booth_' . $type . '_qty'] ?? null,
-            ], fn ($value) => filled($value));
+            ], fn($value) => filled($value));
 
             if (!empty($config)) {
                 $booths[$type] = $config;
@@ -195,4 +207,3 @@ class EventController extends Controller
         }
     }
 }
-

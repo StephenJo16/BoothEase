@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
 
@@ -39,23 +41,23 @@
             </div>
             @else
             @php
-                $statusStyles = [
-                    'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-                    'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-                ];
+            $statusStyles = [
+            'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+            'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+            ];
             @endphp
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 @foreach($events as $event)
                 @php
-                    $status = $event->status;
-                    $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
-                    $booths = $event->booth_configuration;
-                    $boothTypes = is_array($booths) ? count($booths) : 0;
-                    $boothTotal = is_array($booths) ? collect($booths)->sum('qty') : 0;
-                    $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : 'Schedule to be announced';
-                    $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
-                    $location = $event->display_location ?: 'Location to be confirmed';
-                    $category = optional($event->category)->name ?: 'Uncategorised';
+                $status = $event->status;
+                $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+                $booths = $event->booth_configuration;
+                $boothTypes = is_array($booths) ? count($booths) : 0;
+                $boothTotal = is_array($booths) ? collect($booths)->sum('qty') : 0;
+                $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : 'Schedule to be announced';
+                $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
+                $location = $event->display_location ?: 'Location to be confirmed';
+                $category = optional($event->category)->name ?: 'Uncategorised';
                 @endphp
                 <div class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     <div class="border-b border-gray-100 px-5 py-4">
@@ -127,4 +129,6 @@
         </div>
     </div>
 </body>
+@include('components.footer')
+
 </html>

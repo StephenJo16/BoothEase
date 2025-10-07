@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,18 +10,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
 
     @php
-        $location = is_array($event->location) ? $event->location : [];
-        $booths = $location['booths'] ?? [];
-        $status = $event->status;
-        $statusStyles = [
-            'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-            'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-        ];
-        $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+    $location = is_array($event->location) ? $event->location : [];
+    $booths = $location['booths'] ?? [];
+    $status = $event->status;
+    $statusStyles = [
+    'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+    'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+    ];
+    $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
     @endphp
 
     <div class="min-h-screen py-10">
@@ -132,64 +134,15 @@
                         </div>
                     </section>
 
-                    <section class="space-y-6">
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-900">Booth configuration</h2>
-                            <p class="text-sm text-gray-500">Update the sizes, pricing, and availability for each booth tier.</p>
-                        </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            @php
-                                $boothTypes = [
-                                    'standard' => 'Standard',
-                                    'premium' => 'Premium',
-                                    'vip' => 'VIP',
-                                ];
-                            @endphp
-                            @foreach($boothTypes as $key => $label)
-                            @php
-                                $defaults = $booths[$key] ?? [];
-                            @endphp
-                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-6">
-                                <div class="mb-4 flex items-center justify-between">
-                                    <h3 class="text-base font-semibold text-gray-900">{{ $label }} booth</h3>
-                                    <i class="fa-solid {{ $key === 'vip' ? 'fa-crown' : ($key === 'premium' ? 'fa-gem' : 'fa-store') }} text-[#ff7700]"></i>
-                                </div>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Size</label>
-                                        <input name="booth_{{ $key }}_size" type="text" value="{{ old('booth_'.$key.'_size', $defaults['size'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="e.g. 3x3 m">
-                                    </div>
-                                    <div>
-                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Price (IDR)</label>
-                                        <input name="booth_{{ $key }}_price" type="number" min="0" value="{{ old('booth_'.$key.'_price', $defaults['price'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="500000">
-                                    </div>
-                                    <div>
-                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Quantity</label>
-                                        <input name="booth_{{ $key }}_qty" type="number" min="0" value="{{ old('booth_'.$key.'_qty', $defaults['qty'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="50">
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </section>
-
-                    <section class="space-y-4">
-                        <label class="flex items-start gap-3 text-sm text-gray-600">
-                            <input type="checkbox" name="confirm_terms" value="1" class="mt-1 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('confirm_terms'))>
-                            <span>Confirm that the event details are accurate before publishing.</span>
-                        </label>
-                        <p class="text-xs text-gray-500">Checking the confirmation is required when you publish or republish the event.</p>
-                    </section>
-
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
                         <div class="text-xs text-gray-500">Fields marked with * are required to publish.</div>
                         <div class="flex flex-wrap gap-3">
                             <button type="submit" name="action" value="draft" class="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                                 Save draft
                             </button>
-                            <button type="submit" name="action" value="publish" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                                Publish changes
-                            </button>
+                            <a href="{{ route('testing-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
+                                View Booths
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -197,4 +150,5 @@
         </div>
     </div>
 </body>
+
 </html>

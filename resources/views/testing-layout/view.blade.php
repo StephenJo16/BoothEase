@@ -9,70 +9,97 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 </head>
 
-<body class="bg-gray-100 p-5">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
     @include('components.navbar')
 
-    <div class="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">View Saved Booth Layout</h1>
-                <p class="text-sm text-gray-500 mt-1">Load a previously saved layout, then inspect the canvas and booth details for an event.</p>
-            </div>
-            <a href="{{ route('testing-layout') }}" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors">Design New Layout</a>
-        </div>
 
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        @include('components.back-button', [
+        'text' => 'Back to Event Details',
+        'url' => $eventId ? route('my-events.edit', ['event' => $eventId]) : route('my-events.index')
+        ])
+        <!-- Load Layout Section -->
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-5 items-end">
                 <div>
-                    <label for="eventIdInput" class="block text-sm font-semibold text-gray-700 mb-2">Event ID</label>
-                    <input type="number" id="eventIdInput" min="1" placeholder="Enter event ID" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label for="eventIdInput" class="block text-sm font-semibold text-slate-700 mb-2">Event ID</label>
+                    <input type="number" id="eventIdInput" min="1" placeholder="Enter event ID" value="{{ $eventId ?? '' }}" readonly
+                        class="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm bg-slate-100 text-slate-700 cursor-not-allowed">
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <button type="button" onclick="loadLayout()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition-colors">Load Layout</button>
-                    <button type="button" onclick="clearCanvas()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md font-semibold transition-colors">Clear Canvas</button>
+                    <button type="button" onclick="editLayout()" id="editButton" style="display: none;"
+                        class="px-6 py-3 bg-[#ff7700] text-white rounded-lg font-semibold transition-all duration-200 shadow-md">
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Edit Layout
+                    </button>
+                    <button type="button" onclick="clearCanvas()"
+                        class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold transition-colors">
+                        Clear Canvas
+                    </button>
                 </div>
             </div>
-            <div id="statusMessage" class="mt-3 text-sm text-gray-600 min-h-[20px]"></div>
+            <div id="statusMessage" class="mt-4 text-sm text-slate-600 min-h-[20px]"></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-            <div class="border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 p-4">
-                <canvas id="layoutCanvas" width="900" height="600"></canvas>
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+            <!-- Canvas Section -->
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
+                    <canvas id="layoutCanvas" width="900" height="600"></canvas>
+                </div>
             </div>
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-800">Event Summary</h2>
-                    <dl class="mt-3 text-sm text-gray-600 space-y-1">
-                        <div class="flex justify-between">
-                            <dt class="font-medium">Event ID:</dt>
-                            <dd id="eventSummaryId">—</dd>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Event Summary Card -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Event Summary
+                    </h2>
+                    <dl class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <dt class="font-semibold text-slate-700">Event ID:</dt>
+                            <dd id="eventSummaryId" class="text-slate-600 font-medium">—</dd>
                         </div>
-                        <div class="flex justify-between">
-                            <dt class="font-medium">Event Name:</dt>
-                            <dd id="eventSummaryName">—</dd>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <dt class="font-semibold text-slate-700">Event Name:</dt>
+                            <dd id="eventSummaryName" class="text-slate-600 font-medium">—</dd>
                         </div>
-                        <div class="flex justify-between">
-                            <dt class="font-medium">Stored Booths:</dt>
-                            <dd id="eventSummaryBooths">—</dd>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <dt class="font-semibold text-slate-700">Stored Booths:</dt>
+                            <dd id="eventSummaryBooths" class="text-slate-600 font-medium">—</dd>
                         </div>
                     </dl>
                 </div>
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Booth Details</h2>
-                    <div class="max-h-72 overflow-y-auto border border-gray-200 rounded-md">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm">
-                            <thead class="bg-gray-100 text-gray-700 uppercase tracking-wide">
+
+                <!-- Booth Details Card -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        Booth Details
+                    </h2>
+                    <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-lg">
+                        <table class="min-w-full divide-y divide-slate-200 text-sm">
+                            <thead class="bg-slate-50 text-slate-700 uppercase tracking-wide text-xs">
                                 <tr>
-                                    <th class="px-3 py-2 text-left">Number</th>
-                                    <th class="px-3 py-2 text-left">Type</th>
-                                    <th class="px-3 py-2 text-right">Price</th>
-                                    <th class="px-3 py-2 text-left">Size</th>
-                                    <th class="px-3 py-2 text-left">Status</th>
+                                    <th class="px-3 py-3 text-left font-semibold">Number</th>
+                                    <th class="px-3 py-3 text-left font-semibold">Type</th>
+                                    <th class="px-3 py-3 text-right font-semibold">Price</th>
+                                    <th class="px-3 py-3 text-left font-semibold">Size</th>
+                                    <th class="px-3 py-3 text-left font-semibold">Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="boothTableBody" class="divide-y divide-gray-100">
+                            <tbody id="boothTableBody" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="5" class="px-3 py-4 text-center text-gray-500">No data loaded yet.</td>
+                                    <td colspan="5" class="px-3 py-6 text-center text-slate-500">No data loaded yet.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -81,10 +108,6 @@
             </div>
         </div>
 
-        <div>
-            <h2 class="text-lg font-semibold text-gray-800 mb-2">Raw Layout JSON</h2>
-            <pre id="layoutJsonPreview" class="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 max-h-72 overflow-y-auto">Load an event to preview its stored layout JSON.</pre>
-        </div>
     </div>
 
     <script>
@@ -93,6 +116,7 @@
             selection: false
         });
 
+
         const loadEndpointTemplate = "{{ route('testing-layout.data', ['event' => '__EVENT__']) }}";
 
         function setStatus(message, tone = 'info') {
@@ -100,12 +124,12 @@
             status.textContent = message;
 
             const tones = {
-                info: 'text-gray-600',
-                success: 'text-green-600',
+                info: 'text-slate-600',
+                success: 'text-emerald-600',
                 error: 'text-red-600'
             };
 
-            status.className = `mt-3 text-sm min-h-[20px] ${tones[tone] ?? tones.info}`;
+            status.className = `mt-4 text-sm min-h-[20px] ${tones[tone] ?? tones.info}`;
         }
 
         function resetSummary() {
@@ -114,7 +138,7 @@
             document.getElementById('eventSummaryBooths').textContent = '—';
             const body = document.getElementById('boothTableBody');
             body.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No data loaded yet.</td></tr>';
-            document.getElementById('layoutJsonPreview').textContent = 'Load an event to preview its stored layout JSON.';
+            document.getElementById('editButton').style.display = 'none';
         }
 
         function clearCanvas() {
@@ -152,9 +176,10 @@
             }).join('');
         }
 
-        async function loadLayout() {
+        async function loadLayout(providedEventId) {
             const eventIdInput = document.getElementById('eventIdInput');
-            const rawEventId = eventIdInput.value.trim();
+            const rawValue = providedEventId ?? eventIdInput.value;
+            const rawEventId = (rawValue ?? '').toString().trim();
 
             if (!rawEventId) {
                 setStatus('Please enter an event ID before loading.', 'error');
@@ -162,7 +187,7 @@
                 return;
             }
 
-            setStatus('Loading layout...', 'info');
+            eventIdInput.value = rawEventId;
 
             const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(rawEventId));
 
@@ -184,6 +209,12 @@
 
                 const data = await response.json();
 
+                if (!data.layout) {
+                    clearCanvas();
+                    setStatus('No layout data found for this event.', 'error');
+                    return;
+                }
+
                 canvas.clear();
                 canvas.backgroundColor = '#ffffff';
 
@@ -195,18 +226,29 @@
                 });
 
                 document.getElementById('eventSummaryId').textContent = rawEventId;
-                document.getElementById('eventSummaryName').textContent = data.event?.name ?? '—';
+                document.getElementById('eventSummaryName').textContent = data.event?.title ?? data.event?.name ?? 'N/A';
                 document.getElementById('eventSummaryBooths').textContent = data.booth_count ?? data.booths?.length ?? 0;
 
                 populateBoothTable(data.booths ?? []);
-                document.getElementById('layoutJsonPreview').textContent = JSON.stringify(data.layout, null, 2);
+                document.getElementById('editButton').style.display = 'inline-flex';
 
-                setStatus('Layout loaded successfully.', 'success');
             } catch (error) {
                 console.error('Load layout error:', error);
-                setStatus('Unexpected error while loading layout.', 'error');
             }
         }
+
+        function editLayout() {
+            const eventIdInput = document.getElementById('eventIdInput');
+            const eventId = eventIdInput.value.trim();
+            if (eventId) {
+                const editUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+                window.location.href = editUrl;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLayout();
+        });
     </script>
 </body>
 

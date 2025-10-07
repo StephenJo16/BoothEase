@@ -5,15 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Enhanced Booth Layout Designer</title>
+    <title>Configure Booths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 </head>
 
-<body class="bg-gray-100 p-5">
+<body class="bg-gray-100 min-h-screen">
     @include('components.navbar')
     <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-5">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">🏢 Enhanced Booth Layout Designer</h1>
 
         <div class="bg-gray-100 rounded-lg p-5 mb-5">
             <h4 class="text-lg font-semibold text-gray-700 mb-4">Instructions:</h4>
@@ -37,23 +36,11 @@
                     <button class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('toilet')">🚽 Toilet</button>
 
                     <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700 mt-2">Actions:</div>
-                    <button class="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="exportJSON()">📤 Export JSON</button>
-                    <button class="px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="loadJSON()">📥 Load JSON</button>
                     <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCanvas()">🗑️ Clear Canvas</button>
                 </div>
 
                 <div class="border-2 border-gray-300 rounded-lg my-5 bg-gray-50 inline-block">
                     <canvas id="layoutCanvas" width="800" height="600"></canvas>
-                </div>
-
-                <div class="mt-8">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">JSON Output:</h3>
-                    <pre id="jsonOutput" class="bg-gray-50 border border-gray-300 rounded-md p-4 max-h-72 overflow-y-auto font-mono text-xs leading-relaxed whitespace-pre-wrap">Canvas is empty. Add some elements and click "Export JSON".</pre>
-                </div>
-
-                <div class="mt-8">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Load JSON:</h3>
-                    <textarea id="jsonInput" class="w-full min-h-[150px] border border-gray-300 rounded-md p-4 font-mono text-xs resize-y" placeholder="Paste your exported JSON here and click 'Load JSON'..."></textarea>
                 </div>
             </div>
 
@@ -62,31 +49,22 @@
                 <div id="propertiesContent" class="text-gray-500 italic text-center py-10">
                     Select a booth to edit its properties
                 </div>
+
                 <div class="mt-8 pt-5 border-t border-gray-300">
-                    <h4 class="text-base font-semibold text-gray-800 mb-4">Save Layout</h4>
-                    <div class="mb-5">
-                        <label class="block mb-2 text-gray-700 font-medium text-sm" for="eventIdInput">Event ID</label>
-                        <input type="number" id="eventIdInput" placeholder="Enter event ID" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div class="mb-5">
-                        <label class="flex items-center gap-2 text-sm text-gray-700">
-                            <input type="checkbox" id="replaceExistingInput" checked class="w-4 h-4">
-                            <span>Replace existing booths for this event</span>
-                        </label>
-                    </div>
-                    <button type="button" class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors" onclick="saveLayout()">Save Layout to Database</button>
-                    <div id="saveStatus" class="mt-3 text-sm min-h-[18px]"></div>
+                    <button type="button" id="saveLayoutBtn" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors" onclick="saveLayout()">
+                        💾 Save Layout
+                    </button>
+                    <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 
     <script>
-        // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        // Set your save endpoint URL here
-
-        const saveEndpoint = "{{ route('testing-layout.save') }}"; // => /testing-layout/save
+        const saveEndpoint = "{{ route('testing-layout.save') }}";
+        const eventId = "{{ $eventId ?? '' }}";
         const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice'];
         const canvas = new fabric.Canvas('layoutCanvas', {
             backgroundColor: '#ffffff',
@@ -343,44 +321,40 @@
             }
         });
 
-        function exportJSON() {
-            const canvasData = canvas.toJSON(trackedProperties);
-            const jsonString = JSON.stringify(canvasData, null, 2);
-            document.getElementById('jsonOutput').textContent = jsonString;
-        }
+
+
+
+
+
 
         async function saveLayout() {
-            const eventIdField = document.getElementById('eventIdInput');
-            const replaceExistingField = document.getElementById('replaceExistingInput');
             const statusElement = document.getElementById('saveStatus');
+            const saveBtn = document.getElementById('saveLayoutBtn');
 
-            if (!eventIdField || !statusElement) {
-                return;
-            }
-
-            const eventId = eventIdField.value.trim();
             if (!eventId) {
-                statusElement.textContent = 'Enter an event ID before saving.';
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-red-700';
-                eventIdField.focus();
+                statusElement.textContent = 'No event ID available. Please create an event first.';
+                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
             }
 
             const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
             if (boothCount === 0) {
                 statusElement.textContent = 'Add at least one booth before saving.';
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-red-700';
+                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
             }
 
+            // Show loading state
+            saveBtn.disabled = true;
+            saveBtn.textContent = '💾 Saving...';
             statusElement.textContent = 'Saving layout...';
-            statusElement.className = 'mt-3 text-sm min-h-[18px]';
+            statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-blue-600';
 
             const canvasData = canvas.toJSON(trackedProperties);
             const payload = {
                 event_id: parseInt(eventId, 10),
                 layout_json: JSON.stringify(canvasData),
-                replace_existing: replaceExistingField ? replaceExistingField.checked : true,
+                replace_existing: true
             };
 
             try {
@@ -398,7 +372,6 @@
 
                 if (!response.ok) {
                     let message = 'Failed to save layout.';
-
                     try {
                         const errorData = await response.json();
                         if (errorData.errors) {
@@ -411,36 +384,22 @@
                     }
 
                     statusElement.textContent = message;
-                    statusElement.className = 'mt-3 text-sm min-h-[18px] text-red-700';
+                    statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                     return;
                 }
 
                 const data = await response.json();
-                statusElement.textContent = data.message || 'Layout saved successfully.';
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-green-700';
+                statusElement.textContent = data.message || `Layout saved successfully! ${boothCount} booths created.`;
+                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
+
             } catch (error) {
                 console.error('Save layout error:', error);
                 statusElement.textContent = 'Network error while saving layout.';
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-red-700';
-            }
-        }
-
-        function loadJSON() {
-            const jsonInput = document.getElementById('jsonInput').value.trim();
-            if (!jsonInput) {
-                alert('Please paste some JSON data first!');
-                return;
-            }
-
-            try {
-                const jsonData = JSON.parse(jsonInput);
-                canvas.loadFromJSON(jsonData, function() {
-                    canvas.renderAll();
-                    alert('Layout loaded successfully!');
-                });
-            } catch (error) {
-                alert('Invalid JSON data!');
-                console.error('JSON parsing error:', error);
+                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
+            } finally {
+                // Reset button state
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Layout';
             }
         }
 
@@ -451,7 +410,6 @@
                 Object.keys(elementCounters).forEach(type => {
                     elementCounters[type] = 1;
                 });
-                document.getElementById('jsonOutput').textContent = 'Canvas cleared.';
                 updatePropertiesPanel(null);
                 canvas.renderAll();
             }
