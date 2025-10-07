@@ -23,29 +23,16 @@ class AuthController extends Controller
     private function normalizeIndoPhone(?string $input): ?string
     {
         if ($input === null || trim($input) === '') return null;
-
-        // Remove all non-digit characters
         $digits = preg_replace('/\D+/', '', $input);
-
         if ($digits === '') return null;
 
-        // Handle different input formats:
-        // 08xxxxxxxxx -> remove leading 0, add 62
-        // 8xxxxxxxxx -> add 62
-        // 628xxxxxxxxx -> keep as is
-        // +628xxxxxxxxx -> remove +, keep 62
-
         if (str_starts_with($digits, '0')) {
-            // Remove leading 0 and add 62
             $digits = '62' . substr($digits, 1);
         } elseif (str_starts_with($digits, '62')) {
-            // Already has 62, keep as is
             $digits = $digits;
         } else {
-            // Assume it's local format without leading 0, add 62
             $digits = '62' . $digits;
         }
-
         return $digits;
     }
 
@@ -62,14 +49,11 @@ class AuthController extends Controller
             'custom_business_category' => 'nullable|string|required_if:business_category,other|max:255',
         ]);
 
-        // Normalize phone number in backend
         $normalizedPhone = $this->normalizeIndoPhone($request->phone_number);
-
         if (!$normalizedPhone) {
             $validator->errors()->add('phone_number', 'Invalid phone number format.');
         }
 
-        // Check for duplicate phone number
         $validator->after(function ($validator) use ($normalizedPhone) {
             if ($normalizedPhone && User::where('phone_number', $normalizedPhone)->exists()) {
                 $validator->errors()->add('phone_number', 'The mobile number has already been taken.');
@@ -98,13 +82,16 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // UPDATED: Menambahkan pesan selamat datang setelah sign up
+        $welcomeMessage = 'Registration successful. Welcome, ' . $user->display_name . '!';
+
         if ($user->role->name === 'tenant') {
-            return redirect()->route('events');
+            return redirect()->route('events')->with('success', $welcomeMessage);
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->route('my-events');
+            return redirect()->route('my-events')->with('success', $welcomeMessage);
         }
 
-        return redirect()->route('home');
+        return redirect()->route('home')->with('success', $welcomeMessage);
     }
 
     // --- SIGN IN ---
@@ -124,13 +111,15 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $welcomeMessage = 'Login successful. Welcome back, ' . $user->display_name . '!';
+
             if ($user->role->name === 'tenant') {
-                return redirect()->intended(route('events'));
+                return redirect()->intended(route('events'))->with('success', $welcomeMessage);
             } elseif ($user->role->name === 'event_organizer') {
-                return redirect()->intended(route('my-events'));
+                return redirect()->intended(route('my-events'))->with('success', $welcomeMessage);
             }
 
-            return redirect()->route('home');
+            return redirect()->route('home')->with('success', $welcomeMessage);
         }
 
         return back()->withErrors([
@@ -144,7 +133,8 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        // UPDATED: Menambahkan pesan sukses setelah logout
+        return redirect('/')->with('success', 'You have been successfully logged out.');
     }
 
     public function googleRedirect()
@@ -172,15 +162,12 @@ class AuthController extends Controller
         if (!$userId) return redirect()->route('login');
 
         $user = User::findOrFail($userId);
-
-        // Normalize phone number using the same method
         $normalizedPhone = $this->normalizeIndoPhone($request->phone_number);
 
         if (!$normalizedPhone) {
             return back()->withErrors(['phone_number' => 'Invalid phone number format.'])->withInput();
         }
 
-        // Check for duplicate phone number (excluding current user)
         $existingUser = User::where('phone_number', $normalizedPhone)
             ->where('id', '!=', $userId)
             ->first();
@@ -253,16 +240,18 @@ class AuthController extends Controller
 
         Auth::login($user, remember: true);
 
+        $welcomeMessage = 'Successfully logged in with Google. Welcome, ' . $user->display_name . '!';
+
         $needsOnboarding = empty($user->phone_number) || empty($user->business_category);
         if ($needsOnboarding) {
-            return redirect()->route('onboarding.show');
+            return redirect()->route('onboarding.show')->with('success', 'Welcome! Please complete your profile.');
         }
 
         if ($user->role->name === 'tenant') {
-            return redirect()->intended(route('events'));
+            return redirect()->intended(route('events'))->with('success', $welcomeMessage);
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->intended(route('my-events'));
+            return redirect()->intended(route('my-events'))->with('success', $welcomeMessage);
         }
-        return redirect()->route('home');
+        return redirect()->route('home')->with('success', $welcomeMessage);
     }
 }
