@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BoothController;
@@ -118,8 +119,10 @@ Route::get('/book-booth', function () {
 
 
 
-Route::get('/testing-layout', function () {
-    return view('testing-layout.index');
+Route::get('/testing-layout', function (Request $request) {
+    return view('testing-layout.index', [
+        'eventId' => $request->query('event_id'),
+    ]);
 })->name('testing-layout');
 
 Route::get('/testing-layout/edit', function () {
@@ -127,10 +130,14 @@ Route::get('/testing-layout/edit', function () {
 })->name('testing-layout.edit');
 
 Route::post('/testing-layout/save', [BoothController::class, 'store'])->name('testing-layout.save');
-Route::get('/testing-layout/view', function () {
-    return view('testing-layout.view');
+Route::get('/testing-layout/view', function (Request $request) {
+    return view('testing-layout.view', [
+        'eventId' => $request->query('event_id'),
+    ]);
 })->name('testing-layout.view');
 Route::get('/testing-layout/data/{event}', [BoothController::class, 'show'])->name('testing-layout.data');
+
+
 
 
 

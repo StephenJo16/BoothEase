@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +10,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
 
     @php
-        $location = is_array($event->location) ? $event->location : [];
-        $booths = $event->booth_configuration;
-        $status = $event->status;
-        $statusStyles = [
-            'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-            'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-        ];
-        $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
-        $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
-        $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
-        $deadline = $location['registration_deadline'] ?? null;
-        $deadlineFormatted = $deadline ? \Carbon\Carbon::parse($deadline)->format('d M Y') : null;
+    $location = is_array($event->location) ? $event->location : [];
+    $booths = $event->booth_configuration;
+    $status = $event->status;
+    $statusStyles = [
+    'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+    'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+    ];
+    $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+    $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
+    $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
+    $deadline = $location['registration_deadline'] ?? null;
+    $deadlineFormatted = $deadline ? \Carbon\Carbon::parse($deadline)->format('d M Y') : null;
     @endphp
 
     <div class="min-h-screen py-10">
@@ -115,45 +117,108 @@
             <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Booth configuration</h2>
-                        <p class="text-sm text-gray-500">Details for each booth tier currently available.</p>
+                        <h2 class="text-lg font-semibold text-gray-900">Booth Layout</h2>
+                        <p class="text-sm text-gray-500">Details for each booth in the event layout.</p>
                     </div>
-                    <span class="text-xs uppercase tracking-wide text-gray-400">Total booth types: {{ is_array($booths) ? count($booths) : 0 }}</span>
+                    <span id="boothCountBadge" class="text-xs uppercase tracking-wide text-gray-400">Loading...</span>
                 </div>
-                @if(!empty($booths))
                 <div class="mt-6 overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Booth Number</th>
                                 <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
+                                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
                                 <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Size</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Price (IDR)</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Quantity</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 bg-white">
-                            @foreach($booths as $type => $config)
+                        <tbody id="boothTableBody" class="divide-y divide-gray-100 bg-white">
                             <tr>
-                                <td class="px-4 py-3 font-medium capitalize text-gray-900">{{ $type }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ $config['size'] ?? 'Not set' }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ isset($config['price']) ? 'Rp'.number_format($config['price'], 0, ',', '.') : 'Not set' }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ $config['qty'] ?? 'Not set' }}</td>
+                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">Loading booth data...</td>
                             </tr>
-                            @endforeach
                         </tbody>
                     </table>
                 </div>
-                @else
-                <div class="mt-6 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-                    No booth configurations have been added yet.
-                </div>
-                @endif
             </section>
         </div>
     </div>
+
+    <script>
+        const loadEndpointTemplate = "{{ route('testing-layout.data', ['event' => '__EVENT__']) }}";
+        const eventId = "{{ $event->id }}";
+
+        function populateBoothTable(booths) {
+            const body = document.getElementById('boothTableBody');
+            const badge = document.getElementById('boothCountBadge');
+
+            if (!Array.isArray(booths) || booths.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No booth layout has been configured for this event yet.</td></tr>';
+                badge.textContent = 'No booths configured';
+                return;
+            }
+
+            const formatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+
+            body.innerHTML = booths.map(booth => {
+                const price = formatter.format(booth.price ?? 0);
+                const size = booth.size ? `${booth.size}` : '—';
+
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">${booth.number ?? '—'}</td>
+                        <td class="px-4 py-3 text-gray-700 capitalize">${booth.type ?? '—'}</td>
+                        <td class="px-4 py-3 text-right text-gray-700">${price}</td>
+                        <td class="px-4 py-3 text-gray-700">${size}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${booth.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${booth.status ?? 'Available'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            badge.textContent = booths.length === 1 ? '1 booth configured' : `${booths.length} booths configured`;
+        }
+
+        async function loadBoothData() {
+            if (!eventId) {
+                document.getElementById('boothTableBody').innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Event ID not available.</td></tr>';
+                document.getElementById('boothCountBadge').textContent = 'Error loading';
+                return;
+            }
+
+            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(eventId));
+
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load booth data');
+                }
+
+                const data = await response.json();
+                populateBoothTable(data.booths ?? []);
+            } catch (error) {
+                console.error('Error loading booth data:', error);
+                document.getElementById('boothTableBody').innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Failed to load booth data. The booth layout may not have been configured yet.</td></tr>';
+                document.getElementById('boothCountBadge').textContent = 'Failed to load';
+            }
+        }
+
+        // Load booth data when the page loads
+        document.addEventListener('DOMContentLoaded', loadBoothData);
+    </script>
 </body>
+
 </html>
-
-
-
-

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
 
@@ -56,7 +58,7 @@
                                     <select id="category_id" name="category_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                         <option value="">Select a category</option>
                                         @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
+                                        <option value="{{ $category->id }}" @selected(old('category_id')==$category->id)>{{ $category->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -115,60 +117,24 @@
                         </div>
                     </section>
 
-                    <section class="space-y-6">
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-900">Booth configuration</h2>
-                            <p class="text-sm text-gray-500">Specify booth sizes, pricing, and stock for each tier.</p>
-                        </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            @php
-                                $boothTypes = [
-                                    'standard' => 'Standard',
-                                    'premium' => 'Premium',
-                                    'vip' => 'VIP',
-                                ];
-                            @endphp
-                            @foreach($boothTypes as $key => $label)
-                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-6">
-                                <div class="mb-4 flex items-center justify-between">
-                                    <h3 class="text-base font-semibold text-gray-900">{{ $label }} booth</h3>
-                                    <i class="fa-solid {{ $key === 'vip' ? 'fa-crown' : ($key === 'premium' ? 'fa-gem' : 'fa-store') }} text-[#ff7700]"></i>
-                                </div>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Size</label>
-                                        <input name="booth_{{ $key }}_size" type="text" value="{{ old('booth_'.$key.'_size') }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="e.g. 3x3 m">
-                                    </div>
-                                    <div>
-                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Price (IDR)</label>
-                                        <input name="booth_{{ $key }}_price" type="number" min="0" value="{{ old('booth_'.$key.'_price') }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="500000">
-                                    </div>
-                                    <div>
-                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">Quantity</label>
-                                        <input name="booth_{{ $key }}_qty" type="number" min="0" value="{{ old('booth_'.$key.'_qty') }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="50">
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </section>
+
 
                     <section class="space-y-4">
                         <label class="flex items-start gap-3 text-sm text-gray-600">
                             <input type="checkbox" name="confirm_terms" value="1" class="mt-1 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('confirm_terms'))>
-                            <span>I confirm that the event details are accurate and ready to be published.</span>
+                            <span>I confirm that the event details are correct.</span>
                         </label>
-                        <p class="text-xs text-gray-500">Confirming is required when you choose to publish the event. You can always save a draft without confirming.</p>
+                        <p class="text-xs text-gray-500">Confirming is required when you choose to create the event. You can always save a draft without confirming.</p>
                     </section>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
-                        <div class="text-xs text-gray-500">Fields marked with * are required to publish.</div>
+                        <div class="text-xs text-gray-500">Fields marked with * are required to create the event.</div>
                         <div class="flex flex-wrap gap-3">
-                            <button type="submit" name="action" value="draft" class="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                            <button type="submit" name="action" value="draft" class="hover:cursor-pointer inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                                 Save draft
                             </button>
-                            <button type="submit" name="action" value="publish" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                                Publish event
+                            <button type="submit" name="action" value="publish" class="hover:cursor-pointer inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
+                                Create event
                             </button>
                         </div>
                     </div>
@@ -177,4 +143,7 @@
         </div>
     </div>
 </body>
+
+@include('components.footer')
+
 </html>
