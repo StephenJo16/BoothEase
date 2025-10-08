@@ -5,15 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Edit Booths</title>
+    <title>Configure Booths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
     @include('components.navbar')
-
-    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-5 mt-10">
+    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-5">
 
         <div class="bg-gray-100 rounded-lg p-5 mb-5">
             <h4 class="text-lg font-semibold text-gray-700 mb-4">Instructions:</h4>
@@ -28,32 +27,32 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
             <div class="flex flex-col">
-                <!-- Tools Section -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 p-4 bg-gray-50 rounded-lg">
                     <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700">Add Elements:</div>
                     <button class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('booth')">🏢 Add Booth</button>
                     <button class="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('parking')">🅿️ Visitor Parking</button>
-                    <button class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('entrance')">� Entrance Gate</button>
-                    <button class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('exit')">� Exit Gate</button>
+                    <button class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('entrance')">🚪 Entrance Gate</button>
+                    <button class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('exit')">🚪 Exit Gate</button>
                     <button class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('toilet')">🚽 Toilet</button>
 
                     <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700 mt-2">Actions:</div>
                     <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCanvas()">🗑️ Clear Canvas</button>
                 </div>
 
-                <div class="border-2 border-gray-300 rounded-lg my-5 bg-gray-50 inline-block">
-                    <canvas id="layoutCanvas" width="800" height="600"></canvas>
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mt-5">
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
+                        <canvas id="layoutCanvas" width="800" height="600"></canvas>
+                    </div>
                 </div>
-
             </div>
 
-            <div class="bg-gray-50 rounded-lg p-5 h-fit sticky top-5">
-                <h3 class="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b-2 border-gray-300">⚙️ Properties</h3>
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 h-fit sticky top-5">
+                <h3 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b-2 border-slate-200">⚙️ Properties</h3>
                 <div id="propertiesContent" class="text-gray-500 italic text-center py-10">
                     Select a booth to edit its properties
                 </div>
 
-                <div class="mt-8 pt-5 border-t border-gray-300">
+                <div class="mt-8 pt-5 border-t border-slate-200">
                     <button type="button" id="saveLayoutBtn" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors" onclick="saveLayout()">
                         💾 Save Layout
                     </button>
@@ -65,12 +64,9 @@
 
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const saveEndpoint = "{{ route('testing-layout.save') }}";
-        const loadEndpointTemplate = "{{ route('testing-layout.data', ['event' => '__EVENT__']) }}";
-        const initialEventId = "{{ request('event_id', '') }}";
-
+        const saveEndpoint = "{{ route('booth-layout.save') }}";
+        const eventId = "{{ $eventId ?? '' }}";
         const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice'];
-
         const canvas = new fabric.Canvas('layoutCanvas', {
             backgroundColor: '#ffffff',
             selection: true
@@ -129,45 +125,6 @@
             toilet: 1
         };
 
-        let isLoadingLayout = false;
-        let objectIdCounter = 1;
-
-        function resetCounters() {
-            Object.keys(elementCounters).forEach(key => {
-                elementCounters[key] = 1;
-            });
-        }
-
-        function ensureObjectId(obj) {
-            if (!obj.__internalId) {
-                obj.__internalId = `el-${objectIdCounter++}`;
-            }
-            return obj.__internalId;
-        }
-
-
-
-
-
-        function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, match => {
-                switch (match) {
-                    case '&':
-                        return '&amp;';
-                    case '<':
-                        return '&lt;';
-                    case '>':
-                        return '&gt;';
-                    case '"':
-                        return '&quot;';
-                    case '\'':
-                        return '&#39;';
-                    default:
-                        return match;
-                }
-            });
-        }
-
         function createElement(type, left = 100, top = 100, customLabel = null, customProps = {}) {
             const config = elementTypes[type];
             const label = customLabel || `${config.defaultLabel} ${elementCounters[type]++}`;
@@ -178,8 +135,8 @@
             const rect = new fabric.Rect({
                 left: 0,
                 top: 0,
-                width,
-                height,
+                width: width,
+                height: height,
                 fill: config.color,
                 stroke: config.strokeColor,
                 strokeWidth: 2,
@@ -205,23 +162,24 @@
                 const boothType = customProps.boothType || 'Standard';
                 const price = customProps.price || 0;
 
-                const infoText = new fabric.Text(`${boothType} - $${price}`, {
-                    left: width / 2,
-                    top: height / 2 + 12,
-                    fontSize: 11,
-                    fontFamily: 'Arial',
-                    fill: config.textColor,
-                    textAlign: 'center',
-                    originX: 'center',
-                    originY: 'center'
-                });
-
+                const infoText = new fabric.Text(
+                    `${boothType} - $${price}`, {
+                        left: width / 2,
+                        top: height / 2 + 12,
+                        fontSize: 11,
+                        fontFamily: 'Arial',
+                        fill: config.textColor,
+                        textAlign: 'center',
+                        originX: 'center',
+                        originY: 'center'
+                    }
+                );
                 groupItems.push(infoText);
             }
 
             const elementGroup = new fabric.Group(groupItems, {
-                left,
-                top,
+                left: left,
+                top: top,
                 cornerColor: config.strokeColor,
                 cornerSize: 8,
                 transparentCorners: false,
@@ -237,8 +195,6 @@
                 boothType: customProps.boothType || 'Standard',
                 boothPrice: customProps.price || 0
             });
-
-            ensureObjectId(elementGroup);
 
             return elementGroup;
         }
@@ -257,9 +213,6 @@
 
         function updatePropertiesPanel(obj) {
             const content = document.getElementById('propertiesContent');
-            if (!content) {
-                return;
-            }
 
             if (!obj || obj.elementType !== 'booth') {
                 content.innerHTML = '<div class="text-gray-500 italic text-center py-10">Select a booth to edit its properties</div>';
@@ -275,7 +228,7 @@
             content.innerHTML = `
                 <div class="mb-5">
                     <label class="block mb-2 text-gray-700 font-medium text-sm">Booth Name:</label>
-                    <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" id="propLabel" value="${label}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <div class="mb-5">
@@ -300,65 +253,86 @@
 
                 <button class="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-semibold transition-colors" onclick="applyProperties()">Apply Changes</button>
             `;
-
-
         }
 
         function applyProperties() {
             const obj = canvas.getActiveObject();
-            if (!obj || obj.elementType !== 'booth') {
-                return;
-            }
+            if (!obj || obj.elementType !== 'booth') return;
 
-            const newLabel = document.getElementById('propLabel')?.value.trim() || 'Booth';
-            const newType = document.getElementById('propType')?.value || 'Standard';
-            const newPrice = parseFloat(document.getElementById('propPrice')?.value) || 0;
-            const newWidth = parseInt(document.getElementById('propWidth')?.value, 10) || 120;
-            const newHeight = parseInt(document.getElementById('propHeight')?.value, 10) || 80;
+            const newLabel = document.getElementById('propLabel').value.trim();
+            const newType = document.getElementById('propType').value;
+            const newPrice = parseFloat(document.getElementById('propPrice').value) || 0;
+            const newWidth = parseInt(document.getElementById('propWidth').value) || 120;
+            const newHeight = parseInt(document.getElementById('propHeight').value) || 80;
 
-            // Store current position and angle
             const currentLeft = obj.left;
             const currentTop = obj.top;
             const currentAngle = obj.angle;
-            const currentId = ensureObjectId(obj);
 
-            // Create a new booth with updated properties
-            const newBooth = createElement('booth', currentLeft, currentTop, newLabel, {
-                width: newWidth,
-                height: newHeight,
-                boothType: newType,
-                price: newPrice
-            });
+            const newBooth = createElement(
+                'booth',
+                currentLeft,
+                currentTop,
+                newLabel, {
+                    width: newWidth,
+                    height: newHeight,
+                    boothType: newType,
+                    price: newPrice
+                }
+            );
 
-            // Restore position and angle
             newBooth.set({
-                left: currentLeft,
-                top: currentTop,
-                angle: currentAngle,
-                __internalId: currentId
+                angle: currentAngle
             });
 
-            // Replace the old booth with the new one
             canvas.remove(obj);
             canvas.add(newBooth);
             canvas.setActiveObject(newBooth);
             canvas.renderAll();
 
-            // Update the properties panel to reflect the new object
             updatePropertiesPanel(newBooth);
-            handleCanvasChange();
         }
 
-        function exportJSON() {
-            const canvasData = canvas.toJSON(trackedProperties);
-            return JSON.stringify(canvasData, null, 2);
-        }
+        canvas.on('selection:created', function(e) {
+            updatePropertiesPanel(e.selected[0]);
+        });
+
+        canvas.on('selection:updated', function(e) {
+            updatePropertiesPanel(e.selected[0]);
+        });
+
+        canvas.on('selection:cleared', function() {
+            updatePropertiesPanel(null);
+        });
+
+        canvas.on('mouse:dblclick', function(options) {
+            if (options.target && options.target.type === 'group') {
+                const group = options.target;
+                const textObject = group.getObjects('text')[0];
+
+                if (textObject) {
+                    const newText = prompt('Enter new label:', textObject.text);
+                    if (newText !== null && newText.trim() !== '') {
+                        textObject.set('text', newText.trim());
+                        group.set('elementLabel', newText.trim());
+                        canvas.renderAll();
+                        updatePropertiesPanel(group);
+                    }
+                }
+            }
+        });
+
+
+
+
+
+
 
         async function saveLayout() {
             const statusElement = document.getElementById('saveStatus');
             const saveBtn = document.getElementById('saveLayoutBtn');
 
-            if (!initialEventId) {
+            if (!eventId) {
                 statusElement.textContent = 'No event ID available. Please create an event first.';
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
@@ -366,7 +340,7 @@
 
             const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
             if (boothCount === 0) {
-                statusElement.textContent = 'At least one booth is required. Please add at least one booth to your layout before saving.';
+                statusElement.textContent = 'Add at least one booth before saving.';
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
             }
@@ -379,7 +353,7 @@
 
             const canvasData = canvas.toJSON(trackedProperties);
             const payload = {
-                event_id: parseInt(initialEventId, 10),
+                event_id: parseInt(eventId, 10),
                 layout_json: JSON.stringify(canvasData),
                 replace_existing: true
             };
@@ -401,11 +375,10 @@
                     let message = 'Failed to save layout.';
                     try {
                         const errorData = await response.json();
-                        if (errorData.message) {
+                        if (errorData.errors) {
+                            message = Object.values(errorData.errors).flat().join(' ');
+                        } else if (errorData.message) {
                             message = errorData.message;
-                        } else if (errorData.errors && errorData.errors.layout_json) {
-                            // Handle Laravel validation errors
-                            message = errorData.errors.layout_json[0];
                         }
                     } catch (error) {
                         console.error('Error parsing save response:', error);
@@ -417,7 +390,7 @@
                 }
 
                 const data = await response.json();
-                statusElement.textContent = data.message || `Layout saved successfully! ${boothCount} booths created and event finalized.`;
+                statusElement.textContent = data.message || `Layout saved successfully! ${boothCount} booths created.`;
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
 
             } catch (error) {
@@ -431,127 +404,6 @@
             }
         }
 
-
-
-        function updateCountersFromCanvas() {
-            resetCounters();
-            canvas.getObjects().forEach(obj => {
-                if (!obj.elementType || !(obj.elementType in elementCounters)) {
-                    return;
-                }
-
-                ensureObjectId(obj);
-
-                const label = obj.elementLabel || '';
-                const numberMatch = label.match(/(\d+)\s*$/);
-                if (numberMatch) {
-                    const candidate = parseInt(numberMatch[1], 10) + 1;
-                    elementCounters[obj.elementType] = Math.max(elementCounters[obj.elementType], candidate);
-                } else {
-                    elementCounters[obj.elementType] = Math.max(elementCounters[obj.elementType], 2);
-                }
-            });
-        }
-
-
-
-
-
-
-        canvas.on('selection:created', function(e) {
-            updatePropertiesPanel(e.selected[0]);
-        });
-
-        canvas.on('selection:updated', function(e) {
-            updatePropertiesPanel(e.selected[0]);
-        });
-
-        canvas.on('selection:cleared', function() {
-            updatePropertiesPanel(null);
-        });
-
-
-
-        canvas.on('mouse:dblclick', function(options) {
-            if (options.target && options.target.type === 'group') {
-                const group = options.target;
-                const textObject = group.getObjects('text')[0];
-
-                if (textObject) {
-                    const newText = prompt('Enter new label:', textObject.text);
-                    if (newText !== null && newText.trim() !== '') {
-                        textObject.set('text', newText.trim());
-                        group.set('elementLabel', newText.trim());
-                        updatePropertiesPanel(group);
-                        canvas.renderAll();
-                    }
-                }
-            }
-        });
-
-        async function loadExistingLayout() {
-            if (!initialEventId) {
-                return false;
-            }
-
-            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(initialEventId));
-
-            try {
-                console.log('Loading existing layout for event ID:', initialEventId);
-                const response = await fetch(endpoint, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    console.log('No existing layout found, starting with sample elements');
-                    return false;
-                }
-
-                const data = await response.json();
-                if (!data.layout) {
-                    console.log('No layout data found, starting with sample elements');
-                    return false;
-                }
-
-                console.log('Loading saved layout with', data.layout.objects?.length || 0, 'objects');
-                isLoadingLayout = true;
-                canvas.clear();
-                canvas.backgroundColor = '#ffffff';
-
-                await new Promise(resolve => {
-                    canvas.loadFromJSON(data.layout, () => {
-                        canvas.renderAll();
-                        resolve();
-                    }, (revived, serialized) => {
-                        if (revived && revived.type === 'group') {
-                            ensureObjectId(revived);
-                        }
-                    });
-                });
-
-                canvas.getObjects().forEach(obj => {
-                    ensureObjectId(obj);
-                });
-
-                isLoadingLayout = false;
-                updateCountersFromCanvas();
-                updatePropertiesPanel(null);
-
-                const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
-                console.log('Layout loaded successfully with', boothCount, 'booths');
-                return true;
-            } catch (error) {
-                console.error('Load layout error:', error);
-                return false;
-            }
-        }
-
-
-
-
-
         function clearCanvas() {
             if (confirm('Are you sure you want to clear the canvas?')) {
                 canvas.clear();
@@ -564,70 +416,64 @@
             }
         }
 
-        window.addEventListener('load', async function() {
-            // First try to load existing layout if event ID is provided
-            const layoutLoaded = await loadExistingLayout();
-
-            // If no layout was loaded, show sample elements
-            if (!layoutLoaded) {
-                const sampleElements = [{
-                        type: 'entrance',
-                        x: 100,
-                        y: 50,
-                        label: 'Main Entrance'
-                    },
-                    {
-                        type: 'booth',
-                        x: 200,
-                        y: 150,
-                        label: 'Booth 1',
-                        props: {
-                            width: 120,
-                            height: 80,
-                            boothType: 'Premium',
-                            price: 250
-                        }
-                    },
-                    {
-                        type: 'booth',
-                        x: 400,
-                        y: 150,
-                        label: 'Booth 2',
-                        props: {
-                            width: 120,
-                            height: 80,
-                            boothType: 'Standard',
-                            price: 150
-                        }
-                    },
-                    {
-                        type: 'parking',
-                        x: 500,
-                        y: 350,
-                        label: 'Visitor Parking'
-                    },
-                    {
-                        type: 'toilet',
-                        x: 100,
-                        y: 350,
-                        label: 'Restroom'
+        window.addEventListener('load', function() {
+            const sampleElements = [{
+                    type: 'entrance',
+                    x: 100,
+                    y: 50,
+                    label: 'Main Entrance'
+                },
+                {
+                    type: 'booth',
+                    x: 200,
+                    y: 150,
+                    label: 'Booth 1',
+                    props: {
+                        boothType: 'Premium',
+                        price: 5000,
+                        width: 150,
+                        height: 100
                     }
-                ];
-
-                sampleElements.forEach(item => {
-                    const element = createElement(item.type, item.x, item.y, item.label, item.props || {});
-                    canvas.add(element);
-                    if (item.type === 'booth') {
-                        const match = item.label.match(/Booth (\d+)/);
-                        if (match) {
-                            const num = parseInt(match[1], 10);
-                            elementCounters.booth = Math.max(elementCounters.booth, num + 1);
-                        }
+                },
+                {
+                    type: 'booth',
+                    x: 400,
+                    y: 150,
+                    label: 'Booth 2',
+                    props: {
+                        boothType: 'Standard',
+                        price: 3000,
+                        width: 120,
+                        height: 80
                     }
-                });
+                },
+                {
+                    type: 'parking',
+                    x: 500,
+                    y: 350,
+                    label: 'Visitor Parking'
+                },
+                {
+                    type: 'toilet',
+                    x: 100,
+                    y: 350,
+                    label: 'Restroom'
+                }
+            ];
 
-                canvas.renderAll();
-            }
+            sampleElements.forEach(item => {
+                const element = createElement(item.type, item.x, item.y, item.label, item.props || {});
+                canvas.add(element);
+                if (item.type === 'booth') {
+                    const match = item.label.match(/Booth (\d+)/);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        elementCounters.booth = Math.max(elementCounters.booth, num + 1);
+                    }
+                }
+            });
+
+            canvas.renderAll();
         });
 
         document.addEventListener('keydown', function(e) {
@@ -636,11 +482,13 @@
                 const activeObj = canvas.getActiveObject();
                 if (activeObj && activeObj.elementType) {
                     activeObj.clone(function(cloned) {
+                        const type = cloned.elementType;
                         cloned.set({
-                            left: cloned.left + 20,
-                            top: cloned.top + 20
+                            left: activeObj.left + 20,
+                            top: activeObj.top + 20,
+                            elementLabel: `${elementTypes[type].defaultLabel} ${elementCounters[type]++}`
                         });
-                        ensureObjectId(cloned);
+
                         canvas.add(cloned);
                         canvas.setActiveObject(cloned);
                         canvas.renderAll();

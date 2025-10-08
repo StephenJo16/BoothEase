@@ -116,7 +116,7 @@
         });
 
 
-        const loadEndpointTemplate = "{{ route('testing-layout.data', ['event' => '__EVENT__']) }}";
+        const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
 
         function setStatus(message, tone = 'info') {
             const status = document.getElementById('statusMessage');
@@ -251,7 +251,7 @@
             const eventIdInput = document.getElementById('eventIdInput');
             const eventId = eventIdInput.value.trim();
             if (eventId) {
-                const editUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+                const editUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
                 window.location.href = editUrl;
             }
         }
@@ -260,7 +260,7 @@
             const eventIdInput = document.getElementById('eventIdInput');
             const eventId = eventIdInput.value.trim();
             if (eventId) {
-                const createUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+                const createUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
                 window.location.href = createUrl;
             }
         }

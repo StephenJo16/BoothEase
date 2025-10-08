@@ -171,7 +171,7 @@
     </div>
 
     <script>
-        const loadEndpointTemplate = "{{ route('testing-layout.data', ['event' => '__EVENT__']) }}";
+        const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
         const eventId = "{{ $event->id }}";
 
         function populateBoothTable(booths) {
