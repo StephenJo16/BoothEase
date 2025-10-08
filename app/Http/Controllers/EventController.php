@@ -92,7 +92,7 @@ class EventController extends Controller
     {
         $this->ensureOwnership($request, $event);
 
-        $action = $request->input('action', $event->status === 'published' ? 'publish' : 'draft');
+        $action = $request->input('action', $event->isPublished() ? 'publish' : 'draft');
         $data = $this->validatePayload($request, $action);
 
         $this->applyPayload($event, $data, $request->user(), $action);
@@ -100,6 +100,25 @@ class EventController extends Controller
         return redirect()
             ->route('my-events.index')
             ->with('status', $action === 'publish' ? 'Event updated and published.' : 'Draft updated successfully.');
+    }
+
+    public function publish(Request $request, Event $event)
+    {
+        $this->ensureOwnership($request, $event);
+
+        // Only allow publishing if the event is finalized
+        if ($event->status !== Event::STATUS_FINALIZED) {
+            return redirect()
+                ->back()
+                ->with('error', 'Only finalized events can be published.');
+        }
+
+        $event->status = Event::STATUS_PUBLISHED;
+        $event->save();
+
+        return redirect()
+            ->route('my-events.show', $event)
+            ->with('status', 'Event published successfully!');
     }
 
     public function destroy(Request $request, Event $event)
@@ -175,7 +194,13 @@ class EventController extends Controller
             return filled($value);
         });
 
-        $event->status = in_array($action, ['publish', 'create_layout']) ? 'published' : 'draft';
+        // Determine status based on action
+        if (in_array($action, ['publish', 'create_layout'])) {
+            $event->status = Event::STATUS_PUBLISHED;
+        } else {
+            $event->status = Event::STATUS_DRAFT;
+        }
+
         $event->user_id = $event->user_id ?: $user->id;
 
         $event->save();
@@ -216,6 +241,16 @@ class EventController extends Controller
     {
         if ($event->user_id !== $request->user()->id) {
             abort(403);
+        }
+    }
+
+    /**
+     * Update event status to finalized when booths are properly set up
+     */
+    public function updateStatusToFinalized(Event $event): void
+    {
+        if ($event->isDraft() && $event->canBeFinalized()) {
+            $event->update(['status' => Event::STATUS_FINALIZED]);
         }
     }
 }

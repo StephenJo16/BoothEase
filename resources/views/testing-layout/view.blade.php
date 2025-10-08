@@ -7,6 +7,7 @@
     <title>View Booth Layout</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
@@ -28,11 +29,13 @@
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <button type="button" onclick="editLayout()" id="editButton" style="display: none;"
-                        class="px-6 py-3 bg-[#ff7700] text-white rounded-lg font-semibold transition-all duration-200 shadow-md">
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
+                        class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
+                        <i class="fa-regular fa-pen-to-square mr-2"></i>
                         Edit Layout
+                    </button>
+                    <button type="button" onclick="createLayout()" id="createButton" style="display: none;" class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        Create Layout
                     </button>
                     <button type="button" onclick="clearCanvas()"
                         class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold transition-colors">
@@ -57,9 +60,7 @@
                 <!-- Event Summary Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
+                        <i class="fa-solid fa-chart-simple me-2"></i>
                         Event Summary
                     </h2>
                     <dl class="space-y-3 text-sm">
@@ -81,9 +82,7 @@
                 <!-- Booth Details Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
+                        <i class="fa-solid fa-box me-2"></i>
                         Booth Details
                     </h2>
                     <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-lg">
@@ -139,6 +138,7 @@
             const body = document.getElementById('boothTableBody');
             body.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No data loaded yet.</td></tr>';
             document.getElementById('editButton').style.display = 'none';
+            document.getElementById('createButton').style.display = 'none';
         }
 
         function clearCanvas() {
@@ -203,7 +203,14 @@
                         message: 'Unable to load layout.'
                     }));
                     clearCanvas();
-                    setStatus(error.message ?? 'Unable to load layout.', 'error');
+
+                    // If it's a 404 (no layout found), show create button
+                    if (response.status === 404) {
+                        setStatus('No saved layout found for this event. You can create a new layout.', 'error');
+                        document.getElementById('createButton').style.display = 'inline-flex';
+                    } else {
+                        setStatus(error.message ?? 'Unable to load layout.', 'error');
+                    }
                     return;
                 }
 
@@ -211,7 +218,8 @@
 
                 if (!data.layout) {
                     clearCanvas();
-                    setStatus('No layout data found for this event.', 'error');
+                    setStatus('No layout data found for this event. You can create a new layout.', 'error');
+                    document.getElementById('createButton').style.display = 'inline-flex';
                     return;
                 }
 
@@ -231,6 +239,8 @@
 
                 populateBoothTable(data.booths ?? []);
                 document.getElementById('editButton').style.display = 'inline-flex';
+                document.getElementById('createButton').style.display = 'none';
+                setStatus('Layout loaded successfully.', 'success');
 
             } catch (error) {
                 console.error('Load layout error:', error);
@@ -243,6 +253,15 @@
             if (eventId) {
                 const editUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
                 window.location.href = editUrl;
+            }
+        }
+
+        function createLayout() {
+            const eventIdInput = document.getElementById('eventIdInput');
+            const eventId = eventIdInput.value.trim();
+            if (eventId) {
+                const createUrl = "{{ route('testing-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+                window.location.href = createUrl;
             }
         }
 

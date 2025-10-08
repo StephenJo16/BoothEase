@@ -43,6 +43,7 @@
             @php
             $statusStyles = [
             'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+            'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
             'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
             ];
             @endphp
