@@ -157,12 +157,15 @@
                 return;
             }
 
+            // Helper function to format Rupiah
+            function formatRupiah(value) {
+                const digits = String(value ?? 0).replace(/\D/g, '');
+                const num = digits === '' ? 0 : parseInt(digits);
+                return 'Rp' + num.toLocaleString('id-ID');
+            }
+
             body.innerHTML = booths.map(booth => {
-                const price = (booth.price ?? 0).toLocaleString('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 0
-                });
+                const price = formatRupiah(booth.price ?? 0);
 
                 return `
                     <tr class="odd:bg-white even:bg-gray-50">

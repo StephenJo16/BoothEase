@@ -103,7 +103,7 @@
                             @elseif($event->status === 'finalized')
                             <form method="POST" action="{{ route('my-events.publish', $event) }}" onsubmit="return confirm('Publish this event? Once published, it will be visible to attendees.');">
                                 @csrf
-                                <button type="submit" class="flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">
+                                <button type="submit" class="hover:cursor-pointer flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">
                                     <i class="fa-solid fa-rocket mr-2"></i>
                                     Publish Event
                                 </button>
@@ -124,7 +124,7 @@
                             <form method="POST" action="{{ route('my-events.destroy', $event) }}" onsubmit="return confirm('Delete this event? This action cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="flex w-full items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">
+                                <button type="submit" class="hover:cursor-pointer flex w-full items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">
                                     <i class="fa-regular fa-trash-can mr-2"></i>
                                     Delete event
                                 </button>
@@ -184,15 +184,15 @@
                 return;
             }
 
-            const formatter = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            });
+            // Helper function to format Rupiah
+            function formatRupiah(value) {
+                const digits = String(value ?? 0).replace(/\D/g, '');
+                const num = digits === '' ? 0 : parseInt(digits);
+                return 'Rp' + num.toLocaleString('id-ID');
+            }
 
             body.innerHTML = booths.map(booth => {
-                const price = formatter.format(booth.price ?? 0);
+                const price = formatRupiah(booth.price ?? 0);
                 const size = booth.size ? `${booth.size}` : '—';
 
                 return `

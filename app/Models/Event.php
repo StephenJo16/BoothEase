@@ -56,6 +56,11 @@ class Event extends Model
         return $this->hasManyThrough(Booking::class, Booth::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
+
     public function scopeOwnedBy($query, $user)
     {
         $userId = $user instanceof \Illuminate\Contracts\Auth\Authenticatable ? $user->getAuthIdentifier() : $user;

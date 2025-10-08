@@ -8,58 +8,62 @@
     <title>Edit Booths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="bg-gray-100 min-h-screen">
     @include('components.navbar')
 
-    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-5 mt-10">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        @include('components.back-button', ['text' => 'Back to Edit Event', 'url' => request('event_id') ? route('my-events.edit', ['event' => request('event_id')]) : route('my-events.index')])
 
-        <div class="bg-gray-100 rounded-lg p-5 mb-5">
-            <h4 class="text-lg font-semibold text-gray-700 mb-4">Instructions:</h4>
-            <ul class="list-disc pl-5 space-y-2 text-gray-600">
-                <li>Click any element button to add it to the canvas</li>
-                <li>Select a booth to edit its properties (size, price, type) in the right panel</li>
-                <li>Double-click any element to quickly edit its text label</li>
-                <li>Drag elements to position them, resize using corner handles</li>
-                <li>Keyboard shortcuts: Ctrl+D to duplicate, Delete to remove</li>
-            </ul>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
-            <div class="flex flex-col">
-                <!-- Tools Section -->
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 p-4 bg-gray-50 rounded-lg">
-                    <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700">Add Elements:</div>
-                    <button class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('booth')">🏢 Add Booth</button>
-                    <button class="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('parking')">🅿️ Visitor Parking</button>
-                    <button class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('entrance')">🚪 Entrance Gate</button>
-                    <button class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('exit')">🚪 Exit Gate</button>
-                    <button class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('toilet')">🚽 Toilet</button>
-
-                    <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700 mt-2">Actions:</div>
-                    <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCanvas()">🗑️ Clear Canvas</button>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mt-5">
-                    <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
-                        <canvas id="layoutCanvas" width="800" height="600"></canvas>
-                    </div>
-                </div>
-
+        <div class="bg-white rounded-lg shadow-lg p-5">
+            <div class="bg-gray-100 rounded-lg p-5 mb-5">
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Instructions:</h4>
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li>Click any element button to add it to the canvas</li>
+                    <li>Select a booth to edit its properties (size, price, type) in the right panel</li>
+                    <li>Double-click any element to quickly edit its text label</li>
+                    <li>Drag elements to position them, resize using corner handles</li>
+                    <li>Keyboard shortcuts: Ctrl+D to duplicate, Delete to remove</li>
+                </ul>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 h-fit sticky top-5">
-                <h3 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b-2 border-slate-200">⚙️ Properties</h3>
-                <div id="propertiesContent" class="text-gray-500 italic text-center py-10">
-                    Select a booth to edit its properties
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
+                <div class="flex flex-col">
+                    <!-- Tools Section -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 p-4 bg-gray-50 rounded-lg">
+                        <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700">Add Elements:</div>
+                        <button class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('booth')">🏢 Add Booth</button>
+                        <button class="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('parking')">🅿️ Visitor Parking</button>
+                        <button class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('entrance')">🚪 Entrance Gate</button>
+                        <button class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('exit')">🚪 Exit Gate</button>
+                        <button class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('toilet')">🚽 Toilet</button>
+
+                        <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700 mt-2">Actions:</div>
+                        <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCanvas()">🗑️ Clear Canvas</button>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mt-5">
+                        <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
+                            <canvas id="layoutCanvas" width="800" height="600"></canvas>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="mt-8 pt-5 border-t border-slate-200">
-                    <button type="button" id="saveLayoutBtn" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors" onclick="saveLayout()">
-                        💾 Save Layout
-                    </button>
-                    <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 h-fit sticky top-5">
+                    <h3 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b-2 border-slate-200">⚙️ Properties</h3>
+                    <div id="propertiesContent" class="text-gray-500 italic text-center py-10">
+                        Select a booth to edit its properties
+                    </div>
+
+                    <div class="mt-8 pt-5 border-t border-slate-200">
+                        <button type="button" id="saveLayoutBtn" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors" onclick="saveLayout()">
+                            💾 Save Layout
+                        </button>
+                        <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -170,6 +174,13 @@
             });
         }
 
+        // Helper function to format Rupiah
+        function formatRupiah(value) {
+            const digits = String(value ?? 0).replace(/\D/g, '');
+            const num = digits === '' ? 0 : parseInt(digits);
+            return 'Rp' + num.toLocaleString('id-ID');
+        }
+
         function createElement(type, left = 100, top = 100, customLabel = null, customProps = {}) {
             const config = elementTypes[type];
             const label = customLabel || `${config.defaultLabel} ${elementCounters[type]++}`;
@@ -207,7 +218,7 @@
                 const boothType = customProps.boothType || 'Standard';
                 const price = customProps.price || 0;
 
-                const infoText = new fabric.Text(`${boothType} - $${price}`, {
+                const infoText = new fabric.Text(`${boothType} - ${formatRupiah(price)}`, {
                     left: width / 2,
                     top: height / 2 + 12,
                     fontSize: 11,
@@ -288,7 +299,7 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="block mb-2 text-gray-700 font-medium text-sm">Price ($):</label>
+                    <label class="block mb-2 text-gray-700 font-medium text-sm">Price:</label>
                     <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 

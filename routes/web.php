@@ -51,13 +51,9 @@ Route::get('/faq', function () {
     return view('faq.index');
 })->name('faq');
 
-Route::get('/events', function () {
-    return view('events.index');
-})->name('events');
+Route::get('/events', [EventController::class, 'publicIndex'])->name('events');
 
-Route::get('/events/details', function () {
-    return view('events.details');
-})->name('eventdetails');
+Route::get('/events/{event}', [EventController::class, 'publicShow'])->name('eventdetails');
 
 Route::get('/my-bookings', function () {
     return view('my-bookings.index');

@@ -28,7 +28,7 @@
 
     <div class="min-h-screen py-10">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events.index')])
+            @include('components.back-button', ['text' => 'Back to Event Details', 'url' => route('my-events.show', $event)])
 
             <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>

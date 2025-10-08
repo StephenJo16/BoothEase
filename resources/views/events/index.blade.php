@@ -27,165 +27,21 @@ return 'Rp' . number_format($num, 0, ',', '.');
 }
 }
 
-// Events Data
-$events = [
-[
-'name' => 'Tech Innovation Expo 2025',
-'category' => 'Technology',
-'categoryColor' => 'text-blue-600',
-'gradientFrom' => 'from-blue-400',
-'gradientTo' => 'to-blue-600',
-'location' => 'Convention Center, Jakarta',
-'date' => '15 December 2025',
-'booths' => '50 Booths Available',
-'price' => 500000,
-'url' => '/events/details',
-'buttonType' => 'link'
-],
-[
-'name' => 'Green Tech Summit 2025',
-'category' => 'Technology',
-'categoryColor' => 'text-green-600',
-'gradientFrom' => 'from-green-400',
-'gradientTo' => 'to-green-600',
-'location' => 'Convention Center, Jakarta',
-'date' => '15 December 2025',
-'booths' => '30 Booths Available',
-'price' => 750000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Digital Innovation Expo',
-'category' => 'Technology',
-'categoryColor' => 'text-purple-600',
-'gradientFrom' => 'from-purple-400',
-'gradientTo' => 'to-purple-600',
-'location' => 'Convention Center, Jakarta',
-'date' => '15 December 2025',
-'booths' => '25 Booths Available',
-'price' => 600000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Food & Beverage Festival',
-'category' => 'Food & Beverage',
-'categoryColor' => 'text-red-600',
-'gradientFrom' => 'from-red-400',
-'gradientTo' => 'to-red-600',
-'location' => 'Grand Mall, Surabaya',
-'date' => '20 January 2026',
-'booths' => '40 Booths Available',
-'price' => 400000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Startup Showcase 2025',
-'category' => 'Business',
-'categoryColor' => 'text-orange-600',
-'gradientFrom' => 'from-yellow-400',
-'gradientTo' => 'to-orange-500',
-'location' => 'Tech Hub, Bandung',
-'date' => '10 March 2026',
-'booths' => '35 Booths Available',
-'price' => 300000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Fashion Week Indonesia',
-'category' => 'Fashion',
-'categoryColor' => 'text-indigo-600',
-'gradientFrom' => 'from-indigo-400',
-'gradientTo' => 'to-indigo-600',
-'location' => 'Fashion Center, Jakarta',
-'date' => '25 April 2026',
-'booths' => '60 Booths Available',
-'price' => 800000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Wellness Retreat 2026',
-'category' => 'Lifestyle',
-'categoryColor' => 'text-pink-600',
-'gradientFrom' => 'from-pink-400',
-'gradientTo' => 'to-pink-600',
-'location' => 'Resort & Spa, Bali',
-'date' => '5 June 2026',
-'booths' => '20 Booths Available',
-'price' => 1200000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Indie Music Fest 2026',
-'category' => 'Music',
-'categoryColor' => 'text-teal-600',
-'gradientFrom' => 'from-teal-400',
-'gradientTo' => 'to-teal-600',
-'location' => 'City Park, Yogyakarta',
-'date' => '18 July 2026',
-'booths' => '30 Booths Available',
-'price' => 350000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Art & Culture Fair',
-'category' => 'Art & Culture',
-'categoryColor' => 'text-cyan-600',
-'gradientFrom' => 'from-cyan-400',
-'gradientTo' => 'to-cyan-600',
-'location' => 'National Gallery, Jakarta',
-'date' => '22 August 2026',
-'booths' => '45 Booths Available',
-'price' => 450000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Weekend Market',
-'category' => 'Lifestyle',
-'categoryColor' => 'text-red-600',
-'gradientFrom' => 'from-red-400',
-'gradientTo' => 'to-yellow-500',
-'location' => 'City Square, Bandung',
-'date' => '10 September 2026',
-'booths' => '100 Booths Available',
-'price' => 200000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Education Fair 2026',
-'category' => 'Education',
-'categoryColor' => 'text-green-600',
-'gradientFrom' => 'from-green-400',
-'gradientTo' => 'to-blue-500',
-'location' => 'University Hall, Surabaya',
-'date' => '15 October 2026',
-'booths' => '80 Booths Available',
-'price' => 250000,
-'url' => '#',
-'buttonType' => 'button'
-],
-[
-'name' => 'Comics & Hobbies Expo',
-'category' => 'Hobbies',
-'categoryColor' => 'text-purple-600',
-'gradientFrom' => 'from-purple-400',
-'gradientTo' => 'to-pink-500',
-'location' => 'Expo Center, Jakarta',
-'date' => '20 November 2026',
-'booths' => '120 Booths Available',
-'price' => 300000,
-'url' => '#',
-'buttonType' => 'button'
-]
-];
+// Helper to get minimum booth price
+if (!function_exists('getMinBoothPrice')) {
+function getMinBoothPrice($event) {
+$prices = [];
+$boothConfig = $event->location['booths'] ?? [];
+
+foreach ($boothConfig as $type => $config) {
+if (isset($config['price'])) {
+$prices[] = $config['price'];
+}
+}
+
+return !empty($prices) ? min($prices) : 0;
+}
+}
 @endphp
 
 <body class="bg-gray-50 min-h-screen">
@@ -212,48 +68,85 @@ $events = [
         <!-- Events Grid -->
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                @if($events->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($events as $event)
+                    @php
+                    $categoryColors = [
+                    'text-blue-600', 'text-green-600', 'text-purple-600', 'text-red-600',
+                    'text-orange-600', 'text-indigo-600', 'text-pink-600', 'text-teal-600',
+                    'text-cyan-600', 'text-yellow-600'
+                    ];
+                    $gradients = [
+                    ['from-blue-400', 'to-blue-600'],
+                    ['from-green-400', 'to-green-600'],
+                    ['from-purple-400', 'to-purple-600'],
+                    ['from-red-400', 'to-red-600'],
+                    ['from-yellow-400', 'to-orange-500'],
+                    ['from-indigo-400', 'to-indigo-600'],
+                    ['from-pink-400', 'to-pink-600'],
+                    ['from-teal-400', 'to-teal-600'],
+                    ['from-cyan-400', 'to-cyan-600'],
+                    ];
+
+                    // Use category id to pick a consistent color scheme
+                    $colorIndex = ($event->category_id ?? 0) % count($categoryColors);
+                    $gradientIndex = ($event->category_id ?? 0) % count($gradients);
+
+                    $categoryColor = $categoryColors[$colorIndex];
+                    $gradient = $gradients[$gradientIndex];
+
+                    $minPrice = getMinBoothPrice($event);
+                    @endphp
                     <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                        <div class="h-48 bg-gradient-to-br {{ $event['gradientFrom'] }} {{ $event['gradientTo'] }} relative">
-                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $event['categoryColor'] }} text-xs font-semibold px-2 py-1 rounded-full">{{ $event['category'] }}</span>
+                        <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
+                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                                {{ $event->category->name ?? 'Uncategorized' }}
+                            </span>
                         </div>
                         <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event['name'] }}</h3>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                             <div class="space-y-2 text-sm text-gray-600 mb-4">
                                 <div class="flex items-center">
                                     <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $event['location'] }}</span>
+                                    <span>{{ $event->display_location ?? 'Location TBA' }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $event['date'] }}</span>
+                                    <span>{{ $event->start_time ? $event->start_time->format('d F Y') : 'Date TBA' }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $event['booths'] }}</span>
+                                    <span>{{ $event->available_booths_count ?? $event->booths_count ?? 0 }} Booths Available</span>
                                 </div>
+                                @if($minPrice > 0)
                                 <div class="flex items-center">
                                     <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                    <span>Starting from: {{ formatRupiah($event['price']) }}</span>
+                                    <span>Starting from: {{ formatRupiah($minPrice) }}</span>
                                 </div>
+                                @endif
                             </div>
-                            @if($event['buttonType'] === 'link')
-                            <a href="{{ $event['url'] }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                            <a href="{{ route('eventdetails', $event->id) }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
                                 View Details
                             </a>
-                            @else
-                            <button class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 hover:cursor-pointer">
-                                View Details
-                            </button>
-                            @endif
                         </div>
                     </div>
                     @endforeach
                 </div>
+                @else
+                <div class="text-center py-12">
+                    <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">No Events Available</h3>
+                    <p class="text-gray-500">There are currently no published events. Please check back later.</p>
+                </div>
+                @endif
 
                 <!-- Pagination -->
-                @include('components.pagination', ['showEllipsis' => true])
+                @if($events->hasPages())
+                <div class="mt-8">
+                    {{ $events->links() }}
+                </div>
+                @endif
             </div>
         </section>
     </div>
