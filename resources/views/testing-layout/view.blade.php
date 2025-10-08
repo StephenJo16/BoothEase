@@ -29,10 +29,8 @@
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <button type="button" onclick="editLayout()" id="editButton" style="display: none;"
-                        class="px-6 py-3 bg-[#ff7700] text-white rounded-lg font-semibold transition-all duration-200 shadow-md">
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
+                        class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
+                        <i class="fa-regular fa-pen-to-square mr-2"></i>
                         Edit Layout
                     </button>
                     <button type="button" onclick="createLayout()" id="createButton" style="display: none;" class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
@@ -62,7 +60,7 @@
                 <!-- Event Summary Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-simple"></i>
+                        <i class="fa-solid fa-chart-simple me-2"></i>
                         Event Summary
                     </h2>
                     <dl class="space-y-3 text-sm">
@@ -84,9 +82,7 @@
                 <!-- Booth Details Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
+                        <i class="fa-solid fa-box me-2"></i>
                         Booth Details
                     </h2>
                     <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-lg">
