@@ -101,10 +101,10 @@ class AuthController extends Controller
         if ($user->role->name === 'tenant') {
             return redirect()->route('events');
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->route('my-events');
+            return redirect()->route('my-events.index');
         }
 
-        return redirect()->route('home');
+        return redirect()->route('events');
     }
 
     // --- SIGN IN ---
@@ -127,10 +127,10 @@ class AuthController extends Controller
             if ($user->role->name === 'tenant') {
                 return redirect()->intended(route('events'));
             } elseif ($user->role->name === 'event_organizer') {
-                return redirect()->intended(route('my-events'));
+                return redirect()->intended(route('my-events.index'));
             }
 
-            return redirect()->route('home');
+            return redirect()->route('events');
         }
 
         return back()->withErrors([
@@ -205,9 +205,9 @@ class AuthController extends Controller
         if ($roleName === 'tenant') {
             return redirect()->route('events');
         } elseif ($roleName === 'event_organizer') {
-            return redirect()->route('my-events');
+            return redirect()->route('my-events.index');
         }
-        return redirect()->route('home');
+        return redirect()->route('events');
     }
 
     public function googleCallback()
@@ -261,8 +261,8 @@ class AuthController extends Controller
         if ($user->role->name === 'tenant') {
             return redirect()->intended(route('events'));
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->intended(route('my-events'));
+            return redirect()->intended(route('my-events.index'));
         }
-        return redirect()->route('home');
+        return redirect()->route('events');
     }
 }
