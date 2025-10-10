@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BoothController;
 use App\Http\Controllers\EventController;
 
@@ -103,9 +104,7 @@ Route::get('/booking-requests/details', function () {
     return view('booking-requests.details');
 })->name('booking-request-details');
 
-Route::get('/book-booth', function () {
-    return view('book-booth.index');
-})->name('book-booth');
+Route::get('/book-booth', [BookingController::class, 'create'])->name('book-booth');
 
 
 

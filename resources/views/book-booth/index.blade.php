@@ -1,7 +1,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Book Booth A02 - Tech Innovation Expo 2025</title>
+    <title>Book {{ $booth->number }} - {{ $event->title }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -16,7 +16,7 @@
 </head>
 
 @php
-// Mock booth data
+// Helper function to format rupiah
 if (!function_exists('formatRupiah')) {
 function formatRupiah($value) {
 $digits = preg_replace('/\D/', '', (string) $value);
@@ -25,17 +25,16 @@ return 'Rp' . number_format($num, 0, ',', '.');
 }
 }
 
-$booth = [
-'number' => 'A02',
-'title' => 'Booth A02',
-'price' => 500000,
-'size' => '3m x 3m (9 sqm)',
-'description' => 'Prime location booth in the main exhibition hall with excellent visibility and foot traffic. Perfect for showcasing your products and engaging with potential customers. This front-section booth offers maximum exposure during the event.',
-'dates' => 'November 16-20, 2025 (5 days)'
-];
+// Calculate event duration
+$eventDates = '';
+if ($event->start_time && $event->end_time) {
+    $start = $event->start_time;
+    $end = $event->end_time;
+    $days = $start->diffInDays($end) + 1;
+    $eventDates = $start->format('F d') . '-' . $end->format('d, Y') . ' (' . $days . ' days)';
+}
 
-$totalAmount = $booth['price'];
-$deposit = 250000; // mocked deposit or partial amount
+$totalAmount = $booth->price;
 @endphp
 
 <body class="bg-gray-50 min-h-screen">
@@ -46,47 +45,65 @@ $deposit = 250000; // mocked deposit or partial amount
     <div class="min-h-screen py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
-            @include('components.back-button', ['text' => 'Back to Event Details', 'url' => '/events/details'])
+            @include('components.back-button', ['text' => 'Back to Event Details', 'url' => route('eventdetails', $event->id)])
 
             <!-- Booth Header -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
 
                 <div class="p-8">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-3xl font-bold text-gray-900">{{ $booth['title'] }}</h2>
+                        <h2 class="text-3xl font-bold text-gray-900">Booth {{ $booth->number }}</h2>
                         <div class="text-right">
-                            <div class="text-2xl font-bold text-[#ff7700]">{{ formatRupiah($booth['price']) }}</div>
+                            <div class="text-2xl font-bold text-[#ff7700]">{{ formatRupiah($booth->price) }}</div>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
                         <div class="flex items-center">
                             <i class="fas fa-ruler-combined mr-2 text-[#ff7700]"></i>
-                            <span>{{ $booth['size'] }}</span>
+                            <span>{{ $booth->size ?? 'Size not specified' }}</span>
                         </div>
+                        @if($booth->type)
+                        <div class="flex items-center">
+                            <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
+                            <span>{{ ucfirst($booth->type) }} Booth</span>
+                        </div>
+                        @endif
                     </div>
-                    <p class="text-gray-700 leading-relaxed">{{ $booth['description'] }}</p>
+                    <p class="text-gray-700 leading-relaxed">
+                        Prime location booth for {{ $event->title }}. Perfect for showcasing your products and engaging with potential customers.
+                    </p>
                 </div>
             </div>
 
             <!-- Booking Form -->
             <div class="bg-white rounded-lg shadow-md p-8">
                 <form id="bookingForm" class="space-y-6">
+                    @csrf
+                    <input type="hidden" name="booth_id" value="{{ $booth->id }}">
+                    
                     <!-- Booth Summary -->
                     <div class="bg-gray-50 rounded-lg p-6 mb-6">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="font-medium text-gray-900 text-lg">{{ $booth['title'] }}</span>
-                            <span class="font-bold text-[#ff7700] text-xl">{{ formatRupiah($booth['price']) }}</span>
+                            <span class="font-medium text-gray-900 text-lg">Booth {{ $booth->number }}</span>
+                            <span class="font-bold text-[#ff7700] text-xl">{{ formatRupiah($booth->price) }}</span>
                         </div>
                         <div class="text-gray-600">
-
+                            <p class="flex items-center mb-1">
+                                <i class="fas fa-building mr-2 text-[#ff7700]"></i>
+                                {{ $event->title }}
+                            </p>
+                            @if($booth->size)
                             <p class="flex items-center mb-1">
                                 <i class="fas fa-ruler-combined mr-2 text-[#ff7700]"></i>
-                                {{ $booth['size'] }}
+                                {{ $booth->size }}
                             </p>
+                            @endif
+                            @if($eventDates)
                             <p class="flex items-center">
                                 <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                {{ $booth['dates'] }}
+                                {{ $eventDates }}
                             </p>
+                            @endif
                         </div>
                     </div>
 

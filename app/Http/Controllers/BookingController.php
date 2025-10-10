@@ -21,7 +21,23 @@ class BookingController extends Controller
      */
     public function create()
     {
-        //
+        $boothId = request('booth_id');
+        
+        if (!$boothId) {
+            return redirect()->route('events.index')->with('error', 'No booth selected');
+        }
+        
+        $booth = \App\Models\Booth::with(['event.category', 'event.user'])
+            ->findOrFail($boothId);
+        
+        // Check if booth is available
+        if ($booth->status !== 'available') {
+            return redirect()->back()->with('error', 'This booth is not available for booking');
+        }
+        
+        $event = $booth->event;
+        
+        return view('book-booth.index', compact('booth', 'event'));
     }
 
     /**
