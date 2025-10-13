@@ -54,11 +54,13 @@ Route::get('/faq', function () {
 
 Route::get('/events', [EventController::class, 'publicIndex'])->name('events');
 
-Route::get('/events/{event}', [EventController::class, 'publicShow'])->name('eventdetails');
+Route::get('/events/{event}', [EventController::class, 'publicShow'])->name('events.show');
 
-Route::get('/my-bookings', function () {
-    return view('my-bookings.index');
-})->name('my-bookings');
+Route::get('/events/{event}/booths', [EventController::class, 'showBooths'])->name('booths.index');
+
+Route::get('/booths/{booth}/details', [EventController::class, 'showBoothDetails'])->name('booths.details');
+
+Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
 
 Route::get('/my-bookings/details', function () {
     return view('my-bookings.details');
@@ -104,15 +106,7 @@ Route::get('/booking-requests/details', function () {
     return view('booking-requests.details');
 })->name('booking-request-details');
 
-Route::get('/book-booth', [BookingController::class, 'create'])->name('book-booth');
-
-
-
-
-
-
-
-
+Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
 
 Route::get('/booth-layout', function (Request $request) {

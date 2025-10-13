@@ -126,7 +126,7 @@ return !empty($prices) ? min($prices) : 0;
                                 </div>
                                 @endif
                             </div>
-                            <a href="{{ route('eventdetails', $event->id) }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                            <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
                                 View Details
                             </a>
                         </div>

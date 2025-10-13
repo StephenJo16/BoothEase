@@ -88,7 +88,7 @@ class AuthController extends Controller
         if ($user->role->name === 'tenant') {
             return redirect()->route('events')->with('success', $welcomeMessage);
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->route('my-events')->with('success', $welcomeMessage);
+            return redirect()->route('my-events.index')->with('success', $welcomeMessage);
         }
 
         return redirect()->route('events')->with('success', $welcomeMessage);
@@ -116,7 +116,7 @@ class AuthController extends Controller
             if ($user->role->name === 'tenant') {
                 return redirect()->intended(route('events'))->with('success', $welcomeMessage);
             } elseif ($user->role->name === 'event_organizer') {
-                return redirect()->intended(route('my-events'))->with('success', $welcomeMessage);
+                return redirect()->intended(route('my-events.index'))->with('success', $welcomeMessage);
             }
 
             return redirect()->route('events')->with('success', $welcomeMessage);
@@ -230,12 +230,20 @@ class AuthController extends Controller
                 'provider_id' => $google->getId(),
                 'avatar' => $google->getAvatar(),
             ]);
+
+            // Eager load the role relationship for newly created users
+            $user->load('role');
         } else {
             $user->update([
                 'provider' => 'google',
                 'provider_id' => $google->getId(),
                 'avatar' => $google->getAvatar(),
             ]);
+
+            // Ensure role relationship is loaded
+            if (!$user->relationLoaded('role')) {
+                $user->load('role');
+            }
         }
 
         Auth::login($user, remember: true);
@@ -250,7 +258,7 @@ class AuthController extends Controller
         if ($user->role->name === 'tenant') {
             return redirect()->intended(route('events'))->with('success', $welcomeMessage);
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->intended(route('my-events'))->with('success', $welcomeMessage);
+            return redirect()->intended(route('my-events.index'))->with('success', $welcomeMessage);
         }
         return redirect()->route('events')->with('success', $welcomeMessage);
     }

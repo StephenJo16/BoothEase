@@ -231,6 +231,22 @@
 
                 await new Promise((resolve) => {
                     canvas.loadFromJSON(data.layout, () => {
+                        // Lock all objects - this is a view-only page
+                        canvas.getObjects().forEach(obj => {
+                            obj.set({
+                                selectable: false,
+                                evented: false,
+                                hasControls: false,
+                                hasBorders: false,
+                                lockMovementX: true,
+                                lockMovementY: true,
+                                lockRotation: true,
+                                lockScalingX: true,
+                                lockScalingY: true,
+                                hoverCursor: 'default'
+                            });
+                        });
+
                         canvas.renderAll();
                         resolve();
                     });

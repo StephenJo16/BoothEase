@@ -162,9 +162,14 @@ $tabs = [
 
                             <!-- Booths Tab -->
                             <div id="booths" class="tab-content p-6">
-                                <div class="mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Available Booths</h3>
-                                    <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
+                                <div class="mb-4 flex justify-between items-center">
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Available Booths</h3>
+                                        <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
+                                    </div>
+                                    <a href="/events/{{ $event->id }}/booths" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
+                                        View Booths
+                                    </a>
                                 </div>
 
                                 @if($event->booths->count() > 0)
@@ -176,7 +181,6 @@ $tabs = [
                                     ['title' => 'Type', 'class' => 'w-32'],
                                     ['title' => 'Price', 'class' => 'w-24'],
                                     ['title' => 'Status', 'class' => 'w-20'],
-                                    ['title' => 'Action', 'class' => 'w-28'],
                                     ];
 
                                     $rows = [];
@@ -208,12 +212,6 @@ $tabs = [
                                     'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $statusColor . '">' . $statusText . '</span>',
                                     'class' => ''
                                     ],
-                                    [
-                                    'content' => $isAvailable
-                                    ? '<a href="' . url('/book-booth?booth_id=' . $booth->id) . '" class="inline-flex items-center justify-center bg-[#ff7700] hover:bg-[#e66600] hover:cursor-pointer text-white text-sm px-4 py-2 rounded-lg transition-colors duration-200">Select</a>'
-                                    : '<span class="text-gray-400 text-sm whitespace-nowrap">Not Available</span>',
-                                    'class' => ''
-                                    ]
                                     ]
                                     ];
                                     }

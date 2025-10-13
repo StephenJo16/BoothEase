@@ -28,52 +28,24 @@ return 'Rp' . number_format($num, 0, ',', '.');
 }
 }
 
+// Helper to format status with proper label and color
+function getStatusDisplay($status) {
+$statusMap = [
+'pending' => ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
+'confirmed' => ['label' => 'Approved', 'color' => 'bg-green-100 text-green-800'],
+'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
+'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
+];
+
+return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-100 text-gray-800'];
+}
+
 // Filter Tabs Data
 $filterTabs = [
 ['name' => 'All Bookings', 'active' => true],
 ['name' => 'Approved', 'active' => false],
 ['name' => 'Rejected', 'active' => false],
 ['name' => 'Cancelled', 'active' => false]
-];
-
-// Bookings Data
-$bookings = [
-[
-'eventName' => 'Tech Innovation Expo 2025',
-'location' => 'Jakarta Convention Center',
-'dates' => '20 - 28 September 2025',
-'status' => 'Approved',
-'statusColor' => 'bg-green-100 text-green-800',
-'boothDetails' => 'Booth A01',
-'bookingDate' => '18-10-2025',
-'paymentMethod' => 'GoPay',
-'bookingId' => 'ID-618261',
-'features' => ['Power Outlet', 'WiFi', 'Storage Space', 'Display Wall']
-],
-[
-'eventName' => 'Food & Beverage Festival',
-'location' => 'Grand Mall, Surabaya',
-'dates' => '15 - 18 December 2025',
-'status' => 'Approved',
-'statusColor' => 'bg-green-100 text-green-800',
-'boothDetails' => 'Booth B12',
-'bookingDate' => '22-10-2025',
-'paymentMethod' => 'DANA',
-'bookingId' => 'ID-618262',
-'features' => ['Power Outlet', 'WiFi', 'Storage Space']
-],
-[
-'eventName' => 'Fashion Week Indonesia',
-'location' => 'Fashion Center, Jakarta',
-'dates' => '10 - 15 January 2026',
-'status' => 'Approved',
-'statusColor' => 'bg-green-100 text-green-800',
-'boothDetails' => 'Booth C05',
-'bookingDate' => '25-10-2025',
-'paymentMethod' => 'BCA Virtual Account',
-'bookingId' => 'ID-618263',
-'features' => ['Power Outlet', 'WiFi', 'Premium Location', 'Display Wall']
-]
 ];
 @endphp
 
@@ -87,6 +59,25 @@ $bookings = [
         @include('components.header', ['title' => 'My Bookings', 'subtitle' => 'Manage Your Booth Reservations'])
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            <!-- Success/Error Messages -->
+            @if(session('success'))
+            <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg relative" role="alert">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-3 text-xl"></i>
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                </div>
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg relative" role="alert">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-3 text-xl"></i>
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            </div>
+            @endif
+
             <!-- Statistics Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- Total Bookings -->
@@ -94,7 +85,7 @@ $bookings = [
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
                             <p class="text-sm text-gray-600 mb-1">Total Bookings</p>
-                            <p class="text-3xl font-bold text-gray-900">3</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $totalBookings }}</p>
                         </div>
                         <div class="bg-blue-100 p-3 rounded-full">
                             <i class="fas fa-store text-blue-600 text-xl"></i>
@@ -107,7 +98,7 @@ $bookings = [
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
                             <p class="text-sm text-gray-600 mb-1">Approved</p>
-                            <p class="text-3xl font-bold text-gray-900">3</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $approvedBookings }}</p>
                         </div>
                         <div class="bg-green-100 p-3 rounded-full">
                             <i class="fas fa-check-circle text-green-600 text-xl"></i>
@@ -120,7 +111,7 @@ $bookings = [
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
                             <p class="text-sm text-gray-600 mb-1">Total Spent</p>
-                            <p class="text-3xl font-bold text-gray-900">{{formatRupiah(1500000)}}</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ formatRupiah($totalSpent) }}</p>
                         </div>
                         <div class="bg-orange-100 p-3 rounded-full">
                             <i class="fas fa-money-bill text-[#ff7700] text-xl"></i>
@@ -136,23 +127,36 @@ $bookings = [
 
             <!-- Booking Cards -->
             <div class="space-y-6">
-                @foreach($bookings as $index => $booking)
+                @forelse($bookings as $booking)
+                @php
+                $event = $booking->booth->event;
+                $statusDisplay = getStatusDisplay($booking->status);
+
+                // Format event dates
+                $eventDates = '';
+                if ($event->start_time && $event->end_time) {
+                $start = $event->start_time;
+                $end = $event->end_time;
+                $eventDates = $start->format('d') . ' - ' . $end->format('d F Y');
+                }
+                @endphp
+
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $booking['eventName'] }}</h3>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="flex items-center mb-1">
                                     <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <p class="text-sm text-gray-600">{{ $booking['location'] }}</p>
+                                    <p class="text-sm text-gray-600">{{ $event->venue ?? 'Venue not specified' }}</p>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <p class="text-sm text-gray-600">{{ $booking['dates'] }}</p>
+                                    <p class="text-sm text-gray-600">{{ $eventDates ?: 'Dates not specified' }}</p>
                                 </div>
                             </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $booking['statusColor'] }}">
-                                {{ $booking['status'] }}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
+                                {{ $statusDisplay['label'] }}
                             </span>
                         </div>
 
@@ -160,58 +164,78 @@ $bookings = [
                             <!-- Booth Details -->
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h4>
-                                <p class="text-sm text-gray-900 font-medium">{{ $booking['boothDetails'] }}</p>
+                                <p class="text-sm text-gray-900 font-medium">{{ $booking->booth->number }}</p>
+                                @if($booking->booth->type)
+                                <p class="text-xs text-gray-600">{{ ucfirst($booking->booth->type) }} Type</p>
+                                @endif
                             </div>
 
                             <!-- Booking Date -->
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booking Date</h4>
-                                <p class="text-sm text-gray-900">{{ $booking['bookingDate'] }}</p>
+                                <p class="text-sm text-gray-900">{{ $booking->booking_date->format('d-m-Y') }}</p>
                             </div>
 
-                            <!-- Payment Method -->
+                            <!-- Total Price -->
                             <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Payment Method</h4>
-                                <p class="text-sm text-gray-900">{{ $booking['paymentMethod'] }}</p>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Total Price</h4>
+                                <p class="text-sm font-semibold text-[#ff7700]">{{ formatRupiah($booking->total_price) }}</p>
                             </div>
 
                             <!-- Booking ID -->
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booking ID</h4>
-                                <p class="text-sm text-gray-900">{{ $booking['bookingId'] }}</p>
+                                <p class="text-sm text-gray-900">ID-{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</p>
                             </div>
                         </div>
 
-                        <!-- Included Features -->
+                        <!-- Booth Information -->
+                        @if($booking->booth->size || $booking->notes)
                         <div class="mb-6">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">Included Features</h4>
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Additional Information</h4>
                             <div class="flex flex-wrap gap-2">
-                                @foreach($booking['features'] as $feature)
+                                @if($booking->booth->size)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    {{ $feature }}
+                                    <i class="fas fa-ruler-combined mr-1"></i> {{ $booking->booth->size }}
                                 </span>
-                                @endforeach
+                                @endif
+                                @if($booking->notes)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-info-circle mr-1"></i> Has Special Notes
+                                </span>
+                                @endif
                             </div>
                         </div>
+                        @endif
 
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
+                            @if($booking->status === 'confirmed' || $booking->status === 'pending')
                             <button class="hover:cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 Request Refund
                             </button>
-                            @if($index === 0)
+                            @endif
+
                             <a href="{{ route('my-booking-details')}}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
                                 View Details
                             </a>
-                            @else
-                            <button class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-                                View Details
-                            </button>
-                            @endif
                         </div>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                    <div class="max-w-md mx-auto">
+                        <div class="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-inbox text-gray-400 text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Bookings Yet</h3>
+                        <p class="text-gray-600 mb-6">You haven't made any booth bookings yet. Start exploring events and book your booth today!</p>
+                        <a href="{{ route('events') }}" class="inline-block bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                            Browse Events
+                        </a>
+                    </div>
+                </div>
+                @endforelse
             </div>
 
             <!-- Pagination -->

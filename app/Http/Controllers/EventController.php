@@ -85,6 +85,66 @@ class EventController extends Controller
         ]);
     }
 
+    public function showBooths(Event $event)
+    {
+        // Only show published events
+        if ($event->status !== Event::STATUS_PUBLISHED) {
+            abort(404, 'Event not found or not available');
+        }
+
+        $event->load([
+            'category',
+            'user',
+            'booths' => function ($query) {
+                $query->orderBy('number');
+            }
+        ]);
+
+        // Get booth statistics
+        $totalBooths = $event->booths()->count();
+        $availableBooths = $event->booths()->where('status', 'available')->count();
+
+        // Get price range from booth configuration
+        $boothConfig = $event->booth_configuration;
+        $prices = [];
+        foreach ($boothConfig as $type => $config) {
+            if (isset($config['price'])) {
+                $prices[] = $config['price'];
+            }
+        }
+        $minPrice = !empty($prices) ? min($prices) : 0;
+        $maxPrice = !empty($prices) ? max($prices) : 0;
+
+        return view('booths.index', [
+            'event' => $event,
+            'totalBooths' => $totalBooths,
+            'availableBooths' => $availableBooths,
+            'minPrice' => $minPrice,
+            'maxPrice' => $maxPrice,
+        ]);
+    }
+
+    public function showBoothDetails($boothId)
+    {
+        $booth = \App\Models\Booth::with(['event.category', 'event.user'])
+            ->findOrFail($boothId);
+
+        $event = $booth->event;
+
+        // Only show if event is published
+        if ($event->status !== Event::STATUS_PUBLISHED) {
+            abort(404, 'Event not found or not available');
+        }
+
+        // Check if booth is available
+        if ($booth->status !== 'available') {
+            return redirect()->route('booths.index', $event->id)
+                ->with('error', 'This booth is not available for booking');
+        }
+
+        return view('booths.details', compact('booth', 'event'));
+    }
+
     public function index(Request $request)
     {
         $events = Event::with([
