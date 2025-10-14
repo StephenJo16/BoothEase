@@ -55,8 +55,21 @@
                 $boothTypes = $event->booths->pluck('type')->unique()->count();
                 $boothTotal = $event->booths_count ?? 0;
                 $bookedBooths = $event->booked_booths_count ?? 0;
-                $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : 'Schedule to be announced';
-                $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
+                $dateDisplay = 'Schedule to be announced';
+                $timeDisplay = null;
+
+                if ($event->start_time && $event->end_time) {
+                    $startDate = $event->start_time->format('d M Y');
+                    $endDate = $event->end_time->format('d M Y');
+                    $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
+                    $timeDisplay = $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
+                } elseif ($event->start_time) {
+                    $dateDisplay = $event->start_time->format('d M Y');
+                    $timeDisplay = $event->start_time->format('H:i');
+                } elseif ($event->end_time) {
+                    $dateDisplay = $event->end_time->format('d M Y');
+                    $timeDisplay = $event->end_time->format('H:i');
+                }
                 $location = $event->display_location ?: 'Location to be confirmed';
                 $category = optional($event->category)->name ?: 'Uncategorised';
                 @endphp
@@ -81,12 +94,12 @@
                             <div class="text-sm text-gray-600">
                                 <div class="flex items-center">
                                     <i class="fa-solid fa-calendar mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $start }}</span>
+                                    <span>{{ $dateDisplay }}</span>
                                 </div>
-                                @if($end)
+                                @if($timeDisplay)
                                 <div class="mt-1 flex items-center">
                                     <i class="fa-regular fa-clock mr-2 text-[#ff7700]"></i>
-                                    <span>Ends {{ $end }}</span>
+                                    <span>{{ $timeDisplay }}</span>
                                 </div>
                                 @endif
                             </div>
@@ -94,14 +107,6 @@
                                 <div class="flex items-center justify-between">
                                     <span>Booth types</span>
                                     <span class="font-semibold">{{ $boothTypes }}</span>
-                                </div>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span>Total booths</span>
-                                    <span class="font-semibold">{{ $boothTotal }}</span>
-                                </div>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span>Booked booths</span>
-                                    <span class="font-semibold">{{ $bookedBooths }}</span>
                                 </div>
                                 @if($boothTotal > 0)
                                 <div class="mt-2 flex items-center justify-between">

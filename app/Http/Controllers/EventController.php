@@ -9,6 +9,142 @@ use Illuminate\Support\Carbon;
 
 class EventController extends Controller
 {
+    public function publicIndex(Request $request)
+    {
+        $events = Event::with(['category', 'booths'])
+            ->where('status', Event::STATUS_PUBLISHED)
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('start_time')
+            ->paginate(12);
+
+        return view('events.index', [
+            'events' => $events,
+        ]);
+    }
+
+    public function publicShow(Event $event)
+    {
+        // Only show published events
+        if ($event->status !== Event::STATUS_PUBLISHED) {
+            abort(404, 'Event not found or not available');
+        }
+
+        $event->load([
+            'category',
+            'user',
+            'booths' => function ($query) {
+                $query->orderBy('number');
+            },
+            'ratings' => function ($query) {
+                $query->where('rating_type', 'event')
+                    ->with('user')
+                    ->latest()
+                    ->limit(10);
+            }
+        ]);
+
+        // Calculate average rating
+        $averageRating = $event->ratings()
+            ->where('rating_type', 'event')
+            ->avg('rating');
+
+        $totalReviews = $event->ratings()
+            ->where('rating_type', 'event')
+            ->count();
+
+        // Get booth statistics
+        $totalBooths = $event->booths()->count();
+        $availableBooths = $event->booths()->where('status', 'available')->count();
+        $bookedBooths = $event->booths()->where('status', 'booked')->count();
+
+        // Get price range from booth configuration
+        $boothConfig = $event->booth_configuration;
+        $prices = [];
+        foreach ($boothConfig as $type => $config) {
+            if (isset($config['price'])) {
+                $prices[] = $config['price'];
+            }
+        }
+        $minPrice = !empty($prices) ? min($prices) : 0;
+        $maxPrice = !empty($prices) ? max($prices) : 0;
+
+        return view('events.details', [
+            'event' => $event,
+            'averageRating' => $averageRating ? round($averageRating, 1) : 0,
+            'totalReviews' => $totalReviews,
+            'totalBooths' => $totalBooths,
+            'availableBooths' => $availableBooths,
+            'bookedBooths' => $bookedBooths,
+            'minPrice' => $minPrice,
+            'maxPrice' => $maxPrice,
+        ]);
+    }
+
+    public function showBooths(Event $event)
+    {
+        // Only show published events
+        if ($event->status !== Event::STATUS_PUBLISHED) {
+            abort(404, 'Event not found or not available');
+        }
+
+        $event->load([
+            'category',
+            'user',
+            'booths' => function ($query) {
+                $query->orderBy('number');
+            }
+        ]);
+
+        // Get booth statistics
+        $totalBooths = $event->booths()->count();
+        $availableBooths = $event->booths()->where('status', 'available')->count();
+
+        // Get price range from booth configuration
+        $boothConfig = $event->booth_configuration;
+        $prices = [];
+        foreach ($boothConfig as $type => $config) {
+            if (isset($config['price'])) {
+                $prices[] = $config['price'];
+            }
+        }
+        $minPrice = !empty($prices) ? min($prices) : 0;
+        $maxPrice = !empty($prices) ? max($prices) : 0;
+
+        return view('booths.index', [
+            'event' => $event,
+            'totalBooths' => $totalBooths,
+            'availableBooths' => $availableBooths,
+            'minPrice' => $minPrice,
+            'maxPrice' => $maxPrice,
+        ]);
+    }
+
+    public function showBoothDetails($boothId)
+    {
+        $booth = \App\Models\Booth::with(['event.category', 'event.user'])
+            ->findOrFail($boothId);
+
+        $event = $booth->event;
+
+        // Only show if event is published
+        if ($event->status !== Event::STATUS_PUBLISHED) {
+            abort(404, 'Event not found or not available');
+        }
+
+        // Check if booth is available
+        if ($booth->status !== 'available') {
+            return redirect()->route('booths.index', $event->id)
+                ->with('error', 'This booth is not available for booking');
+        }
+
+        return view('booths.details', compact('booth', 'event'));
+    }
+
     public function index(Request $request)
     {
         $events = Event::with([
@@ -52,14 +188,14 @@ class EventController extends Controller
 
         if ($action === 'publish') {
             return redirect()
-                ->route('testing-layout', ['event_id' => $event->id])
-                ->with('status', 'Event published successfully. Set up the booth layout next.');
+                ->route('booth-layout', ['event_id' => $event->id])
+                ->with('status', 'Event created as draft. Set up the booth layout to finalize your event.');
         }
 
         if ($action === 'create_layout') {
             return redirect()
-                ->route('testing-layout', ['event_id' => $event->id])
-                ->with('status', 'Event created successfully! Now design your booth layout.');
+                ->route('booth-layout', ['event_id' => $event->id])
+                ->with('status', 'Event created successfully! Now design your booth layout to finalize your event.');
         }
 
         return redirect()
@@ -71,8 +207,15 @@ class EventController extends Controller
     {
         $this->ensureOwnership($request, $event);
 
+        $event->load([
+            'category',
+            'booths' => function ($query) {
+                $query->orderBy('number');
+            }
+        ]);
+
         return view('my-events.details', [
-            'event' => $event->load('category'),
+            'event' => $event,
         ]);
     }
 
@@ -92,14 +235,18 @@ class EventController extends Controller
     {
         $this->ensureOwnership($request, $event);
 
-        $action = $request->input('action', $event->isPublished() ? 'publish' : 'draft');
-        $data = $this->validatePayload($request, $action);
+        $action = $request->input('action', 'save');
+        $data = $this->validatePayload($request, $action === 'save' ? ($event->isPublished() ? 'publish' : 'draft') : $action);
 
         $this->applyPayload($event, $data, $request->user(), $action);
 
+        $statusMessage = $action === 'publish'
+            ? 'Event updated and published.'
+            : ($action === 'save' ? 'Event updated successfully.' : 'Draft updated successfully.');
+
         return redirect()
             ->route('my-events.index')
-            ->with('status', $action === 'publish' ? 'Event updated and published.' : 'Draft updated successfully.');
+            ->with('status', $statusMessage);
     }
 
     public function publish(Request $request, Event $event)
@@ -195,8 +342,19 @@ class EventController extends Controller
         });
 
         // Determine status based on action
-        if (in_array($action, ['publish', 'create_layout'])) {
-            $event->status = Event::STATUS_PUBLISHED;
+        // New events start as DRAFT until booths are configured
+        // Only set to PUBLISHED if it's an update action and was already published
+        if ($action === 'save') {
+            // Keep the existing status unless it hasn't been set before
+            $event->status = $event->status ?: Event::STATUS_DRAFT;
+        } elseif (in_array($action, ['publish', 'create_layout'])) {
+            // If the event already exists and has booths, keep published status
+            // Otherwise, start as draft until booth layout is saved
+            if ($event->exists && $event->booths()->count() > 0) {
+                $event->status = Event::STATUS_PUBLISHED;
+            } else {
+                $event->status = Event::STATUS_DRAFT;
+            }
         } else {
             $event->status = Event::STATUS_DRAFT;
         }

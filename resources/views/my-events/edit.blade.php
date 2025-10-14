@@ -28,7 +28,7 @@
 
     <div class="min-h-screen py-10">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events.index')])
+            @include('components.back-button', ['text' => 'Back to Event Details', 'url' => route('my-events.show', $event)])
 
             <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -138,10 +138,10 @@
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
                         <div class="text-xs text-gray-500">Fields marked with * are required to publish.</div>
                         <div class="flex flex-wrap gap-3">
-                            <button type="submit" name="action" value="draft" class="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
-                                Save draft
+                            <button type="submit" name="action" value="save" class="hover:cursor-pointer inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                                Save
                             </button>
-                            <a href="{{ route('testing-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
+                            <a href="{{ route('booth-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 View Booths
                             </a>
                         </div>

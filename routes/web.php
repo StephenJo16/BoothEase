@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BoothController;
 use App\Http\Controllers\EventController;
 
@@ -51,21 +52,17 @@ Route::get('/faq', function () {
     return view('faq.index');
 })->name('faq');
 
-Route::get('/events', function () {
-    return view('events.index');
-})->name('events');
+Route::get('/events', [EventController::class, 'publicIndex'])->name('events');
 
-Route::get('/events/details', function () {
-    return view('events.details');
-})->name('eventdetails');
+Route::get('/events/{event}', [EventController::class, 'publicShow'])->name('events.show');
 
-Route::get('/my-bookings', function () {
-    return view('my-bookings.index');
-})->name('my-bookings');
+Route::get('/events/{event}/booths', [EventController::class, 'showBooths'])->name('booths.index');
 
-Route::get('/my-bookings/details', function () {
-    return view('my-bookings.details');
-})->name('my-booking-details');
+Route::get('/booths/{booth}/details', [EventController::class, 'showBoothDetails'])->name('booths.details');
+
+Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
+
+Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
 
 Route::get('/my-events/details', function () {
     return view('my-events.details');
@@ -107,33 +104,23 @@ Route::get('/booking-requests/details', function () {
     return view('booking-requests.details');
 })->name('booking-request-details');
 
-Route::get('/book-booth', function () {
-    return view('book-booth.index');
-})->name('book-booth');
+Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
 
-
-
-
-
-
-
-
-
-Route::get('/testing-layout', function (Request $request) {
-    return view('testing-layout.index', [
+Route::get('/booth-layout', function (Request $request) {
+    return view('booth-layout.index', [
         'eventId' => $request->query('event_id'),
     ]);
-})->name('testing-layout');
+})->name('booth-layout');
 
-Route::get('/testing-layout/edit', function () {
-    return view('testing-layout.edit');
-})->name('testing-layout.edit');
+Route::get('/booth-layout/edit', function () {
+    return view('booth-layout.edit');
+})->name('booth-layout.edit');
 
-Route::post('/testing-layout/save', [BoothController::class, 'store'])->name('testing-layout.save');
-Route::get('/testing-layout/view', function (Request $request) {
-    return view('testing-layout.view', [
+Route::post('/booth-layout/save', [BoothController::class, 'store'])->name('booth-layout.save');
+Route::get('/booth-layout/view', function (Request $request) {
+    return view('booth-layout.view', [
         'eventId' => $request->query('event_id'),
     ]);
-})->name('testing-layout.view');
-Route::get('/testing-layout/data/{event}', [BoothController::class, 'show'])->name('testing-layout.data');
+})->name('booth-layout.view');
+Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');

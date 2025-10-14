@@ -23,6 +23,9 @@ class User extends Authenticatable
         'phone_number', // Gabungan country_code + phone_number
         'business_category',
         'password',
+        'provider',
+        'provider_id',
+        'avatar',
     ];
 
     /**
