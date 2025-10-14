@@ -137,7 +137,15 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
-        //
+        // Load relationships
+        $booking->load([
+            'booth.event.category',
+            'booth.event.user',
+            'user',
+            'payment'
+        ]);
+
+        return view('my-bookings.details', compact('booking'));
     }
 
     /**

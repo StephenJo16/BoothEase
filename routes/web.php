@@ -62,9 +62,7 @@ Route::get('/booths/{booth}/details', [EventController::class, 'showBoothDetails
 
 Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
 
-Route::get('/my-bookings/details', function () {
-    return view('my-bookings.details');
-})->name('my-booking-details');
+Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
 
 Route::get('/my-events/details', function () {
     return view('my-events.details');

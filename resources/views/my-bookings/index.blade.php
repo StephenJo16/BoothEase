@@ -54,7 +54,7 @@ $filterTabs = [
     @include('components.navbar')
 
     <!-- Main Content -->
-    <div class="min-h-screen">
+    <div class="min-h-screen mb-8">
         <!-- Header -->
         @include('components.header', ['title' => 'My Bookings', 'subtitle' => 'Manage Your Booth Reservations'])
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,11 +199,6 @@ $filterTabs = [
                                     <i class="fas fa-ruler-combined mr-1"></i> {{ $booking->booth->size }}
                                 </span>
                                 @endif
-                                @if($booking->notes)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="fas fa-info-circle mr-1"></i> Has Special Notes
-                                </span>
-                                @endif
                             </div>
                         </div>
                         @endif
@@ -216,7 +211,7 @@ $filterTabs = [
                             </button>
                             @endif
 
-                            <a href="{{ route('my-booking-details')}}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
+                            <a href="{{ route('my-booking-details', $booking->id) }}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
                                 View Details
                             </a>
                         </div>
@@ -238,8 +233,6 @@ $filterTabs = [
                 @endforelse
             </div>
 
-            <!-- Pagination -->
-            @include('components.pagination')
         </div>
     </div>
 

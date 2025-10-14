@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+<body class="bg-white min-h-screen">
     @include('components.navbar')
 
 
@@ -19,31 +19,36 @@
         'text' => 'Back to Event Details',
         'url' => $eventId ? route('my-events.edit', ['event' => $eventId]) : route('my-events.index')
         ])
-        <!-- Load Layout Section -->
+
+        <!-- Event Header -->
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-5 items-end">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <label for="eventIdInput" class="block text-sm font-semibold text-slate-700 mb-2">Event ID</label>
-                    <input type="number" id="eventIdInput" min="1" placeholder="Enter event ID" value="{{ $eventId ?? '' }}" readonly
-                        class="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm bg-slate-100 text-slate-700 cursor-not-allowed">
+                    <h1 id="eventTitle" class="text-3xl font-bold text-slate-800 mb-2">Loading...</h1>
+                    <div class="flex flex-wrap gap-4 text-sm text-slate-600">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
+                            <span id="eventDateRange">Loading event details...</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
+                            <span id="eventVenue">—</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <button type="button" onclick="editLayout()" id="editButton" style="display: none;"
                         class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
-                        <i class="fa-regular fa-pen-to-square mr-2"></i>
+                        <i class="fa-regular fa-pen-to-square"></i>
                         Edit Layout
                     </button>
-                    <button type="button" onclick="createLayout()" id="createButton" style="display: none;" class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
+                    <button type="button" onclick="createLayout()" id="createButton" style="display: none;"
+                        class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
                         <i class="fa-solid fa-plus"></i>
                         Create Layout
                     </button>
-                    <button type="button" onclick="clearCanvas()"
-                        class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold transition-colors">
-                        Clear Canvas
-                    </button>
                 </div>
             </div>
-            <div id="statusMessage" class="mt-4 text-sm text-slate-600 min-h-[20px]"></div>
         </div>
 
         <!-- Main Content Grid -->
@@ -132,21 +137,23 @@
         }
 
         function resetSummary() {
+            document.getElementById('eventTitle').textContent = 'Event Information';
             document.getElementById('eventSummaryId').textContent = '—';
             document.getElementById('eventSummaryName').textContent = '—';
             document.getElementById('eventSummaryBooths').textContent = '—';
+            document.getElementById('eventDateRange').textContent = 'Event details unavailable';
+            document.getElementById('eventVenue').textContent = '—';
             const body = document.getElementById('boothTableBody');
             body.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No data loaded yet.</td></tr>';
             document.getElementById('editButton').style.display = 'none';
             document.getElementById('createButton').style.display = 'none';
         }
 
-        function clearCanvas() {
+        function clearCanvasOnly() {
             canvas.clear();
             canvas.backgroundColor = '#ffffff';
             canvas.renderAll();
             resetSummary();
-            setStatus('Canvas cleared.', 'info');
         }
 
         function populateBoothTable(booths) {
@@ -180,17 +187,12 @@
         }
 
         async function loadLayout(providedEventId) {
-            const eventIdInput = document.getElementById('eventIdInput');
-            const rawValue = providedEventId ?? eventIdInput.value;
-            const rawEventId = (rawValue ?? '').toString().trim();
+            const rawEventId = (providedEventId ?? "{{ $eventId ?? '' }}").toString().trim();
 
             if (!rawEventId) {
-                setStatus('Please enter an event ID before loading.', 'error');
-                eventIdInput.focus();
+                setStatus('No event ID provided.', 'error');
                 return;
             }
-
-            eventIdInput.value = rawEventId;
 
             const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(rawEventId));
 
@@ -205,7 +207,7 @@
                     const error = await response.json().catch(() => ({
                         message: 'Unable to load layout.'
                     }));
-                    clearCanvas();
+                    clearCanvasOnly();
 
                     // If it's a 404 (no layout found), show create button
                     if (response.status === 404) {
@@ -220,7 +222,7 @@
                 const data = await response.json();
 
                 if (!data.layout) {
-                    clearCanvas();
+                    clearCanvasOnly();
                     setStatus('No layout data found for this event. You can create a new layout.', 'error');
                     document.getElementById('createButton').style.display = 'inline-flex';
                     return;
@@ -252,6 +254,25 @@
                     });
                 });
 
+                // Update event header
+                document.getElementById('eventTitle').textContent = data.event?.title ?? data.event?.name ?? 'Event Layout';
+
+                if (data.event) {
+                    const startDate = data.event.start_time ? new Date(data.event.start_time).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) : 'TBA';
+                    const endDate = data.event.end_time ? new Date(data.event.end_time).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) : 'TBA';
+                    document.getElementById('eventDateRange').textContent = `${startDate} - ${endDate}`;
+                    document.getElementById('eventVenue').textContent = data.event.venue ?? 'Venue TBA';
+                }
+
+                // Update sidebar summary
                 document.getElementById('eventSummaryId').textContent = rawEventId;
                 document.getElementById('eventSummaryName').textContent = data.event?.title ?? data.event?.name ?? 'N/A';
                 document.getElementById('eventSummaryBooths').textContent = data.booth_count ?? data.booths?.length ?? 0;
@@ -259,7 +280,6 @@
                 populateBoothTable(data.booths ?? []);
                 document.getElementById('editButton').style.display = 'inline-flex';
                 document.getElementById('createButton').style.display = 'none';
-                setStatus('Layout loaded successfully.', 'success');
 
             } catch (error) {
                 console.error('Load layout error:', error);
@@ -267,19 +287,17 @@
         }
 
         function editLayout() {
-            const eventIdInput = document.getElementById('eventIdInput');
-            const eventId = eventIdInput.value.trim();
-            if (eventId) {
-                const editUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+            const rawEventId = "{{ $eventId ?? '' }}";
+            if (rawEventId) {
+                const editUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(rawEventId);
                 window.location.href = editUrl;
             }
         }
 
         function createLayout() {
-            const eventIdInput = document.getElementById('eventIdInput');
-            const eventId = eventIdInput.value.trim();
-            if (eventId) {
-                const createUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(eventId);
+            const rawEventId = "{{ $eventId ?? '' }}";
+            if (rawEventId) {
+                const createUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(rawEventId);
                 window.location.href = createUrl;
             }
         }

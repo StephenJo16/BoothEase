@@ -26,14 +26,29 @@ $eventDuration = 0;
 if ($event->start_time && $event->end_time) {
 $start = $event->start_time;
 $end = $event->end_time;
-$eventDuration = $start->diffInDays($end) + 1;
+$eventDuration = floor($start->diffInDays($end)) + 1;
 $eventDates = $start->format('F d') . ' - ' . $end->format('d, Y') . ' (' . $eventDuration . ' days)';
 }
 
 $totalAmount = $booth->price;
+
+// Get authenticated user data for autofill
+$user = auth()->user();
+// Strip +62 or 62 prefix from phone number
+$userPhone = '';
+if ($user && $user->phone_number) {
+$digits = preg_replace('/\D+/', '', $user->phone_number);
+if (strpos($digits, '62') === 0) {
+$userPhone = substr($digits, 2);
+} elseif (strpos($digits, '0') === 0) {
+$userPhone = substr($digits, 1);
+} else {
+$userPhone = $digits;
+}
+}
 @endphp
 
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+<body class="bg-white min-h-screen">
     @include('components.navbar')
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
@@ -201,7 +216,7 @@ $totalAmount = $booth->price;
                                     First Name <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" name="first_name" required
-                                    value="{{ old('first_name') }}"
+                                    value="{{ old('first_name', $user ? explode(' ', $user->display_name)[0] : '') }}"
                                     class="w-full px-4 py-3 border {{ $errors->has('first_name') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
                                     placeholder="Enter your first name">
                                 @error('first_name')
@@ -213,7 +228,7 @@ $totalAmount = $booth->price;
                                     Last Name <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" name="last_name" required
-                                    value="{{ old('last_name') }}"
+                                    value="{{ old('last_name', $user && str_word_count($user->display_name) > 1 ? substr($user->display_name, strpos($user->display_name, ' ') + 1) : '') }}"
                                     class="w-full px-4 py-3 border {{ $errors->has('last_name') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
                                     placeholder="Enter your last name">
                                 @error('last_name')
@@ -227,7 +242,7 @@ $totalAmount = $booth->price;
                                 Business/Company Name <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="business_name" required
-                                value="{{ old('business_name') }}"
+                                value="{{ old('business_name', $user ? $user->name : '') }}"
                                 class="w-full px-4 py-3 border {{ $errors->has('business_name') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
                                 placeholder="Enter your business or company name">
                             @error('business_name')
@@ -241,7 +256,7 @@ $totalAmount = $booth->price;
                                     Email Address <span class="text-red-500">*</span>
                                 </label>
                                 <input type="email" name="email" required
-                                    value="{{ old('email') }}"
+                                    value="{{ old('email', $user ? $user->email : '') }}"
                                     class="w-full px-4 py-3 border {{ $errors->has('email') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
                                     placeholder="your@email.com">
                                 @error('email')
@@ -252,10 +267,15 @@ $totalAmount = $booth->price;
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">
                                     Phone Number <span class="text-red-500">*</span>
                                 </label>
-                                <input type="tel" name="phone" required
-                                    value="{{ old('phone') }}"
-                                    class="w-full px-4 py-3 border {{ $errors->has('phone') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
-                                    placeholder="+62 xxx xxxx xxxx">
+                                <div class="flex border {{ $errors->has('phone') ? 'border-red-500' : 'border-slate-300' }} rounded-lg transition-all focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700]">
+                                    <div class="bg-slate-50 border-0 rounded-l-lg px-4 py-3 text-slate-700 text-sm flex items-center border-r border-slate-300">
+                                        +62
+                                    </div>
+                                    <input type="tel" name="phone" required
+                                        value="{{ old('phone', $userPhone) }}"
+                                        class="flex-1 px-4 py-3 border-0 rounded-r-lg text-sm focus:outline-none focus:ring-0"
+                                        placeholder="878-8722-2123">
+                                </div>
                                 @error('phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -397,19 +417,68 @@ $totalAmount = $booth->price;
     @include('components.footer')
 
     <script>
-        // Simple form handling - let Laravel handle validation
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            const submitButton = this.querySelector('button[type="submit"]');
-
-            // Disable submit button to prevent double submission
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+        const formatLocalPhone = (value) => {
+            const digits = String(value || '').replace(/\D+/g, '');
+            if (!digits) {
+                return '';
             }
-        });
+            if (digits.length <= 3) {
+                return digits;
+            }
+
+            const firstBlock = digits.slice(0, 3);
+            const remainder = digits.slice(3);
+            const chunks = remainder.match(/.{1,4}/g) || [];
+
+            return [firstBlock, ...chunks].join('-');
+        };
+
+        const bookingForm = document.getElementById('bookingForm');
+        const phoneInput = document.querySelector('input[name="phone"]');
+
+        if (phoneInput) {
+            const applyFormattedPhone = () => {
+                phoneInput.value = formatLocalPhone(phoneInput.value);
+            };
+
+            applyFormattedPhone();
+
+            phoneInput.addEventListener('input', () => {
+                const caretPosition = phoneInput.selectionStart || 0;
+                const previousLength = phoneInput.value.length;
+                applyFormattedPhone();
+                const newLength = phoneInput.value.length;
+                const diff = newLength - previousLength;
+                const newPosition = Math.min(Math.max(0, caretPosition + diff), newLength);
+                phoneInput.setSelectionRange(newPosition, newPosition);
+            });
+
+            phoneInput.addEventListener('blur', applyFormattedPhone);
+        }
+
+        // Simple form handling - let Laravel handle validation
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function() {
+                if (phoneInput) {
+                    phoneInput.value = phoneInput.value.replace(/\D+/g, '');
+                }
+
+                const submitButton = this.querySelector('button[type="submit"]');
+
+                // Disable submit button to prevent double submission
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+                }
+            });
+        }
 
         // Scroll to error messages if they exist
         document.addEventListener('DOMContentLoaded', function() {
+            if (phoneInput) {
+                phoneInput.value = formatLocalPhone(phoneInput.value);
+            }
+
             const errorAlert = document.querySelector('[role="alert"]');
             if (errorAlert) {
                 errorAlert.scrollIntoView({
