@@ -49,204 +49,217 @@ return $country;
 }
 
 if (strlen($rest) <= 3) {
-$formattedRest = $rest;
-} else {
-$firstBlock = substr($rest, 0, 3);
-$remaining = substr($rest, 3);
-$chunks = str_split($remaining, 4);
-$formattedRest = $firstBlock . ($chunks ? '-' . implode('-', $chunks) : '');
-}
+    $formattedRest=$rest;
+    } else {
+    $firstBlock=substr($rest, 0, 3);
+    $remaining=substr($rest, 3);
+    $chunks=str_split($remaining, 4);
+    $formattedRest=$firstBlock . ($chunks ? '-' . implode('-', $chunks) : '' );
+    }
 
-return trim($country . ' ' . $formattedRest);
-}
-}
+    return trim($country . ' ' . $formattedRest);
+    }
+    }
 
-// Status display mapping
-$statusDisplay = [
-'pending' => ['label' => 'Pending', 'class' => 'bg-yellow-100 text-yellow-800'],
-'confirmed' => ['label' => 'Approved', 'class' => 'bg-green-100 text-green-800'],
-'rejected' => ['label' => 'Rejected', 'class' => 'bg-red-100 text-red-800'],
-'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-gray-100 text-gray-800']
-];
+    // Status display mapping
+    $statusDisplay=[ 'pending'=> ['label' => 'Pending', 'class' => 'bg-yellow-100 text-yellow-800'],
+    'confirmed' => ['label' => 'Confirmed', 'class' => 'bg-green-100 text-green-800'],
+    'rejected' => ['label' => 'Rejected', 'class' => 'bg-red-100 text-red-800'],
+    'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-gray-100 text-gray-800']
+    ];
 
-$status = $statusDisplay[$booking->status] ?? ['label' => ucfirst($booking->status), 'class' => 'bg-gray-100 text-gray-800'];
-@endphp
+    $status = $statusDisplay[$booking->status] ?? ['label' => ucfirst($booking->status), 'class' => 'bg-gray-100 text-gray-800'];
+    @endphp
 
-<body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
-    @include('components.navbar')
+    <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
+        @include('components.navbar')
 
-    <!-- Main Content -->
-    <div class="min-h-screen py-8">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            @include('components.back-button', ['url' => route('booking-requests', ['event' => $event->id]), 'text' => 'Back to Booking Requests'])
+        <!-- Main Content -->
+        <div class="min-h-screen py-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                @include('components.back-button', ['url' => route('booking-requests', ['event' => $event->id]), 'text' => 'Back to Booking Requests'])
 
-            <!-- Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Request Details</h1>
-                <p class="text-gray-600">Request ID: REQ{{ str_pad($booking->id, 3, '0', STR_PAD_LEFT) }} • Submitted: {{ $booking->created_at->format('M d, Y') }}</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Request Details -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex justify-between items-start mb-6">
-                        <h2 class="text-xl font-semibold text-gray-900">Request Information</h2>
-                        <!-- Status -->
-                        <div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $status['class'] }}">{{ $status['label'] }}</span>
-                        </div>
+                @if(session('success') || session('error') || session('info'))
+                <div class="mb-6">
+                    @if(session('success'))
+                    <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                        {{ session('success') }}
                     </div>
-
-                    <div class="space-y-6">
-                        <!-- Tenant and Contact -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Tenant</label>
-                                <div class="text-gray-900">{{ $booking->user->name ?? 'N/A' }}</div>
-                            </div>
-                        </div>
-
-                        <!-- Booth and Event -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Booth</label>
-                                <div class="text-gray-900 font-medium">{{ $booking->booth->number ?? 'N/A' }}</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Booth Type</label>
-                                <div class="text-gray-900">{{ ucfirst($booking->booth->type ?? 'N/A') }}</div>
-                            </div>
-                        </div>
-
-                        <!-- Submitted At -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Submitted At</label>
-                            <div class="text-gray-900">{{ $booking->created_at->format('Y-m-d H:i:s') }}</div>
-                        </div>
-
-                        <!-- Tenant Submitted Details -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tenant Contact Details</label>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs text-gray-500">Contact Name</label>
-                                    <div class="text-gray-900">{{ $booking->user->display_name ?? 'N/A' }}</div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500">Business Name</label>
-                                    <div class="text-gray-900">{{ $booking->user->name ?? 'N/A' }}</div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500">Email</label>
-                                    <div class="text-gray-900">{{ $booking->user->email ?? 'N/A' }}</div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500">Phone</label>
-                                    <div class="text-gray-900">{{ $booking->user && $booking->user->phone_number ? formatPhoneNumber($booking->user->phone_number) : 'N/A' }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Special Requests -->
-                        @if($booking->notes)
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Special Requests / Notes</label>
-                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[100px]">
-                                {{ $booking->notes }}
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Requested Amount -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Booking Price</label>
-                            <span class="text-2xl font-semibold text-[#ff7700]">{{ formatRupiah($booking->total_price) }}</span>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex gap-3">
-                            <button id="approveBtn" type="button" class="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                                Approve Request
-                            </button>
-                            <button id="rejectBtn" type="button" class="bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                                Reject Request
-                            </button>
-                        </div>
+                    @endif
+                    @if(session('error'))
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {{ session('error') }}
                     </div>
-                </div>
-
-                <!-- Booking Summary -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Booking Summary</h2>
-
-                    <div class="space-y-4 mb-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ $booking->user->name ?? 'N/A' }}</h3>
-                            <p class="text-gray-600">Contact: {{ $booking->user->display_name ?? 'N/A' }}</p>
-                            <p class="text-gray-600">Phone: {{ $booking->user && $booking->user->phone_number ? formatPhoneNumber($booking->user->phone_number) : 'N/A' }}</p>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Booth</span>
-                            <span class="font-medium">{{ $booking->booth->number ?? 'N/A' }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Booth Type</span>
-                            <span class="font-medium">{{ ucfirst($booking->booth->type ?? 'N/A') }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Contact Person</span>
-                            <span class="font-medium">{{ $booking->user->display_name ?? 'N/A' }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Email</span>
-                            <span class="font-medium">{{ $booking->user->email ?? 'N/A' }}</span>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="space-y-3">
-                        <div class="border-t pt-3">
-                            <div class="flex justify-between text-lg font-semibold">
-                                <span>Booking Amount</span>
-                                <span class="text-[#ff7700]">{{ formatRupiah($booking->total_price) }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if($booking->notes)
-                    <div class="mt-6 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <p class="text-xs text-orange-700">
-                            <strong>Notes:</strong> {{ $booking->notes }}
-                        </p>
+                    @endif
+                    @if(session('info'))
+                    <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                        {{ session('info') }}
                     </div>
                     @endif
                 </div>
+                @endif
+
+                <!-- Header -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Request Details</h1>
+                    <p class="text-gray-600">Request ID: REQ{{ str_pad($booking->id, 3, '0', STR_PAD_LEFT) }} • Submitted: {{ $booking->created_at->format('M d, Y') }}</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Request Details -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-start mb-6">
+                            <h2 class="text-xl font-semibold text-gray-900">Request Information</h2>
+                            <!-- Status -->
+                            <div>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $status['class'] }}">{{ $status['label'] }}</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Tenant and Contact -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tenant</label>
+                                    <div class="text-gray-900">{{ $booking->user->name ?? 'N/A' }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Booth and Event -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Booth</label>
+                                    <div class="text-gray-900 font-medium">{{ $booking->booth->number ?? 'N/A' }}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Booth Type</label>
+                                    <div class="text-gray-900">{{ ucfirst($booking->booth->type ?? 'N/A') }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Submitted At -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Submitted At</label>
+                                <div class="text-gray-900">{{ $booking->created_at->format('Y-m-d H:i:s') }}</div>
+                            </div>
+
+                            <!-- Tenant Submitted Details -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tenant Contact Details</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-500">Contact Name</label>
+                                        <div class="text-gray-900">{{ $booking->user->display_name ?? 'N/A' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500">Business Name</label>
+                                        <div class="text-gray-900">{{ $booking->user->name ?? 'N/A' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500">Email</label>
+                                        <div class="text-gray-900">{{ $booking->user->email ?? 'N/A' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500">Phone</label>
+                                        <div class="text-gray-900">{{ $booking->user && $booking->user->phone_number ? formatPhoneNumber($booking->user->phone_number) : 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Special Requests -->
+                            @if($booking->notes)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Special Requests / Notes</label>
+                                <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[100px]">
+                                    {{ $booking->notes }}
+                                </div>
+                            </div>
+                            @endif
+
+                            <!-- Requested Amount -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Booking Price</label>
+                                <span class="text-2xl font-semibold text-[#ff7700]">{{ formatRupiah($booking->total_price) }}</span>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            @if($booking->status === 'pending')
+                            <div class="flex gap-3">
+                                <form method="POST" action="{{ route('booking-requests.confirm', ['event' => $event->id, 'booking' => $booking->id]) }}" onsubmit="return confirm('Confirm this booking request?');">
+                                    @csrf
+                                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                        Confirm Request
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('booking-requests.reject', ['event' => $event->id, 'booking' => $booking->id]) }}" onsubmit="return confirm('Reject this booking request?');">
+                                    @csrf
+                                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                        Reject Request
+                                    </button>
+                                </form>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Booking Summary -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Booking Summary</h2>
+
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">{{ $booking->user->name ?? 'N/A' }}</h3>
+                                <p class="text-gray-600">Contact: {{ $booking->user->display_name ?? 'N/A' }}</p>
+                                <p class="text-gray-600">Phone: {{ $booking->user && $booking->user->phone_number ? formatPhoneNumber($booking->user->phone_number) : 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Booth</span>
+                                <span class="font-medium">{{ $booking->booth->number ?? 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Booth Type</span>
+                                <span class="font-medium">{{ ucfirst($booking->booth->type ?? 'N/A') }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Contact Person</span>
+                                <span class="font-medium">{{ $booking->user->display_name ?? 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Email</span>
+                                <span class="font-medium">{{ $booking->user->email ?? 'N/A' }}</span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="space-y-3">
+                            <div class="border-t pt-3">
+                                <div class="flex justify-between text-lg font-semibold">
+                                    <span>Booking Amount</span>
+                                    <span class="text-[#ff7700]">{{ formatRupiah($booking->total_price) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($booking->notes)
+                        <div class="mt-6 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                            <p class="text-xs text-orange-700">
+                                <strong>Notes:</strong> {{ $booking->notes }}
+                            </p>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
             </div>
-
         </div>
-    </div>
 
-    @include('components.footer')
-
-    <script>
-        document.getElementById('approveBtn')?.addEventListener('click', function() {
-            if (confirm('Are you sure you want to approve this booking request?')) {
-                alert('Booking request approved successfully!');
-            }
-        });
-
-        document.getElementById('rejectBtn')?.addEventListener('click', function() {
-            if (confirm('Are you sure you want to reject this booking request?')) {
-                alert('Booking request rejected successfully!');
-            }
-        });
-    </script>
-</body>
+        @include('components.footer')
+    </body>
 
 </html>

@@ -57,7 +57,7 @@ $statusColor = $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-800';
 
 // Display status
 $statusDisplay = [
-'confirmed' => 'Approved',
+'confirmed' => 'Confirmed',
 'pending' => 'Pending',
 'rejected' => 'Rejected',
 'cancelled' => 'Cancelled'
@@ -127,7 +127,7 @@ $rows[] = [
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Requests</h1>
-                        <p class="text-gray-600">{{ $event->title }} • {{ $event->category->name }} • {{ $event->start_time->format('d') }} - {{ $event->end_time->format('d M Y') }}</p>
+                        <p class="text-gray-600">{{ $event->title }} • {{ $event->start_time->format('d') }} - {{ $event->end_time->format('d M Y') }}</p>
                     </div>
                     <div class="flex items-center gap-3">
                     </div>
@@ -163,8 +163,8 @@ $rows[] = [
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-600 mb-1">Approved</p>
-                            <p class="text-2xl font-bold text-green-600">{{ $stats['approved'] }}</p>
+                            <p class="text-sm text-gray-600 mb-1">Confirmed</p>
+                            <p class="text-2xl font-bold text-green-600">{{ $stats['confirmed'] }}</p>
                         </div>
                         <div class="bg-green-100 w-12 h-12 flex items-center justify-center rounded-full">
                             <i class="fas fa-check text-green-600 text-xl"></i>

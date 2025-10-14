@@ -64,7 +64,7 @@ if (strlen($rest) <= 3) {
     // Helper to format status with proper label and color
     function getStatusDisplay($status) {
     $statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
-    'confirmed' => ['label' => 'Approved', 'color' => 'bg-green-100 text-green-800'],
+    'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
     'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
     'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
     ];
@@ -312,7 +312,7 @@ if (strlen($rest) <= 3) {
                                     <i class="fas fa-check text-green-600 text-sm"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <p class="text-sm font-medium text-gray-900">Booking Approved</p>
+                                    <p class="text-sm font-medium text-gray-900">Booking Confirmed</p>
                                     <p class="text-xs text-gray-500">18-10-2025, 14:30</p>
                                 </div>
                             </div>

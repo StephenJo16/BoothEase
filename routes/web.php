@@ -102,6 +102,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/events/{event}/booking-requests/{booking}', [BookingController::class, 'bookingRequestDetails'])
         ->name('booking-request-details');
+
+    Route::post('/events/{event}/booking-requests/{booking}/confirm', [BookingController::class, 'confirmBookingRequest'])
+        ->name('booking-requests.confirm');
+
+    Route::post('/events/{event}/booking-requests/{booking}/reject', [BookingController::class, 'rejectBookingRequest'])
+        ->name('booking-requests.reject');
 });
 
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');

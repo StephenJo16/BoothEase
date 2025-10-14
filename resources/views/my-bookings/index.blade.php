@@ -32,7 +32,7 @@ return 'Rp' . number_format($num, 0, ',', '.');
 function getStatusDisplay($status) {
 $statusMap = [
 'pending' => ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
-'confirmed' => ['label' => 'Approved', 'color' => 'bg-green-100 text-green-800'],
+'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
 'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
 'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
 ];
@@ -43,7 +43,7 @@ return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-
 // Filter Tabs Data
 $filterTabs = [
 ['name' => 'All Bookings', 'active' => true],
-['name' => 'Approved', 'active' => false],
+['name' => 'Confirmed', 'active' => false],
 ['name' => 'Rejected', 'active' => false],
 ['name' => 'Cancelled', 'active' => false]
 ];
@@ -93,12 +93,12 @@ $filterTabs = [
                     </div>
                 </div>
 
-                <!-- Approved -->
+                <!-- Confirmed -->
                 <div class="bg-white rounded-lg shadow-md p-6 text-center">
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
-                            <p class="text-sm text-gray-600 mb-1">Approved</p>
-                            <p class="text-3xl font-bold text-gray-900">{{ $approvedBookings }}</p>
+                            <p class="text-sm text-gray-600 mb-1">Confirmed</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $confirmedBookings }}</p>
                         </div>
                         <div class="bg-green-100 p-3 rounded-full">
                             <i class="fas fa-check-circle text-green-600 text-xl"></i>
