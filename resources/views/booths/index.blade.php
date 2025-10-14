@@ -102,7 +102,7 @@
                             </div>
 
                             <!-- Status -->
-                            <div class="p-3 bg-slate-50 rounded-lg">
+                            <div class="p-3 rounded-lg">
                                 <div class="text-xs text-slate-600 mb-1">Status</div>
                                 <div id="boothStatus">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-200 text-slate-600">

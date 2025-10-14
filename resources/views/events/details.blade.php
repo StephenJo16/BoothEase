@@ -259,7 +259,7 @@ $rows[] = [
                                                     <p class="text-sm text-gray-500">{{ $event->city }}</p>
                                                     @endif
                                                     @if($event->address)
-                                                    <p class="text-sm text-gray-500">{{ $event->address }}</p>
+                                                    <p class="text-xs text-gray-500">{{ $event->address }}</p>
                                                     @endif
                                                 </div>
                                             </div>
@@ -309,12 +309,6 @@ $rows[] = [
                                             This event is organized by {{ $event->user->name ?? 'the event organizer' }}.
                                             For any inquiries or questions about this event, please use the contact button below.
                                         </p>
-                                    </div>
-                                    <div class="pt-4">
-                                        <button class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                            <i class="fas fa-envelope mr-2"></i>
-                                            Contact Organizer
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -425,13 +419,6 @@ $rows[] = [
                                     @if($event->address)
                                     <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                     @endif
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="space-y-2 pt-4">
-                                    <button class="w-full hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                        Contact Organizer
-                                    </button>
                                 </div>
                             </div>
                         </div>

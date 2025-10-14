@@ -210,7 +210,8 @@ class EventController extends Controller
         $event->load([
             'category',
             'booths' => function ($query) {
-                $query->orderBy('number');
+                $query->with('bookings.user')
+                    ->orderBy('number');
             }
         ]);
 

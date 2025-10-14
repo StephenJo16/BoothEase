@@ -8,10 +8,10 @@
             </div>
 
             @php
-                $isOrganizer = auth()->check() && auth()->user()->role_id === 3;
-                $eventLinkHref = $isOrganizer ? route('my-events.index') : route('events');
-                $eventLinkLabel = $isOrganizer ? 'My Events' : 'Events';
-                $isTenant = auth()->check() && auth()->user()->role_id === 2;
+            $isOrganizer = auth()->check() && auth()->user()->role_id === 3;
+            $eventLinkHref = $isOrganizer ? route('my-events.index') : route('events');
+            $eventLinkLabel = $isOrganizer ? 'My Events' : 'Events';
+            $isTenant = auth()->check() && auth()->user()->role_id === 2;
             @endphp
             <div class="hidden md:flex items-center space-x-8">
                 <a href="{{ $eventLinkHref }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">{{ $eventLinkLabel }}</a>

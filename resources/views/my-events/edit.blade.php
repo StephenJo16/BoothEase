@@ -36,7 +36,7 @@
                     <p class="mt-1 text-gray-600">Update the details and republish when you are ready.</p>
                 </div>
                 <span class="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold {{ $badge['class'] }}">
-                    Current status: {{ $badge['label'] }}
+                    {{ $badge['label'] }}
                 </span>
             </div>
 

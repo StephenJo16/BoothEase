@@ -95,14 +95,14 @@ Route::get('/refund-request/details', function () {
     return view('refund-request.details');
 })->name('refund-request-details');
 
+// Booking requests routes (for event organizers)
+Route::middleware('auth')->group(function () {
+    Route::get('/events/{event}/booking-requests', [BookingController::class, 'bookingRequests'])
+        ->name('booking-requests');
 
-Route::get('/booking-requests', function () {
-    return view('booking-requests.index');
-})->name('booking-requests');
-
-Route::get('/booking-requests/details', function () {
-    return view('booking-requests.details');
-})->name('booking-request-details');
+    Route::get('/events/{event}/booking-requests/{booking}', [BookingController::class, 'bookingRequestDetails'])
+        ->name('booking-request-details');
+});
 
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
