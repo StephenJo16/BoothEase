@@ -15,16 +15,8 @@ class UserController extends Controller
         $user = User::findOrFail(Auth::id());
 
         $categories = [
-            'technology',
-            'healthcare',
-            'education',
-            'retail',
-            'food-beverage',
-            'automotive',
-            'real-estate',
-            'finance',
-            'entertainment',
-            'other'
+            'technology', 'healthcare', 'education', 'retail', 'food-beverage',
+            'automotive', 'real-estate', 'finance', 'entertainment', 'other'
         ];
 
         return view('profile.index', [
@@ -38,11 +30,11 @@ class UserController extends Controller
         $user = User::findOrFail(Auth::id());
 
         $validated = $request->validate([
-            'full_name'                => ['required', 'string', 'max:255'],
-            'business_name'            => ['required', 'string', 'max:255', Rule::unique('users', 'name')->ignore($user->id)],
-            'mobile_number'            => ['required', 'string', 'max:20'],
-            'business_category'        => ['required', 'string'],
-            'custom_business_category' => ['nullable', 'string', 'max:255'],
+            'full_name'                 => ['required', 'string', 'max:255'],
+            'business_name'             => ['required', 'string', 'max:255', Rule::unique('users', 'name')->ignore($user->id)],
+            'mobile_number'             => ['required', 'string', 'max:20'],
+            'business_category'         => ['required', 'string'],
+            'custom_business_category'  => ['nullable', 'string', 'max:255'],
         ]);
 
         $phone = '+62' . ltrim($validated['mobile_number'], '0');
@@ -51,12 +43,14 @@ class UserController extends Controller
             ? ($validated['custom_business_category'] ?? 'other')
             : $validated['business_category'];
 
-        $user->display_name       = $validated['full_name'];
-        $user->name               = $validated['business_name'];
-        $user->phone_number       = $phone;
-        $user->business_category  = $category;
+        $user->display_name      = $validated['full_name'];
+        $user->name              = $validated['business_name'];
+        $user->phone_number      = $phone;
+        $user->business_category = $category;
         $user->save();
-        return back()->with('status', 'Profile updated.');
+
+        // Use 'success' to match the notification code
+        return back()->with('success', 'Profile updated successfully!');
     }
 
     public function updatePassword(Request $request)
@@ -71,6 +65,7 @@ class UserController extends Controller
         $user->password = Hash::make($validated['new_password']);
         $user->save();
 
-        return back()->with('status', 'Password updated.');
+        // Use 'success' to match the notification code
+        return back()->with('success', 'Password updated successfully!');
     }
 }
