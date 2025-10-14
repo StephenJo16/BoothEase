@@ -278,13 +278,28 @@
                 document.getElementById('eventSummaryBooths').textContent = data.booth_count ?? data.booths?.length ?? 0;
 
                 populateBoothTable(data.booths ?? []);
-                const eventStatus = data.event?.status ?? null;
-                if (eventStatus !== 'published') {
-                    document.getElementById('editButton').style.display = 'inline-flex';
+
+                const editButton = document.getElementById('editButton');
+                const createButton = document.getElementById('createButton');
+                const isPublished = (data.event?.status ?? '').toLowerCase() === 'published';
+
+                if (isPublished) {
+                    editButton.style.display = 'inline-flex';
+                    editButton.disabled = true;
+                    editButton.setAttribute('aria-disabled', 'true');
+                    editButton.classList.remove('bg-[#ff7700]', 'hover:bg-[#e66600]', 'text-white');
+                    editButton.classList.add('bg-gray-300', 'hover:bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    editButton.title = 'Layout editing is disabled while the event is published.';
+                    createButton.style.display = 'none';
                 } else {
-                    document.getElementById('editButton').style.display = 'none';
+                    editButton.style.display = 'inline-flex';
+                    editButton.disabled = false;
+                    editButton.removeAttribute('aria-disabled');
+                    editButton.classList.add('bg-[#ff7700]', 'hover:bg-[#e66600]', 'text-white');
+                    editButton.classList.remove('bg-gray-300', 'hover:bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    editButton.title = '';
+                    createButton.style.display = 'none';
                 }
-                document.getElementById('createButton').style.display = 'none';
 
             } catch (error) {
                 console.error('Load layout error:', error);
@@ -292,6 +307,10 @@
         }
 
         function editLayout() {
+            const editButton = document.getElementById('editButton');
+            if (editButton?.disabled) {
+                return;
+            }
             const rawEventId = "{{ $eventId ?? '' }}";
             if (rawEventId) {
                 const editUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(rawEventId);

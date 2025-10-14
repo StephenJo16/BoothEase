@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Booking Requests - Tech Innovation Expo 2025 - BoothEase</title>
+    <title>Booking Requests - {{ $event->title }} - BoothEase</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,8 +21,6 @@
 
 
 @php
-// Add this to your controller or at the top of your blade file in @php block
-
 // Helper to format rupiah with dot thousand separators
 if (!function_exists('formatRupiah')) {
 function formatRupiah($value) {
@@ -32,65 +30,12 @@ return 'Rp' . number_format($num, 0, ',', '.');
 }
 }
 
-// Sample booking requests data
-$bookingRequests = [
-[
-'id' => 'REQ001',
-'booth_number' => 'A01',
-'location' => 'Hall 1',
-'tenant' => 'Pegasus Peripherals',
-'contact_person' => 'Darth Vader',
-'phone' => '+62 812-3456-7890',
-'price' => '500000',
-'request_date' => '2025-09-01',
-'status' => 'pending',
-'notes' => 'Need power outlet near booth'
-],
-[
-'id' => 'REQ002',
-'booth_number' => 'A02',
-'location' => 'Hall 2',
-'tenant' => 'BallYards',
-'contact_person' => 'Obi Wan',
-'phone' => '+62 813-9876-5432',
-'price' => '500000',
-'request_date' => '2025-09-02',
-'status' => 'approved',
-'notes' => ''
-],
-[
-'id' => 'REQ003',
-'booth_number' => 'B01',
-'location' => 'Main Hall',
-'tenant' => 'HealthyGo',
-'contact_person' => 'Jackie Chan',
-'phone' => '+62 814-5555-1234',
-'price' => '750000',
-'request_date' => '2025-09-03',
-'status' => 'rejected',
-'notes' => 'Booth not suitable for equipment requirements'
-],
-[
-'id' => 'REQ004',
-'booth_number' => 'A03',
-'location' => 'In front of entrance',
-'tenant' => 'NourishScan',
-'contact_person' => 'Chris Tucker',
-'phone' => '+62 815-7777-8888',
-'price' => '350000',
-'request_date' => '2025-09-04',
-'status' => 'pending',
-'notes' => 'First-time exhibitor'
-]
-];
-
 // Define table headers
 $headers = [
 ['title' => 'Request ID', 'class' => 'w-30'],
 ['title' => 'Tenant Name', 'class' => 'w-40'],
 ['title' => 'Contact Person', 'class' => 'w-32'],
 ['title' => 'Booth', 'class' => 'w-20'],
-['title' => 'Location', 'class' => 'w-28'],
 ['title' => 'Price', 'class' => 'w-28'],
 ['title' => 'Request Date', 'class' => 'w-28'],
 ['title' => 'Status', 'class' => 'w-24'],
@@ -99,56 +44,63 @@ $headers = [
 
 // Transform booking requests data into rows format
 $rows = [];
-foreach ($bookingRequests as $request) {
+foreach ($bookings as $booking) {
 // Determine status styling
 $statusColors = [
 'pending' => 'bg-yellow-100 text-yellow-800',
-'approved' => 'bg-green-100 text-green-800',
-'rejected' => 'bg-red-100 text-red-800'
+'confirmed' => 'bg-green-100 text-green-800',
+'rejected' => 'bg-red-100 text-red-800',
+'cancelled' => 'bg-gray-100 text-gray-800'
 ];
 
-$statusColor = $statusColors[$request['status']] ?? 'bg-gray-100 text-gray-800';
+$statusColor = $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-800';
 
-// Action: single View link (first request links to details)
-$actionButtons = '<a href="' . ($request['id'] === 'REQ001' ? url('/booking-requests/details') : url('/booking-requests/' . $request['id'])) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-[#e66600] text-white text-sm">View</a>';
+// Display status
+$statusDisplay = [
+'confirmed' => 'Confirmed',
+'pending' => 'Pending',
+'rejected' => 'Rejected',
+'cancelled' => 'Cancelled'
+];
+
+$displayStatus = $statusDisplay[$booking->status] ?? ucfirst($booking->status);
+
+// Action: View link
+$actionButtons = '<a href="' . route('booking-request-details', ['event' => $event->id, 'booking' => $booking->id]) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-[#e66600] text-white text-sm">View</a>';
 
 $rows[] = [
 'rowClass' => 'h-16 hover:bg-gray-50',
 'cells' => [
 [
-'content' => $request['id'],
+'content' => 'REQ' . str_pad($booking->id, 3, '0', STR_PAD_LEFT),
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => $request['tenant'],
+'content' => $booking->user->name ?? 'N/A',
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
 'content' => '<div>
-    <div class="text-sm text-gray-900">' . $request['contact_person'] . '</div>
-    <div class="text-xs text-gray-500">' . $request['phone'] . '</div>
+    <div class="text-sm text-gray-900">' . ($booking->user->display_name ?? 'N/A') . '</div>
+    <div class="text-xs text-gray-500">' . ($booking->user->phone_number ?? 'N/A') . '</div>
 </div>',
 'class' => ''
 ],
 [
-'content' => $request['booth_number'],
+'content' => $booking->booth->number ?? 'N/A',
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => $request['location'],
+'content' => formatRupiah($booking->total_price),
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => formatRupiah($request['price']),
-'class' => 'font-medium text-gray-900 text-sm'
-],
-[
-'content' => date('M d, Y', strtotime($request['request_date'])),
+'content' => $booking->created_at->format('M d, Y'),
 'class' => 'text-sm text-gray-600'
 ],
 [
 'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $statusColor . '">' .
-    ucfirst($request['status']) . '</span>',
+    $displayStatus . '</span>',
 'class' => ''
 ],
 [
@@ -168,14 +120,14 @@ $rows[] = [
     <div class="min-h-screen py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
-            @include('components.back-button', ['url' => url()->previous(), 'text' => 'Back to Event Details'])
+            @include('components.back-button', ['url' => route('my-events.show', ['event' => $event->id]), 'text' => 'Back to Event Details'])
 
             <!-- Header -->
             <div class="mb-8">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Requests</h1>
-                        <p class="text-gray-600">Tech Innovation Expo 2025 • Technology • 16 - 20 November 2025</p>
+                        <p class="text-gray-600">{{ $event->title }} • {{ $event->start_time->format('d') }} - {{ $event->end_time->format('d M Y') }}</p>
                     </div>
                     <div class="flex items-center gap-3">
                     </div>
@@ -188,7 +140,7 @@ $rows[] = [
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600 mb-1">Total Requests</p>
-                            <p class="text-2xl font-bold text-gray-900">4</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
                         </div>
                         <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-full">
                             <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
@@ -200,7 +152,7 @@ $rows[] = [
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600 mb-1">Pending</p>
-                            <p class="text-2xl font-bold text-yellow-600">2</p>
+                            <p class="text-2xl font-bold text-yellow-600">{{ $stats['pending'] }}</p>
                         </div>
                         <div class="bg-yellow-100 w-12 h-12 flex items-center justify-center rounded-full">
                             <i class="fas fa-clock text-yellow-600 text-xl"></i>
@@ -211,8 +163,8 @@ $rows[] = [
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-600 mb-1">Approved</p>
-                            <p class="text-2xl font-bold text-green-600">1</p>
+                            <p class="text-sm text-gray-600 mb-1">Confirmed</p>
+                            <p class="text-2xl font-bold text-green-600">{{ $stats['confirmed'] }}</p>
                         </div>
                         <div class="bg-green-100 w-12 h-12 flex items-center justify-center rounded-full">
                             <i class="fas fa-check text-green-600 text-xl"></i>
@@ -224,7 +176,7 @@ $rows[] = [
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600 mb-1">Rejected</p>
-                            <p class="text-2xl font-bold text-red-600">1</p>
+                            <p class="text-2xl font-bold text-red-600">{{ $stats['rejected'] }}</p>
                         </div>
                         <div class="bg-red-100 w-12 h-12 flex items-center justify-center rounded-full">
                             <i class="fas fa-times text-red-600 text-xl"></i>
@@ -245,7 +197,7 @@ $rows[] = [
 
                         <!-- Status Filter -->
                         <div class="relative">
-                            @include ('components.filter-button', ['label' => 'Status', 'id' => 'statusFilterBtn'])
+                            @include ('components.filter-button', ['label' => 'Filter', 'id' => 'filterBtn'])
 
                         </div>
 
@@ -278,7 +230,7 @@ $rows[] = [
                 <!-- Table Footer with Pagination -->
                 <div class="px-6 py-2 bg-gray-50 border-t border-gray-200">
                     <div class="flex items-center justify-center">
-                        @include('components.pagination', ['totalEntries' => 12, 'entriesPerPageOptions' => [10, 25, 50], 'currentEntriesPerPage' => 10])
+                        @include('components.pagination', ['totalEntries' => $bookings->count(), 'entriesPerPageOptions' => [10, 25, 50], 'currentEntriesPerPage' => 10])
                     </div>
                 </div>
             </div>

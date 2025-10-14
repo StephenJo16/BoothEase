@@ -14,7 +14,8 @@
                 @foreach($headers as $header)
                 @php
                 $customClass = trim($header['class'] ?? '');
-                $alignmentClass = $customClass === '' ? 'text-left' : $customClass;
+                $hasAlignment = strpos($customClass, 'text-') !== false;
+                $alignmentClass = trim(($hasAlignment ? '' : 'text-left ') . $customClass);
                 @endphp
                 <th class="py-3 px-4 font-medium text-gray-700 {{ $alignmentClass }}">
                     {{ $header['title'] }}

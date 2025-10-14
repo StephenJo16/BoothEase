@@ -6,8 +6,10 @@ use App\Models\Booking;
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
@@ -23,13 +25,13 @@ class BookingController extends Controller
 
         // Calculate statistics
         $totalBookings = $bookings->count();
-        $approvedBookings = $bookings->where('status', 'confirmed')->count();
+        $confirmedBookings = $bookings->where('status', 'confirmed')->count();
         $totalSpent = $bookings->where('status', 'confirmed')->sum('total_price');
 
         // Group bookings by status for filtering
         $bookingsByStatus = [
             'all' => $bookings,
-            'approved' => $bookings->where('status', 'confirmed'),
+            'confirmed' => $bookings->where('status', 'confirmed'),
             'rejected' => $bookings->where('status', 'rejected'),
             'cancelled' => $bookings->where('status', 'cancelled'),
         ];
@@ -37,7 +39,7 @@ class BookingController extends Controller
         return view('my-bookings.index', compact(
             'bookings',
             'totalBookings',
-            'approvedBookings',
+            'confirmedBookings',
             'totalSpent',
             'bookingsByStatus'
         ));
@@ -170,5 +172,127 @@ class BookingController extends Controller
     public function destroy(Booking $booking)
     {
         //
+    }
+
+    /**
+     * Display booking requests for an event (for event organizers)
+     */
+    public function bookingRequests(Request $request, $eventId)
+    {
+        // Get the event with its bookings
+        $event = \App\Models\Event::with([
+            'booths.bookings' => function ($query) {
+                $query->with(['user', 'booth'])
+                    ->orderBy('created_at', 'desc');
+            },
+            'category'
+        ])->findOrFail($eventId);
+
+        // Check if the authenticated user is the event owner
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event\'s booking requests.');
+        }
+
+        // Flatten all bookings from all booths
+        $bookings = $event->booths->flatMap->bookings;
+
+        // Calculate statistics
+        $stats = [
+            'total' => $bookings->count(),
+            'pending' => $bookings->where('status', 'pending')->count(),
+            'confirmed' => $bookings->where('status', 'confirmed')->count(),
+            'rejected' => $bookings->where('status', 'rejected')->count(),
+        ];
+
+        return view('booking-requests.index', compact('event', 'bookings', 'stats'));
+    }
+
+    /**
+     * Display a specific booking request details
+     */
+    public function bookingRequestDetails(Request $request, $eventId, $bookingId)
+    {
+        $event = \App\Models\Event::with('category')->findOrFail($eventId);
+
+        // Check if the authenticated user is the event owner
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event\'s booking requests.');
+        }
+
+        $booking = Booking::with([
+            'booth.event',
+            'user',
+            'payment'
+        ])
+            ->where('id', $bookingId)
+            ->whereHas('booth', function ($query) use ($eventId) {
+                $query->where('event_id', $eventId);
+            })
+            ->firstOrFail();
+
+        return view('booking-requests.details', compact('event', 'booking'));
+    }
+
+    public function confirmBookingRequest(Request $request, $eventId, $bookingId)
+    {
+        return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'confirmed');
+    }
+
+    public function rejectBookingRequest(Request $request, $eventId, $bookingId)
+    {
+        return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'rejected');
+    }
+
+    private function changeBookingRequestStatus(Request $request, $eventId, $bookingId, string $targetStatus)
+    {
+        [$event, $booking] = $this->resolveAuthorizedBooking($request, $eventId, $bookingId);
+
+        if ($booking->status === $targetStatus) {
+            return redirect()
+                ->route('booking-request-details', ['event' => $eventId, 'booking' => $bookingId])
+                ->with('info', "Booking request is already {$targetStatus}.");
+        }
+
+        if ($booking->status !== 'pending') {
+            return redirect()
+                ->route('booking-request-details', ['event' => $eventId, 'booking' => $bookingId])
+                ->with('error', 'Only pending booking requests can be updated.');
+        }
+
+        DB::transaction(function () use ($booking, $targetStatus) {
+            $booking->update(['status' => $targetStatus]);
+
+            if ($targetStatus === 'rejected') {
+                $booking->booth?->update(['status' => 'available']);
+            } elseif ($targetStatus === 'confirmed') {
+                $booking->booth?->update(['status' => 'booked']);
+            }
+        });
+
+        $message = $targetStatus === 'confirmed'
+            ? 'Booking request confirmed successfully.'
+            : 'Booking request rejected successfully.';
+
+        return redirect()
+            ->route('booking-request-details', ['event' => $eventId, 'booking' => $bookingId])
+            ->with('success', $message);
+    }
+
+    private function resolveAuthorizedBooking(Request $request, $eventId, $bookingId): array
+    {
+        $event = \App\Models\Event::findOrFail($eventId);
+
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event\'s booking requests.');
+        }
+
+        $booking = Booking::with('booth')
+            ->where('id', $bookingId)
+            ->whereHas('booth', function ($query) use ($eventId) {
+                $query->where('event_id', $eventId);
+            })
+            ->firstOrFail();
+
+        return [$event, $booking];
     }
 }

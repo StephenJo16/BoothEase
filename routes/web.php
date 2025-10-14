@@ -95,16 +95,36 @@ Route::get('/refund-request/details', function () {
     return view('refund-request.details');
 })->name('refund-request-details');
 
+// Booking requests routes (for event organizers)
+Route::middleware('auth')->group(function () {
+    Route::get('/events/{event}/booking-requests', [BookingController::class, 'bookingRequests'])
+        ->name('booking-requests');
 
-Route::get('/booking-requests', function () {
-    return view('booking-requests.index');
-})->name('booking-requests');
+    Route::get('/events/{event}/booking-requests/{booking}', [BookingController::class, 'bookingRequestDetails'])
+        ->name('booking-request-details');
 
-Route::get('/booking-requests/details', function () {
-    return view('booking-requests.details');
-})->name('booking-request-details');
+    Route::post('/events/{event}/booking-requests/{booking}/confirm', [BookingController::class, 'confirmBookingRequest'])
+        ->name('booking-requests.confirm');
+
+    Route::post('/events/{event}/booking-requests/{booking}/reject', [BookingController::class, 'rejectBookingRequest'])
+        ->name('booking-requests.reject');
+});
 
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+
+// Payment routes
+Route::middleware('auth')->group(function () {
+    Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payment.create');
+    Route::post('/bookings/{booking}/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])->name('payment.initiate');
+    Route::post('/bookings/{booking}/payment/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payment.check-status');
+    Route::get('/bookings/{booking}/payment/success', [\App\Http\Controllers\PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/bookings/{booking}/payment/pending', [\App\Http\Controllers\PaymentController::class, 'pending'])->name('payment.pending');
+    Route::get('/bookings/{booking}/payment/error', [\App\Http\Controllers\PaymentController::class, 'error'])->name('payment.error');
+});
+
+// Midtrans callback (no auth required)
+Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
+
 
 
 Route::get('/booth-layout', function (Request $request) {
