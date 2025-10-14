@@ -278,7 +278,12 @@
                 document.getElementById('eventSummaryBooths').textContent = data.booth_count ?? data.booths?.length ?? 0;
 
                 populateBoothTable(data.booths ?? []);
-                document.getElementById('editButton').style.display = 'inline-flex';
+                const eventStatus = data.event?.status ?? null;
+                if (eventStatus !== 'published') {
+                    document.getElementById('editButton').style.display = 'inline-flex';
+                } else {
+                    document.getElementById('editButton').style.display = 'none';
+                }
                 document.getElementById('createButton').style.display = 'none';
 
             } catch (error) {

@@ -174,10 +174,12 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                             </div>
                             @endif
 
+                            @if($event->status !== 'published')
                             <a href="{{ route('my-events.edit', $event) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-regular fa-pen-to-square mr-2"></i>
                                 Edit event
                             </a>
+                            @endif
                             <form method="POST" action="{{ route('my-events.destroy', $event) }}" onsubmit="return confirm('Delete this event? This action cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
@@ -192,7 +194,6 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-900">Owner</h2>
                         <p class="mt-3 text-sm text-gray-600">Managed by {{ optional($event->user)->name ?: 'Unknown user' }}</p>
-                        <p class="mt-1 text-xs text-gray-400">User ID: {{ $event->user_id }}</p>
                     </section>
                 </aside>
             </div>
@@ -203,7 +204,9 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                         <h2 class="text-lg font-semibold text-gray-900">Booth Layout</h2>
                         <p class="text-sm text-gray-500">Details for each booth in the event layout.</p>
                     </div>
-                    <span class="text-xs uppercase tracking-wide text-gray-400">{{ $boothCountText }}</span>
+                    <a href="{{ route('booth-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
+                        View Booths
+                    </a>
                 </div>
                 <div class="mt-6">
                     @if($boothCount > 0)
