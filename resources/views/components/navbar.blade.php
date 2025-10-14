@@ -11,9 +11,13 @@
                 $isOrganizer = auth()->check() && auth()->user()->role_id === 3;
                 $eventLinkHref = $isOrganizer ? route('my-events.index') : route('events');
                 $eventLinkLabel = $isOrganizer ? 'My Events' : 'Events';
+                $isTenant = auth()->check() && auth()->user()->role_id === 2;
             @endphp
             <div class="hidden md:flex items-center space-x-8">
                 <a href="{{ $eventLinkHref }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">{{ $eventLinkLabel }}</a>
+                @if($isTenant)
+                <a href="{{ route('my-bookings') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">My Bookings</a>
+                @endif
                 <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">How it Works</a>
                 <a href="{{ route('faq') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">FAQ</a>
 
@@ -64,6 +68,9 @@
     <div id="mobile-menu" class="hidden md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
             <a href="{{ $eventLinkHref }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">{{ $eventLinkLabel }}</a>
+            @if($isTenant)
+            <a href="{{ route('my-bookings') }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">My Bookings</a>
+            @endif
             <a href="#" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">How it Works</a>
             <a href="{{ route('faq') }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">FAQ</a>
             <div class="border-t border-gray-200 my-2"></div>

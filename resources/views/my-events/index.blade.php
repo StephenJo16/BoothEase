@@ -95,14 +95,6 @@
                                     <span>Booth types</span>
                                     <span class="font-semibold">{{ $boothTypes }}</span>
                                 </div>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span>Total booths</span>
-                                    <span class="font-semibold">{{ $boothTotal }}</span>
-                                </div>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span>Booked booths</span>
-                                    <span class="font-semibold">{{ $bookedBooths }}</span>
-                                </div>
                                 @if($boothTotal > 0)
                                 <div class="mt-2 flex items-center justify-between">
                                     <span>Availability</span>

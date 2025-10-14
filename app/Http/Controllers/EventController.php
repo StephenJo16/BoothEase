@@ -228,14 +228,18 @@ class EventController extends Controller
     {
         $this->ensureOwnership($request, $event);
 
-        $action = $request->input('action', $event->isPublished() ? 'publish' : 'draft');
-        $data = $this->validatePayload($request, $action);
+        $action = $request->input('action', 'save');
+        $data = $this->validatePayload($request, $action === 'save' ? ($event->isPublished() ? 'publish' : 'draft') : $action);
 
         $this->applyPayload($event, $data, $request->user(), $action);
 
+        $statusMessage = $action === 'publish'
+            ? 'Event updated and published.'
+            : ($action === 'save' ? 'Event updated successfully.' : 'Draft updated successfully.');
+
         return redirect()
             ->route('my-events.index')
-            ->with('status', $action === 'publish' ? 'Event updated and published.' : 'Draft updated successfully.');
+            ->with('status', $statusMessage);
     }
 
     public function publish(Request $request, Event $event)
@@ -333,7 +337,10 @@ class EventController extends Controller
         // Determine status based on action
         // New events start as DRAFT until booths are configured
         // Only set to PUBLISHED if it's an update action and was already published
-        if (in_array($action, ['publish', 'create_layout'])) {
+        if ($action === 'save') {
+            // Keep the existing status unless it hasn't been set before
+            $event->status = $event->status ?: Event::STATUS_DRAFT;
+        } elseif (in_array($action, ['publish', 'create_layout'])) {
             // If the event already exists and has booths, keep published status
             // Otherwise, start as draft until booth layout is saved
             if ($event->exists && $event->booths()->count() > 0) {

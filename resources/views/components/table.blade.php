@@ -12,7 +12,11 @@
         <thead>
             <tr class="border-b border-gray-200">
                 @foreach($headers as $header)
-                <th class="text-left py-3 px-4 font-medium text-gray-700 {{ $header['class'] ?? '' }}">
+                @php
+                $customClass = trim($header['class'] ?? '');
+                $alignmentClass = $customClass === '' ? 'text-left' : $customClass;
+                @endphp
+                <th class="py-3 px-4 font-medium text-gray-700 {{ $alignmentClass }}">
                     {{ $header['title'] }}
                 </th>
                 @endforeach

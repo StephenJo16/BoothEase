@@ -114,9 +114,9 @@ class AuthController extends Controller
             $welcomeMessage = 'Login successful. Welcome back, ' . $user->display_name . '!';
 
             if ($user->role->name === 'tenant') {
-                return redirect()->intended(route('events'))->with('success', $welcomeMessage);
+                return redirect()->route('events')->with('success', $welcomeMessage);
             } elseif ($user->role->name === 'event_organizer') {
-                return redirect()->intended(route('my-events.index'))->with('success', $welcomeMessage);
+                return redirect()->route('my-events.index')->with('success', $welcomeMessage);
             }
 
             return redirect()->route('events')->with('success', $welcomeMessage);
@@ -256,9 +256,9 @@ class AuthController extends Controller
         }
 
         if ($user->role->name === 'tenant') {
-            return redirect()->intended(route('events'))->with('success', $welcomeMessage);
+            return redirect()->route('events')->with('success', $welcomeMessage);
         } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->intended(route('my-events.index'))->with('success', $welcomeMessage);
+            return redirect()->route('my-events.index')->with('success', $welcomeMessage);
         }
         return redirect()->route('events')->with('success', $welcomeMessage);
     }
