@@ -112,6 +112,20 @@ Route::middleware('auth')->group(function () {
 
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
+// Payment routes
+Route::middleware('auth')->group(function () {
+    Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payment.create');
+    Route::post('/bookings/{booking}/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])->name('payment.initiate');
+    Route::post('/bookings/{booking}/payment/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payment.check-status');
+    Route::get('/bookings/{booking}/payment/success', [\App\Http\Controllers\PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/bookings/{booking}/payment/pending', [\App\Http\Controllers\PaymentController::class, 'pending'])->name('payment.pending');
+    Route::get('/bookings/{booking}/payment/error', [\App\Http\Controllers\PaymentController::class, 'error'])->name('payment.error');
+});
+
+// Midtrans callback (no auth required)
+Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
+
+
 
 Route::get('/booth-layout', function (Request $request) {
     return view('booth-layout.index', [

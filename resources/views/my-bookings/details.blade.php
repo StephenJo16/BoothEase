@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Booking Details - BoothEase</title>
 
     <!-- Fonts -->
@@ -65,6 +66,7 @@ if (strlen($rest) <= 3) {
     function getStatusDisplay($status) {
     $statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
     'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
+    'paid' => ['label' => 'Paid', 'color' => 'bg-blue-100 text-blue-800'],
     'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
     'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
     ];
@@ -114,7 +116,7 @@ if (strlen($rest) <= 3) {
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
-                                <i class="fas fa-{{ $booking->status === 'confirmed' ? 'check-circle' : ($booking->status === 'pending' ? 'clock' : ($booking->status === 'rejected' ? 'times-circle' : 'ban')) }} mr-2"></i>
+                                <i class="fas fa-{{ $booking->status === 'confirmed' ? 'check-circle' : ($booking->status === 'paid' ? 'credit-card' : ($booking->status === 'pending' ? 'clock' : ($booking->status === 'rejected' ? 'times-circle' : 'ban'))) }} mr-2"></i>
                                 {{ $statusDisplay['label'] }}
                             </span>
                         </div>
@@ -258,50 +260,72 @@ if (strlen($rest) <= 3) {
                             </div>
                         </div>
 
-                    <!-- Payment Details -->
-                    @if(in_array($booking->status, ['confirmed', 'cancelled']))
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Details</h2>
-                        <div class="space-y-4">
-                            @if($booking->payment)
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Payment Method</span>
-                                <span class="font-medium">{{ ucfirst($booking->payment->payment_method ?? 'N/A') }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Payment Status</span>
-                                @if($booking->payment->status === 'completed')
-                                <span class="text-green-600 font-medium">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    Paid
-                                </span>
+                        <!-- Payment Details -->
+                        @if(in_array($booking->status, ['confirmed', 'cancelled', 'paid']))
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Details</h2>
+                            <div class="space-y-4">
+                                @if($booking->payment)
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Payment Method</span>
+                                    <span class="font-medium">{{ ucfirst($booking->payment->payment_method ?? 'N/A') }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Payment Status</span>
+                                    @if($booking->payment->payment_status === 'completed')
+                                    <span class="text-green-600 font-medium" id="payment-status-badge">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Paid
+                                    </span>
+                                    @else
+                                    <span class="text-yellow-600 font-medium" id="payment-status-badge">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        {{ ucfirst($booking->payment->payment_status) }}
+                                    </span>
+                                    @endif
+                                </div>
+                                @if($booking->payment->transaction_id)
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Transaction ID</span>
+                                    <span class="font-medium text-sm">{{ $booking->payment->transaction_id }}</span>
+                                </div>
+                                @endif
+                                @if($booking->payment->payment_date)
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Payment Date</span>
+                                    <span class="font-medium">{{ $booking->payment->payment_date->format('d-m-Y') }}</span>
+                                </div>
+                                @endif
+
+                                @if($booking->payment->payment_status === 'pending')
+                                <!-- Check Payment Status Button -->
+                                <div class="pt-4 border-t">
+                                    <button id="check-payment-btn"
+                                        class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                                        <i class="fas fa-sync-alt mr-2"></i>
+                                        <span id="check-btn-text">Check Payment Status</span>
+                                    </button>
+                                    <p class="text-xs text-gray-500 text-center mt-2">
+                                        Click to verify your payment status with the payment gateway
+                                    </p>
+                                </div>
+                                @endif
                                 @else
-                                <span class="text-yellow-600 font-medium">
-                                    <i class="fas fa-clock mr-1"></i>
-                                    {{ ucfirst($booking->payment->status) }}
-                                </span>
+                                <div class="text-gray-600">
+                                    @if($booking->status === 'confirmed')
+                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                                        <i class="fas fa-exclamation-circle text-yellow-600 mb-2 text-2xl"></i>
+                                        <p class="text-yellow-800 font-medium">Payment Required</p>
+                                        <p class="text-yellow-700 text-sm mt-1">Please complete the payment to secure your booking</p>
+                                    </div>
+                                    @else
+                                    Payment information not available
+                                    @endif
+                                </div>
                                 @endif
                             </div>
-                            @if($booking->payment->transaction_id)
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Transaction ID</span>
-                                <span class="font-medium text-sm">{{ $booking->payment->transaction_id }}</span>
-                            </div>
-                            @endif
-                            @if($booking->payment->payment_date)
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Payment Date</span>
-                                <span class="font-medium">{{ $booking->payment->payment_date->format('d-m-Y') }}</span>
-                            </div>
-                            @endif
-                            @else
-                            <div class="text-gray-600">
-                                Payment information not available
-                            </div>
-                            @endif
                         </div>
-                    </div>
-                    @endif
+                        @endif
 
                         <!-- Booking Timeline -->
                         <!-- <div class="bg-white rounded-lg shadow-md p-6">
@@ -337,21 +361,43 @@ if (strlen($rest) <= 3) {
                         </div>
                     </div> -->
 
-                    <!-- Action Buttons -->
-                    @if($booking->status === 'confirmed')
-                    <div class="space-y-3">
-                        <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                            <i class="fas fa-download mr-2"></i>
-                            Download Invoice
-                        </button>
-                        <a href="{{ route('request-refund') }}">
-                            <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-undo mr-2"></i>
-                                Request Refund
+                        <!-- Action Buttons -->
+                        @if($booking->status === 'confirmed')
+                        <div class="space-y-3">
+                            @if(!$booking->payment || $booking->payment->payment_status !== 'completed')
+                            <a href="{{ route('payment.create', $booking->id) }}">
+                                <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-credit-card mr-2"></i>
+                                    Continue to Payment
+                                </button>
+                            </a>
+                            @else
+                            <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Invoice
                             </button>
-                        </a>
-                    </div>
-                    @endif
+                            <a href="{{ route('request-refund') }}">
+                                <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-undo mr-2"></i>
+                                    Request Refund
+                                </button>
+                            </a>
+                            @endif
+                        </div>
+                        @elseif($booking->status === 'paid')
+                        <div class="space-y-3">
+                            <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Invoice
+                            </button>
+                            <a href="{{ route('request-refund') }}">
+                                <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-undo mr-2"></i>
+                                    Request Refund
+                                </button>
+                            </a>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -359,6 +405,62 @@ if (strlen($rest) <= 3) {
 
         <!-- Footer -->
         @include('components.footer')
+
+        <!-- Check Payment Status Script -->
+        @if($booking->payment && $booking->payment->payment_status === 'pending')
+        <script>
+            document.getElementById('check-payment-btn').addEventListener('click', function() {
+                const button = this;
+                const buttonText = document.getElementById('check-btn-text');
+                const statusBadge = document.getElementById('payment-status-badge');
+
+                // Disable button and show loading
+                button.disabled = true;
+                buttonText.innerHTML = 'Checking...';
+                button.querySelector('i').classList.add('fa-spin');
+
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                // Call check status endpoint
+                fetch('{{ route("payment.check-status", $booking->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken || ''
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.payment_status === 'completed') {
+                                // Payment is completed - reload page to show updated status
+                                alert('✅ ' + data.message);
+                                window.location.reload();
+                            } else {
+                                // Still pending
+                                alert('⏳ ' + data.message);
+                                button.disabled = false;
+                                buttonText.innerHTML = 'Check Payment Status';
+                                button.querySelector('i').classList.remove('fa-spin');
+                            }
+                        } else {
+                            alert('❌ ' + (data.message || 'Failed to check payment status'));
+                            button.disabled = false;
+                            buttonText.innerHTML = 'Check Payment Status';
+                            button.querySelector('i').classList.remove('fa-spin');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('❌ An error occurred while checking payment status');
+                        button.disabled = false;
+                        buttonText.innerHTML = 'Check Payment Status';
+                        button.querySelector('i').classList.remove('fa-spin');
+                    });
+            });
+        </script>
+        @endif
     </body>
 
 </html>
