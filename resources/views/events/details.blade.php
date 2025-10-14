@@ -55,6 +55,49 @@ $tabs = [
 ['name' => 'Organizer', 'active' => false],
 ['name' => 'Reviews', 'active' => false]
 ];
+
+// Define table headers
+$headers = [
+['title' => 'Booth', 'class' => 'w-24'],
+['title' => 'Size', 'class' => 'w-16'],
+['title' => 'Type', 'class' => 'w-32'],
+['title' => 'Price', 'class' => 'w-24'],
+['title' => 'Status', 'class' => 'w-20'],
+];
+
+// Transform booths data into rows format
+$rows = [];
+foreach($event->booths as $booth) {
+$isAvailable = $booth->status === 'available';
+$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+$statusText = ucfirst($booth->status);
+
+$rows[] = [
+'rowClass' => 'h-20',
+'cells' => [
+[
+'content' => $booth->number ?? 'N/A',
+'class' => 'font-medium text-gray-900'
+],
+[
+'content' => $booth->size ?? 'N/A',
+'class' => 'text-gray-600'
+],
+[
+'content' => ucfirst($booth->type ?? 'Standard'),
+'class' => 'text-gray-600'
+],
+[
+'content' => formatRupiah($booth->price),
+'class' => 'text-gray-900 font-medium'
+],
+[
+'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $statusColor . '">' . $statusText . '</span>',
+'class' => ''
+],
+]
+];
+}
 @endphp
 
 <body class="bg-gray-50">
@@ -174,48 +217,6 @@ $tabs = [
 
                                 @if($event->booths->count() > 0)
                                 <div class="overflow-x-auto">
-                                    @php
-                                    $headers = [
-                                    ['title' => 'Booth', 'class' => 'w-24'],
-                                    ['title' => 'Size', 'class' => 'w-16'],
-                                    ['title' => 'Type', 'class' => 'w-32'],
-                                    ['title' => 'Price', 'class' => 'w-24'],
-                                    ['title' => 'Status', 'class' => 'w-20'],
-                                    ];
-
-                                    $rows = [];
-                                    foreach($event->booths as $booth) {
-                                    $isAvailable = $booth->status === 'available';
-                                    $statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                                    $statusText = ucfirst($booth->status);
-
-                                    $rows[] = [
-                                    'rowClass' => 'h-20',
-                                    'cells' => [
-                                    [
-                                    'content' => $booth->number ?? 'N/A',
-                                    'class' => 'font-medium text-gray-900'
-                                    ],
-                                    [
-                                    'content' => $booth->size ?? 'N/A',
-                                    'class' => 'text-gray-600'
-                                    ],
-                                    [
-                                    'content' => ucfirst($booth->type ?? 'Standard'),
-                                    'class' => 'text-gray-600'
-                                    ],
-                                    [
-                                    'content' => formatRupiah($booth->price),
-                                    'class' => 'text-gray-900 font-medium'
-                                    ],
-                                    [
-                                    'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $statusColor . '">' . $statusText . '</span>',
-                                    'class' => ''
-                                    ],
-                                    ]
-                                    ];
-                                    }
-                                    @endphp
                                     @include('components.table', [
                                     'headers' => $headers,
                                     'rows' => $rows,

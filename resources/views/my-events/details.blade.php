@@ -11,24 +11,81 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
+
+@php
+$location = is_array($event->location) ? $event->location : [];
+$booths = $event->booth_configuration;
+$status = $event->status;
+$statusStyles = [
+'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
+'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+];
+$badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+$start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
+$end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
+$deadline = $location['registration_deadline'] ?? null;
+$deadlineFormatted = $deadline ? \Carbon\Carbon::parse($deadline)->format('d M Y') : null;
+
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
+// Define table headers
+$headers = [
+['title' => 'Booth Number', 'class' => 'text-left'],
+['title' => 'Type', 'class' => 'text-left'],
+['title' => 'Price', 'class' => 'text-left'],
+['title' => 'Size', 'class' => 'text-left'],
+['title' => 'Status', 'class' => 'text-left'],
+];
+
+// Transform booths data into rows format
+$rows = [];
+foreach($event->booths as $booth) {
+$isAvailable = $booth->status === 'available';
+$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+$statusText = ucfirst($booth->status ?? 'Available');
+
+$rows[] = [
+'rowClass' => 'hover:bg-gray-50',
+'cells' => [
+[
+'content' => $booth->number ?? '—',
+'class' => 'font-medium text-gray-900'
+],
+[
+'content' => ucfirst($booth->type ?? '—'),
+'class' => 'text-gray-700'
+],
+[
+'content' => formatRupiah($booth->price ?? 0),
+'class' => 'text-gray-700'
+],
+[
+'content' => $booth->size ? $booth->size : '—',
+'class' => 'text-gray-700'
+],
+[
+'content' => '<span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ' . $statusColor . '">' . $statusText . '</span>',
+'class' => ''
+],
+]
+];
+}
+
+$boothCount = count($rows);
+$boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 1 ? '1 booth configured' : "$boothCount booths configured");
+@endphp
+
+
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
-
-    @php
-    $location = is_array($event->location) ? $event->location : [];
-    $booths = $event->booth_configuration;
-    $status = $event->status;
-    $statusStyles = [
-    'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-    'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
-    'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-    ];
-    $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
-    $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
-    $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
-    $deadline = $location['registration_deadline'] ?? null;
-    $deadlineFormatted = $deadline ? \Carbon\Carbon::parse($deadline)->format('d M Y') : null;
-    @endphp
 
     <div class="min-h-screen py-10">
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -146,105 +203,25 @@
                         <h2 class="text-lg font-semibold text-gray-900">Booth Layout</h2>
                         <p class="text-sm text-gray-500">Details for each booth in the event layout.</p>
                     </div>
-                    <span id="boothCountBadge" class="text-xs uppercase tracking-wide text-gray-400">Loading...</span>
+                    <span class="text-xs uppercase tracking-wide text-gray-400">{{ $boothCountText }}</span>
                 </div>
-                <div class="mt-6 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Booth Number</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
-                                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Size</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="boothTableBody" class="divide-y divide-gray-100 bg-white">
-                            <tr>
-                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">Loading booth data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mt-6">
+                    @if($boothCount > 0)
+                    @include('components.table', [
+                    'headers' => $headers,
+                    'rows' => $rows,
+                    'tableClass' => 'min-w-full text-sm',
+                    'containerClass' => 'overflow-x-auto'
+                    ])
+                    @else
+                    <div class="px-4 py-6 text-center text-gray-500">
+                        No booth layout has been configured for this event yet.
+                    </div>
+                    @endif
                 </div>
             </section>
         </div>
     </div>
-
-    <script>
-        const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
-        const eventId = "{{ $event->id }}";
-
-        function populateBoothTable(booths) {
-            const body = document.getElementById('boothTableBody');
-            const badge = document.getElementById('boothCountBadge');
-
-            if (!Array.isArray(booths) || booths.length === 0) {
-                body.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No booth layout has been configured for this event yet.</td></tr>';
-                badge.textContent = 'No booths configured';
-                return;
-            }
-
-            // Helper function to format Rupiah
-            function formatRupiah(value) {
-                const digits = String(value ?? 0).replace(/\D/g, '');
-                const num = digits === '' ? 0 : parseInt(digits);
-                return 'Rp' + num.toLocaleString('id-ID');
-            }
-
-            body.innerHTML = booths.map(booth => {
-                const price = formatRupiah(booth.price ?? 0);
-                const size = booth.size ? `${booth.size}` : '—';
-
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-900">${booth.number ?? '—'}</td>
-                        <td class="px-4 py-3 text-gray-700 capitalize">${booth.type ?? '—'}</td>
-                        <td class="px-4 py-3 text-right text-gray-700">${price}</td>
-                        <td class="px-4 py-3 text-gray-700">${size}</td>
-                        <td class="px-4 py-3">
-                            <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${booth.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${booth.status ?? 'Available'}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            badge.textContent = booths.length === 1 ? '1 booth configured' : `${booths.length} booths configured`;
-        }
-
-        async function loadBoothData() {
-            if (!eventId) {
-                document.getElementById('boothTableBody').innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Event ID not available.</td></tr>';
-                document.getElementById('boothCountBadge').textContent = 'Error loading';
-                return;
-            }
-
-            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(eventId));
-
-            try {
-                const response = await fetch(endpoint, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to load booth data');
-                }
-
-                const data = await response.json();
-                populateBoothTable(data.booths ?? []);
-            } catch (error) {
-                console.error('Error loading booth data:', error);
-                document.getElementById('boothTableBody').innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Failed to load booth data. The booth layout may not have been configured yet.</td></tr>';
-                document.getElementById('boothCountBadge').textContent = 'Failed to load';
-            }
-        }
-
-        // Load booth data when the page loads
-        document.addEventListener('DOMContentLoaded', loadBoothData);
-    </script>
 </body>
 
 </html>

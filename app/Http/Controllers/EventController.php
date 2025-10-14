@@ -207,8 +207,15 @@ class EventController extends Controller
     {
         $this->ensureOwnership($request, $event);
 
+        $event->load([
+            'category',
+            'booths' => function ($query) {
+                $query->orderBy('number');
+            }
+        ]);
+
         return view('my-events.details', [
-            'event' => $event->load('category'),
+            'event' => $event,
         ]);
     }
 
