@@ -179,29 +179,66 @@ class BookingController extends Controller
      */
     public function bookingRequests(Request $request, $eventId)
     {
-        // Get the event with its bookings
-        $event = \App\Models\Event::with([
-            'booths.bookings' => function ($query) {
-                $query->with(['user', 'booth'])
-                    ->orderBy('created_at', 'desc');
-            },
-            'category'
-        ])->findOrFail($eventId);
+        // Get the event
+        $event = \App\Models\Event::with('category')->findOrFail($eventId);
 
         // Check if the authenticated user is the event owner
         if ($event->user_id !== $request->user()->id) {
             abort(403, 'Unauthorized access to this event\'s booking requests.');
         }
 
-        // Flatten all bookings from all booths
-        $bookings = $event->booths->flatMap->bookings;
+        // Get all booth IDs for this event
+        $boothIds = $event->booths()->pluck('id');
 
-        // Calculate statistics
+        // Build query for bookings
+        $query = \App\Models\Booking::whereIn('booth_id', $boothIds)
+            ->with(['user', 'booth']);
+
+        // Apply filters if provided
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('display_name', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('booth', function ($boothQuery) use ($search) {
+                        $boothQuery->where('number', 'like', "%{$search}%");
+                    })
+                    ->orWhere('id', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->input('start_date'));
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->input('end_date'));
+        }
+
+        // Order by created_at descending
+        $query->orderBy('created_at', 'desc');
+
+        // Get per page value from request, default to 10
+        $perPage = $request->integer('perPage', 10);
+
+        // Paginate results
+        $bookings = $query->paginate($perPage)->withQueryString();
+
+        // Calculate statistics (all bookings, not just current page)
+        $allBookings = \App\Models\Booking::whereIn('booth_id', $boothIds)->get();
         $stats = [
-            'total' => $bookings->count(),
-            'pending' => $bookings->where('status', 'pending')->count(),
-            'confirmed' => $bookings->where('status', 'confirmed')->count(),
-            'rejected' => $bookings->where('status', 'rejected')->count(),
+            'total' => $allBookings->count(),
+            'pending' => $allBookings->where('status', 'pending')->count(),
+            'confirmed' => $allBookings->where('status', 'confirmed')->count(),
+            'rejected' => $allBookings->where('status', 'rejected')->count(),
+            'paid' => $allBookings->where('status', 'paid')->count(),
         ];
 
         return view('booking-requests.index', compact('event', 'bookings', 'stats'));

@@ -24,6 +24,49 @@ $totalBooths = $booths->count();
 $availableBooths = $booths->where('status', 'available')->count();
 }
 }
+
+// Define table headers
+$headers = [
+['title' => 'Booth', 'class' => 'w-20'],
+['title' => 'Type', 'class' => 'w-24'],
+['title' => 'Price', 'class' => 'w-24'],
+['title' => 'Size', 'class' => 'w-16'],
+['title' => 'Status', 'class' => 'w-20'],
+];
+
+// Transform booths data into rows format
+$rows = [];
+foreach($booths as $booth) {
+$isAvailable = strtolower($booth->status) === 'available';
+$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+$statusText = ucfirst($booth->status);
+
+$rows[] = [
+'rowClass' => 'h-14',
+'cells' => [
+[
+'content' => $booth->number ?? '-',
+'class' => 'font-semibold text-slate-800'
+],
+[
+'content' => ucfirst($booth->type ?? 'Standard'),
+'class' => 'text-slate-600'
+],
+[
+'content' => formatRupiah($booth->price ?? 0),
+'class' => 'font-semibold text-slate-800'
+],
+[
+'content' => $booth->size ?? '-',
+'class' => 'text-slate-600'
+],
+[
+'content' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ' . $statusColor . '">' . $statusText . '</span>',
+'class' => ''
+],
+]
+];
+}
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -98,37 +141,14 @@ $availableBooths = $booths->where('status', 'available')->count();
                         <i class="fa-solid fa-box me-2"></i>
                         Booth Details
                     </h2>
-                    <div class="max-h-56 overflow-y-auto border border-slate-200 rounded-lg">
+                    <div class="max-h-56 overflow-auto border border-slate-200 rounded-lg">
                         @if($booths->count() > 0)
-                        <table class="w-full text-xs">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-20">Booth</th>
-                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-24">Type</th>
-                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-24">Price</th>
-                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-16">Size</th>
-                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-20">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($booths as $booth)
-                                @php
-                                $isAvailable = strtolower($booth->status) === 'available';
-                                $statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                                $statusText = ucfirst($booth->status);
-                                @endphp
-                                <tr class="h-14">
-                                    <td class="py-2 px-3 align-middle font-semibold text-slate-800">{{ $booth->number ?? '-' }}</td>
-                                    <td class="py-2 px-3 align-middle text-slate-600">{{ ucfirst($booth->type ?? 'Standard') }}</td>
-                                    <td class="py-2 px-3 align-middle font-semibold text-slate-800">{{ formatRupiah($booth->price ?? 0) }}</td>
-                                    <td class="py-2 px-3 align-middle text-slate-600">{{ $booth->size ?? '-' }}</td>
-                                    <td class="py-2 px-3 align-middle">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusColor }}">{{ $statusText }}</span>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @include('components.table', [
+                        'headers' => $headers,
+                        'rows' => $rows,
+                        'tableClass' => 'w-full min-w-[640px] text-xs',
+                        'containerClass' => 'min-w-full',
+                        ])
                         @else
                         <div class="px-3 py-6 text-center text-slate-500">No booths are stored for this event.</div>
                         @endif

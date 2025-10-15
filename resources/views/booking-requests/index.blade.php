@@ -50,7 +50,8 @@ $statusColors = [
 'pending' => 'bg-yellow-100 text-yellow-800',
 'confirmed' => 'bg-green-100 text-green-800',
 'rejected' => 'bg-red-100 text-red-800',
-'cancelled' => 'bg-gray-100 text-gray-800'
+'cancelled' => 'bg-gray-100 text-gray-800',
+'paid' => 'bg-blue-100 text-blue-800'
 ];
 
 $statusColor = $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-800';
@@ -60,7 +61,8 @@ $statusDisplay = [
 'confirmed' => 'Confirmed',
 'pending' => 'Pending',
 'rejected' => 'Rejected',
-'cancelled' => 'Cancelled'
+'cancelled' => 'Cancelled',
+'paid' => 'Paid'
 ];
 
 $displayStatus = $statusDisplay[$booking->status] ?? ucfirst($booking->status);
@@ -135,7 +137,7 @@ $rows[] = [
             </div>
 
             <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
@@ -183,32 +185,72 @@ $rows[] = [
                         </div>
                     </div>
                 </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Paid</p>
+                            <p class="text-2xl font-bold text-blue-600">{{ $stats['paid'] }}</p>
+                        </div>
+                        <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-full">
+                            <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Filters and Search -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <form method="GET" action="{{ route('booking-requests', ['event' => $event->id]) }}" class="flex flex-col lg:flex-row gap-4 items-center justify-between">
                     <div class="flex flex-wrap gap-4 items-center">
                         <!-- Search -->
                         <div class="relative">
-                            @include('components.search-bar', ['placeholder' => 'Search booking requests...'])
-
+                            <input type="text"
+                                name="search"
+                                value="{{ request('search') }}"
+                                placeholder="Search booking requests..."
+                                class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
 
                         <!-- Status Filter -->
                         <div class="relative">
-                            @include ('components.filter-button', ['label' => 'Filter', 'id' => 'filterBtn'])
-
+                            <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                <option value="">All Status</option>
+                                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
+                            </select>
                         </div>
 
                         <!-- Date Filter -->
                         <div class="flex items-center gap-2">
-                            @include ('components.date-selector', ['label' => 'Start Date', 'id' => 'startDate'])
+                            <input type="date"
+                                name="start_date"
+                                value="{{ request('start_date') }}"
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                             <span class="text-gray-500">to</span>
-                            @include ('components.date-selector', ['label' => 'End Date', 'id' => 'endDate'])
+                            <input type="date"
+                                name="end_date"
+                                value="{{ request('end_date') }}"
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                         </div>
+
+                        <!-- Filter Button -->
+                        <button type="submit" class="hover:cursor-pointer px-4 py-2 bg-[#ff7700] text-white rounded-lg hover:bg-[#e66600] transition-colors">
+                            Apply
+                        </button>
+
+                        <!-- Clear Filters -->
+                        @if(request()->hasAny(['search', 'status', 'start_date', 'end_date']))
+                        <a href="{{ route('booking-requests', ['event' => $event->id]) }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Clear
+                        </a>
+                        @endif
                     </div>
-                </div>
+                </form>
             </div>
 
             <!-- Booking Requests Table -->
@@ -228,42 +270,13 @@ $rows[] = [
                 ])
 
                 <!-- Table Footer with Pagination -->
-                <div class="px-6 py-2 bg-gray-50 border-t border-gray-200">
-                    <div class="flex items-center justify-center">
-                        @include('components.pagination', ['totalEntries' => $bookings->count(), 'entriesPerPageOptions' => [10, 25, 50], 'currentEntriesPerPage' => 10])
-                    </div>
-                </div>
+                <x-pagination :paginator="$bookings" />
             </div>
         </div>
     </div>
 
     <!-- Footer -->
     @include('components.footer')
-
-    <!-- Action Modal -->
-    <div id="actionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 mb-4">
-                    <i id="modalIcon" class="fas fa-question text-orange-600 text-xl"></i>
-                </div>
-                <div class="text-center">
-                    <h3 id="modalTitle" class="text-lg leading-6 font-medium text-gray-900">Confirm Action</h3>
-                    <div class="mt-2 px-7 py-3">
-                        <p id="modalMessage" class="text-sm text-gray-500"></p>
-                    </div>
-                    <div class="flex justify-center space-x-4 mt-4">
-                        <button id="modalCancel" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">
-                            Cancel
-                        </button>
-                        <button id="modalConfirm" class="px-4 py-2 bg-[#ff7700] text-white rounded hover:bg-[#e66600] transition-colors">
-                            Confirm
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- page-specific JS is loaded via Vite -->
 </body>
