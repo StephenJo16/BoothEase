@@ -1,3 +1,30 @@
+@php
+// Helper to format rupiah with dot thousand separators
+if (!function_exists('formatRupiah')) {
+function formatRupiah($value) {
+$digits = preg_replace('/\D/', '', (string) $value);
+$num = $digits === '' ? 0 : intval($digits);
+return 'Rp' . number_format($num, 0, ',', '.');
+}
+}
+
+// Fetch event and booth data
+$event = null;
+$booths = [];
+$totalBooths = 0;
+$availableBooths = 0;
+
+if ($eventId) {
+$event = \App\Models\Event::with(['user', 'category'])->find($eventId);
+if ($event) {
+$booths = \App\Models\Booth::where('event_id', $eventId)
+->orderBy('number')
+->get();
+$totalBooths = $booths->count();
+$availableBooths = $booths->where('status', 'available')->count();
+}
+}
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,36 +44,37 @@
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         @include('components.back-button', [
         'text' => 'Back to Event Details',
-        'url' => $eventId ? route('my-events.edit', ['event' => $eventId]) : route('my-events.index')
+        'url' => $eventId ? route('my-events.show', ['event' => $eventId]) : route('my-events.index')
         ])
 
         <!-- Event Header -->
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 id="eventTitle" class="text-3xl font-bold text-slate-800 mb-2">Loading...</h1>
+                    <h1 class="text-3xl font-bold text-slate-800 mb-2">{{ $event->title ?? 'Event Layout' }}</h1>
                     <div class="flex flex-wrap gap-4 text-sm text-slate-600">
                         <div class="flex items-center">
                             <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                            <span id="eventDateRange">Loading event details...</span>
+                            <span>{{ $event && $event->start_time ? $event->start_time->format('d M Y') : 'TBA' }} - {{ $event && $event->end_time ? $event->end_time->format('d M Y') : 'TBA' }}</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                            <span id="eventVenue">—</span>
+                            <span>{{ $event->venue ?? 'Venue TBA' }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-store mr-2 text-[#ff7700]"></i>
+                            <span>{{ $availableBooths }} / {{ $totalBooths }} Booths Available</span>
                         </div>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <button type="button" onclick="editLayout()" id="editButton" style="display: none;"
+                    @if($event && $event->status !== 'published')
+                    <button type="button" onclick="editLayout()" id="editButton"
                         class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
                         <i class="fa-regular fa-pen-to-square"></i>
                         Edit Layout
                     </button>
-                    <button type="button" onclick="createLayout()" id="createButton" style="display: none;"
-                        class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i>
-                        Create Layout
-                    </button>
+                    @endif
                 </div>
             </div>
         </div>
@@ -62,27 +90,7 @@
 
             <!-- Sidebar -->
             <div class="space-y-6">
-                <!-- Event Summary Card -->
-                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-simple me-2"></i>
-                        Event Summary
-                    </h2>
-                    <dl class="space-y-3 text-sm">
-                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <dt class="font-semibold text-slate-700">Event ID:</dt>
-                            <dd id="eventSummaryId" class="text-slate-600 font-medium">—</dd>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <dt class="font-semibold text-slate-700">Event Name:</dt>
-                            <dd id="eventSummaryName" class="text-slate-600 font-medium">—</dd>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <dt class="font-semibold text-slate-700">Stored Booths:</dt>
-                            <dd id="eventSummaryBooths" class="text-slate-600 font-medium">—</dd>
-                        </div>
-                    </dl>
-                </div>
+
 
                 <!-- Booth Details Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
@@ -90,23 +98,40 @@
                         <i class="fa-solid fa-box me-2"></i>
                         Booth Details
                     </h2>
-                    <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-lg">
-                        <table class="min-w-full divide-y divide-slate-200 text-sm">
-                            <thead class="bg-slate-50 text-slate-700 uppercase tracking-wide text-xs">
-                                <tr>
-                                    <th class="px-3 py-3 text-left font-semibold">Number</th>
-                                    <th class="px-3 py-3 text-left font-semibold">Type</th>
-                                    <th class="px-3 py-3 text-right font-semibold">Price</th>
-                                    <th class="px-3 py-3 text-left font-semibold">Size</th>
-                                    <th class="px-3 py-3 text-left font-semibold">Status</th>
+                    <div class="max-h-56 overflow-y-auto border border-slate-200 rounded-lg">
+                        @if($booths->count() > 0)
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-20">Booth</th>
+                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-24">Type</th>
+                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-24">Price</th>
+                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-16">Size</th>
+                                    <th class="py-2 px-3 font-semibold text-slate-600 text-left w-20">Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="boothTableBody" class="divide-y divide-slate-100">
-                                <tr>
-                                    <td colspan="5" class="px-3 py-6 text-center text-slate-500">No data loaded yet.</td>
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach($booths as $booth)
+                                @php
+                                $isAvailable = strtolower($booth->status) === 'available';
+                                $statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                                $statusText = ucfirst($booth->status);
+                                @endphp
+                                <tr class="h-14">
+                                    <td class="py-2 px-3 align-middle font-semibold text-slate-800">{{ $booth->number ?? '-' }}</td>
+                                    <td class="py-2 px-3 align-middle text-slate-600">{{ ucfirst($booth->type ?? 'Standard') }}</td>
+                                    <td class="py-2 px-3 align-middle font-semibold text-slate-800">{{ formatRupiah($booth->price ?? 0) }}</td>
+                                    <td class="py-2 px-3 align-middle text-slate-600">{{ $booth->size ?? '-' }}</td>
+                                    <td class="py-2 px-3 align-middle">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusColor }}">{{ $statusText }}</span>
+                                    </td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
+                        @else
+                        <div class="px-3 py-6 text-center text-slate-500">No booths are stored for this event.</div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -120,77 +145,13 @@
             selection: false
         });
 
-
         const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
 
-        function setStatus(message, tone = 'info') {
-            const status = document.getElementById('statusMessage');
-            status.textContent = message;
-
-            const tones = {
-                info: 'text-slate-600',
-                success: 'text-emerald-600',
-                error: 'text-red-600'
-            };
-
-            status.className = `mt-4 text-sm min-h-[20px] ${tones[tone] ?? tones.info}`;
-        }
-
-        function resetSummary() {
-            document.getElementById('eventTitle').textContent = 'Event Information';
-            document.getElementById('eventSummaryId').textContent = '—';
-            document.getElementById('eventSummaryName').textContent = '—';
-            document.getElementById('eventSummaryBooths').textContent = '—';
-            document.getElementById('eventDateRange').textContent = 'Event details unavailable';
-            document.getElementById('eventVenue').textContent = '—';
-            const body = document.getElementById('boothTableBody');
-            body.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No data loaded yet.</td></tr>';
-            document.getElementById('editButton').style.display = 'none';
-            document.getElementById('createButton').style.display = 'none';
-        }
-
-        function clearCanvasOnly() {
-            canvas.clear();
-            canvas.backgroundColor = '#ffffff';
-            canvas.renderAll();
-            resetSummary();
-        }
-
-        function populateBoothTable(booths) {
-            const body = document.getElementById('boothTableBody');
-
-            if (!Array.isArray(booths) || booths.length === 0) {
-                body.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No booths are stored for this event.</td></tr>';
-                return;
-            }
-
-            // Helper function to format Rupiah
-            function formatRupiah(value) {
-                const digits = String(value ?? 0).replace(/\D/g, '');
-                const num = digits === '' ? 0 : parseInt(digits);
-                return 'Rp' + num.toLocaleString('id-ID');
-            }
-
-            body.innerHTML = booths.map(booth => {
-                const price = formatRupiah(booth.price ?? 0);
-
-                return `
-                    <tr class="odd:bg-white even:bg-gray-50">
-                        <td class="px-3 py-2 font-medium text-gray-800">${booth.number ?? '—'}</td>
-                        <td class="px-3 py-2 text-gray-700">${booth.type ?? '—'}</td>
-                        <td class="px-3 py-2 text-right text-gray-700">${price}</td>
-                        <td class="px-3 py-2 text-gray-700">${booth.size ?? '—'}</td>
-                        <td class="px-3 py-2 text-gray-700">${booth.status ?? '—'}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function loadLayout(providedEventId) {
-            const rawEventId = (providedEventId ?? "{{ $eventId ?? '' }}").toString().trim();
+        async function loadLayout() {
+            const rawEventId = "{{ $eventId ?? '' }}".toString().trim();
 
             if (!rawEventId) {
-                setStatus('No event ID provided.', 'error');
+                console.error('No event ID provided.');
                 return;
             }
 
@@ -204,27 +165,14 @@
                 });
 
                 if (!response.ok) {
-                    const error = await response.json().catch(() => ({
-                        message: 'Unable to load layout.'
-                    }));
-                    clearCanvasOnly();
-
-                    // If it's a 404 (no layout found), show create button
-                    if (response.status === 404) {
-                        setStatus('No saved layout found for this event. You can create a new layout.', 'error');
-                        document.getElementById('createButton').style.display = 'inline-flex';
-                    } else {
-                        setStatus(error.message ?? 'Unable to load layout.', 'error');
-                    }
+                    console.error('Unable to load layout.');
                     return;
                 }
 
                 const data = await response.json();
 
                 if (!data.layout) {
-                    clearCanvasOnly();
-                    setStatus('No layout data found for this event. You can create a new layout.', 'error');
-                    document.getElementById('createButton').style.display = 'inline-flex';
+                    console.error('No layout data found for this event.');
                     return;
                 }
 
@@ -254,75 +202,16 @@
                     });
                 });
 
-                // Update event header
-                document.getElementById('eventTitle').textContent = data.event?.title ?? data.event?.name ?? 'Event Layout';
-
-                if (data.event) {
-                    const startDate = data.event.start_time ? new Date(data.event.start_time).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                    }) : 'TBA';
-                    const endDate = data.event.end_time ? new Date(data.event.end_time).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                    }) : 'TBA';
-                    document.getElementById('eventDateRange').textContent = `${startDate} - ${endDate}`;
-                    document.getElementById('eventVenue').textContent = data.event.venue ?? 'Venue TBA';
-                }
-
-                // Update sidebar summary
-                document.getElementById('eventSummaryId').textContent = rawEventId;
-                document.getElementById('eventSummaryName').textContent = data.event?.title ?? data.event?.name ?? 'N/A';
-                document.getElementById('eventSummaryBooths').textContent = data.booth_count ?? data.booths?.length ?? 0;
-
-                populateBoothTable(data.booths ?? []);
-
-                const editButton = document.getElementById('editButton');
-                const createButton = document.getElementById('createButton');
-                const isPublished = (data.event?.status ?? '').toLowerCase() === 'published';
-
-                if (isPublished) {
-                    editButton.style.display = 'inline-flex';
-                    editButton.disabled = true;
-                    editButton.setAttribute('aria-disabled', 'true');
-                    editButton.classList.remove('bg-[#ff7700]', 'hover:bg-[#e66600]', 'text-white');
-                    editButton.classList.add('bg-gray-300', 'hover:bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                    editButton.title = 'Layout editing is disabled while the event is published.';
-                    createButton.style.display = 'none';
-                } else {
-                    editButton.style.display = 'inline-flex';
-                    editButton.disabled = false;
-                    editButton.removeAttribute('aria-disabled');
-                    editButton.classList.add('bg-[#ff7700]', 'hover:bg-[#e66600]', 'text-white');
-                    editButton.classList.remove('bg-gray-300', 'hover:bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                    editButton.title = '';
-                    createButton.style.display = 'none';
-                }
-
             } catch (error) {
                 console.error('Load layout error:', error);
             }
         }
 
         function editLayout() {
-            const editButton = document.getElementById('editButton');
-            if (editButton?.disabled) {
-                return;
-            }
             const rawEventId = "{{ $eventId ?? '' }}";
             if (rawEventId) {
                 const editUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(rawEventId);
                 window.location.href = editUrl;
-            }
-        }
-
-        function createLayout() {
-            const rawEventId = "{{ $eventId ?? '' }}";
-            if (rawEventId) {
-                const createUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(rawEventId);
-                window.location.href = createUrl;
             }
         }
 

@@ -49,7 +49,7 @@ $headers = [
 $rows = [];
 foreach($event->booths as $booth) {
 $isAvailable = $booth->status === 'available';
-$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 $statusText = ucfirst($booth->status ?? 'Available');
 
 $rows[] = [
@@ -148,25 +148,38 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                 <aside class="space-y-6">
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-900">Booking Statistics</h2>
-                        <div class="mt-4 space-y-3">
-                            @php
-                            $totalBookings = $event->booths->flatMap->bookings->count();
-                            $pendingBookings = $event->booths->flatMap->bookings->where('status', 'pending')->count();
-                            $confirmedBookings = $event->booths->flatMap->bookings->where('status', 'confirmed')->count();
-                            @endphp
-                            <div class="grid grid-cols-3 gap-3">
-                                <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-center">
-                                    <p class="text-2xl font-bold text-gray-900">{{ $totalBookings }}</p>
-                                    <p class="text-xs text-gray-500 mt-1">Total</p>
-                                </div>
-                                <div class="rounded-lg border border-yellow-100 bg-yellow-50 px-3 py-2 text-center">
-                                    <p class="text-2xl font-bold text-yellow-600">{{ $pendingBookings }}</p>
-                                    <p class="text-xs text-yellow-600 mt-1">Pending</p>
-                                </div>
-                                <div class="rounded-lg border border-green-100 bg-green-50 px-3 py-2 text-center">
-                                    <p class="text-2xl font-bold text-green-600">{{ $confirmedBookings }}</p>
-                                    <p class="text-xs text-green-600 mt-1">Confirmed</p>
-                                </div>
+
+                        @php
+                        $totalBookings = $event->booths->flatMap->bookings->count();
+                        $pendingBookings = $event->booths->flatMap->bookings->where('status', 'pending')->count();
+                        $confirmedBookings = $event->booths->flatMap->bookings->where('status', 'confirmed')->count();
+                        $paidBookings = $event->booths->flatMap->bookings->where('status', 'paid')->count();
+                        $cancelledBookings = $event->booths->flatMap->bookings->where('status', 'cancelled')->count();
+                        @endphp
+
+                        <!-- Total Bookings Header -->
+                        <div class="mt-4 border-b border-gray-200 pb-3">
+                            <p class="text-sm text-gray-500">Total Bookings</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $totalBookings }}</p>
+                        </div>
+
+                        <!-- Status Cards -->
+                        <div class="mt-4 grid grid-cols-2 gap-3">
+                            <div class="rounded-lg border border-yellow-100 bg-yellow-50 px-3 py-3 text-center">
+                                <p class="text-2xl font-bold text-yellow-600">{{ $pendingBookings }}</p>
+                                <p class="text-xs text-yellow-600 mt-1">Pending</p>
+                            </div>
+                            <div class="rounded-lg border border-green-100 bg-green-50 px-3 py-3 text-center">
+                                <p class="text-2xl font-bold text-green-600">{{ $confirmedBookings }}</p>
+                                <p class="text-xs text-green-600 mt-1">Confirmed</p>
+                            </div>
+                            <div class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-3 text-center">
+                                <p class="text-2xl font-bold text-blue-600">{{ $paidBookings }}</p>
+                                <p class="text-xs text-blue-600 mt-1">Paid</p>
+                            </div>
+                            <div class="rounded-lg border border-red-100 bg-red-50 px-3 py-3 text-center">
+                                <p class="text-2xl font-bold text-red-600">{{ $cancelledBookings }}</p>
+                                <p class="text-xs text-red-600 mt-1">Cancelled</p>
                             </div>
                         </div>
                     </section>
@@ -199,22 +212,16 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                             </div>
                             @endif
 
-                            <a href="{{ route('booking-requests', ['event' => $event->id]) }}" class="flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                            <a href="{{ route('booking-requests', ['event' => $event->id]) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-solid fa-clipboard-list mr-2"></i>
                                 View Booking Requests
                             </a>
 
-                            @if($event->status === 'published')
-                            <button type="button" class="flex w-full items-center justify-center rounded-lg bg-gray-300 px-4 py-2 text-sm font-semibold text-gray-500 transition cursor-not-allowed" disabled aria-disabled="true" title="Editing is disabled while the event is published.">
-                                <i class="fa-regular fa-pen-to-square mr-2"></i>
-                                Edit event
-                            </button>
-                            @else
+                            @if($event->status !== 'published')
                             <a href="{{ route('my-events.edit', $event) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-regular fa-pen-to-square mr-2"></i>
                                 Edit event
                             </a>
-                            @endif
                             <form method="POST" action="{{ route('my-events.destroy', $event) }}" onsubmit="return confirm('Delete this event? This action cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
@@ -224,6 +231,7 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                                 </button>
                             </form>
                             <p class="text-xs text-gray-400">Deleting an event permanently removes it and associated booths.</p>
+                            @endif
                         </div>
                     </section>
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
