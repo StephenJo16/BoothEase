@@ -121,10 +121,12 @@
                                 <i class="fa-regular fa-eye mr-2"></i>
                                 View details
                             </a>
+                            @if($status !== 'published')
                             <a href="{{ route('my-events.edit', $event) }}" class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900">
                                 <i class="fa-regular fa-pen-to-square mr-2"></i>
                                 Edit
                             </a>
+                            @endif
                             <form action="{{ route('my-events.destroy', $event) }}" method="POST" class="inline-flex">
                                 @csrf
                                 @method('DELETE')
