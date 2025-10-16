@@ -81,6 +81,50 @@ $rows[] = [
 
 $boothCount = count($rows);
 $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 1 ? '1 booth configured' : "$boothCount booths configured");
+
+// Paid Bookings Data
+$paidBookings = $event->booths->flatMap->bookings->where('status', 'paid');
+$paidBookingsCount = $paidBookings->count();
+$totalRevenue = $paidBookings->sum('total_price');
+
+// Define paid bookings table headers
+$paidBookingHeaders = [
+['title' => 'Booking ID', 'class' => 'text-left'],
+['title' => 'Tenant', 'class' => 'text-left'],
+['title' => 'Booth Number', 'class' => 'text-left'],
+['title' => 'Booking Date', 'class' => 'text-left'],
+['title' => 'Payment Method', 'class' => 'text-left'],
+];
+
+// Transform paid bookings data into rows format
+$paidBookingRows = [];
+foreach($paidBookings as $booking) {
+$paidBookingRows[] = [
+'rowClass' => 'hover:bg-gray-50',
+'cells' => [
+[
+'content' => '#' . $booking->id,
+'class' => 'font-medium text-gray-900'
+],
+[
+'content' => $booking->user->name ?? 'Unknown',
+'class' => 'text-gray-700'
+],
+[
+'content' => $booking->booth->number ?? '—',
+'class' => 'text-gray-700'
+],
+[
+'content' => $booking->booking_date ? $booking->booking_date->format('d M Y') : '—',
+'class' => 'text-gray-700'
+],
+[
+'content' => $booking->payment ? $booking->payment->formatted_payment_method : 'N/A',
+'class' => 'text-gray-700'
+],
+]
+];
+}
 @endphp
 
 
@@ -146,6 +190,7 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                 </section>
 
                 <aside class="space-y-6">
+                    @if($event->status === 'published')
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-900">Booking Statistics</h2>
 
@@ -156,6 +201,12 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                         $paidBookings = $event->booths->flatMap->bookings->where('status', 'paid')->count();
                         $cancelledBookings = $event->booths->flatMap->bookings->where('status', 'cancelled')->count();
                         @endphp
+
+                        <!-- Total Revenue -->
+                        <div class="mt-4 flex items-center justify-between rounded-lg">
+                            <p class="text-sm font-medium text-green-700">Revenue</p>
+                            <p class="text-2xl font-bold text-green-600">{{ formatRupiah($totalRevenue) }}</p>
+                        </div>
 
                         <!-- Total Bookings Header -->
                         <div class="mt-4 border-b border-gray-200 pb-3">
@@ -183,6 +234,7 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                             </div>
                         </div>
                     </section>
+                    @endif
 
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-900">Actions</h2>
@@ -212,10 +264,12 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                             </div>
                             @endif
 
+                            @if($event->status === 'published')
                             <a href="{{ route('booking-requests', ['event' => $event->id]) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-solid fa-clipboard-list mr-2"></i>
                                 View Booking Requests
                             </a>
+                            @endif
 
                             @if($event->status !== 'published')
                             <a href="{{ route('my-events.edit', $event) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
@@ -266,6 +320,34 @@ $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 
                     @endif
                 </div>
             </section>
+
+            @if($event->status === 'published')
+            <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+                <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Paid Bookings</h2>
+                        <p class="text-sm text-gray-500">All confirmed bookings that have been paid for this event.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    @if($paidBookingsCount > 0)
+                    @include('components.table', [
+                    'headers' => $paidBookingHeaders,
+                    'rows' => $paidBookingRows,
+                    'tableClass' => 'min-w-full text-sm',
+                    'containerClass' => 'overflow-x-auto'
+                    ])
+                    @else
+                    <div class="px-4 py-6 text-center">
+                        <i class="fa-solid fa-wallet text-gray-300 text-4xl mb-3"></i>
+                        <p class="text-gray-500 font-medium">No paid bookings yet</p>
+                        <p class="text-sm text-gray-400 mt-1">Paid bookings will appear here once tenants complete their payments.</p>
+                    </div>
+                    @endif
+                </div>
+            </section>
+            @endif
         </div>
     </div>
 </body>

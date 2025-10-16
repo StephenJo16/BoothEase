@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
@@ -11,6 +12,15 @@ use App\Http\Controllers\EventController;
 use App\Models\User;
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        // Redirect based on user role
+        if ($user->role->name === 'tenant') {
+            return redirect()->route('events');
+        } elseif ($user->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+    }
     return view('landingpage.index');
 })->name('home');
 
