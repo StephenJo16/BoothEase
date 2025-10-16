@@ -288,10 +288,6 @@ $paidBookingRows[] = [
                             @endif
                         </div>
                     </section>
-                    <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
-                        <h2 class="text-lg font-semibold text-gray-900">Owner</h2>
-                        <p class="mt-3 text-sm text-gray-600">Managed by {{ optional($event->user)->name ?: 'Unknown user' }}</p>
-                    </section>
                 </aside>
             </div>
 

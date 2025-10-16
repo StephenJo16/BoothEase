@@ -27,7 +27,9 @@
                 <li>Click any element button to add it to the canvas</li>
                 <li>Select a booth to edit its properties (size, price, type) in the right panel</li>
                 <li>Double-click any element to quickly edit its text label</li>
-                <li>Drag elements to position them, resize using corner handles</li>
+                <li>Drag elements to position them, resize using corner handles (booths can only be resized via properties panel)</li>
+                <li>Use Zoom In/Out buttons or mouse wheel to zoom the canvas</li>
+                <li>Click and drag on empty canvas space to pan/move around the view</li>
                 <li>Keyboard shortcuts: Ctrl+D to duplicate, Delete to remove</li>
             </ul>
         </div>
@@ -62,6 +64,18 @@
                             </button>
 
                             <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700 mt-2">Actions:</div>
+                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
+                                <i class="fas fa-search-plus"></i>
+                                Zoom In
+                            </button>
+                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomOut()">
+                                <i class="fas fa-search-minus"></i>
+                                Zoom Out
+                            </button>
+                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="resetZoom()">
+                                <i class="fas fa-compress"></i>
+                                Reset Zoom
+                            </button>
                             <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="clearCanvas()">
                                 <i class="fas fa-trash-alt"></i>
                                 Clear Canvas
@@ -108,6 +122,11 @@
             backgroundColor: '#ffffff',
             selection: true
         });
+
+        // Variables for panning
+        let isPanning = false;
+        let lastPosX = 0;
+        let lastPosY = 0;
 
         const elementTypes = {
             booth: {
@@ -188,9 +207,17 @@
                 ry: 5
             });
 
+            // Calculate vertical centering based on whether it's a booth (2 lines) or other element (1 line)
+            let textTop;
+            if (type === 'booth') {
+                textTop = height / 2 - 10; // Position for first line when there are 2 lines
+            } else {
+                textTop = height / 2; // Center single line vertically
+            }
+
             const text = new fabric.Text(label, {
                 left: width / 2,
-                top: height / 2 - 8,
+                top: textTop,
                 fontSize: 14,
                 fontFamily: 'Arial',
                 fill: config.textColor,
@@ -209,7 +236,7 @@
                 const infoText = new fabric.Text(
                     `${boothType} - ${formatRupiah(price)}`, {
                         left: width / 2,
-                        top: height / 2 + 12,
+                        top: height / 2 + 10, // Position for second line
                         fontSize: 11,
                         fontFamily: 'Arial',
                         fill: config.textColor,
@@ -228,7 +255,9 @@
                 cornerSize: 8,
                 transparentCorners: false,
                 lockRotation: false,
-                hasRotatingPoint: true
+                hasRotatingPoint: true,
+                lockScalingX: type === 'booth', // Lock scaling for booths
+                lockScalingY: type === 'booth' // Lock scaling for booths
             });
 
             elementGroup.set({
@@ -463,6 +492,88 @@
             }
         }
 
+        // Zoom functions
+        function zoomIn() {
+            let zoom = canvas.getZoom();
+            zoom += 0.1;
+            if (zoom > 3) zoom = 3; // Max zoom level
+
+            // Calculate center point
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function zoomOut() {
+            let zoom = canvas.getZoom();
+            zoom -= 0.1;
+            if (zoom < 0.3) zoom = 0.3; // Min zoom level
+
+            // Calculate center point
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function resetZoom() {
+            canvas.setZoom(1);
+            canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // Reset pan as well
+            canvas.renderAll();
+        }
+
+        // Add mouse wheel zoom
+        canvas.on('mouse:wheel', function(opt) {
+            const delta = opt.e.deltaY;
+            let zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 3) zoom = 3;
+            if (zoom < 0.3) zoom = 0.3;
+
+            // Zoom to the mouse pointer position
+            const point = new fabric.Point(opt.e.offsetX, opt.e.offsetY);
+            canvas.zoomToPoint(point, zoom);
+
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+            canvas.renderAll();
+        });
+
+        // Panning functionality - Left click on empty space to pan
+        canvas.on('mouse:down', function(opt) {
+            const evt = opt.e;
+            // Enable panning with left click only when clicking on empty canvas (no target object)
+            if (!opt.target && evt.button === 0) {
+                isPanning = true;
+                canvas.selection = false;
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grab';
+                canvas.renderAll();
+            }
+        });
+
+        canvas.on('mouse:move', function(opt) {
+            if (isPanning) {
+                const evt = opt.e;
+                const vpt = canvas.viewportTransform;
+                vpt[4] += evt.clientX - lastPosX;
+                vpt[5] += evt.clientY - lastPosY;
+                canvas.requestRenderAll();
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grabbing';
+            }
+        });
+
+        canvas.on('mouse:up', function(opt) {
+            if (isPanning) {
+                canvas.setViewportTransform(canvas.viewportTransform);
+                isPanning = false;
+                canvas.selection = true;
+                canvas.defaultCursor = 'default';
+                canvas.renderAll();
+            }
+        });
         window.addEventListener('load', function() {
             const sampleElements = [{
                     type: 'entrance',

@@ -112,10 +112,10 @@ $rows[] = [
                 </div>
                 <div class="flex flex-wrap gap-3">
                     @if($event && $event->status !== 'published')
-                    <button type="button" onclick="editLayout()" id="editButton"
+                    <button type="button" onclick="handleLayoutAction()" id="layoutActionButton"
                         class="px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center gap-2">
-                        <i class="fa-regular fa-pen-to-square"></i>
-                        Edit Layout
+                        <i id="layoutActionIcon" class="fa-regular fa-pen-to-square"></i>
+                        <span id="layoutActionText">Edit Layout</span>
                     </button>
                     @endif
                 </div>
@@ -126,6 +126,24 @@ $rows[] = [
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <!-- Zoom Controls -->
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-800">Layout View</h2>
+                    <div class="flex gap-2">
+                        <button onclick="zoomIn()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
+                            <i class="fas fa-search-plus"></i>
+                            Zoom In
+                        </button>
+                        <button onclick="zoomOut()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
+                            <i class="fas fa-search-minus"></i>
+                            Zoom Out
+                        </button>
+                        <button onclick="resetZoom()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
+                            <i class="fas fa-compress"></i>
+                            Reset
+                        </button>
+                    </div>
+                </div>
                 <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
                     <canvas id="layoutCanvas" width="900" height="600"></canvas>
                 </div>
@@ -165,13 +183,23 @@ $rows[] = [
             selection: false
         });
 
+        // Variables for panning
+        let isPanning = false;
+        let lastPosX = 0;
+        let lastPosY = 0;
+
         const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
+        const actionButton = document.getElementById('layoutActionButton');
+        const actionIcon = document.getElementById('layoutActionIcon');
+        const actionText = document.getElementById('layoutActionText');
+        let hasLayout = false;
 
         async function loadLayout() {
             const rawEventId = "{{ $eventId ?? '' }}".toString().trim();
 
             if (!rawEventId) {
                 console.error('No event ID provided.');
+                updateActionButton(false);
                 return;
             }
 
@@ -192,9 +220,12 @@ $rows[] = [
                 const data = await response.json();
 
                 if (!data.layout) {
+                    updateActionButton(false);
                     console.error('No layout data found for this event.');
                     return;
                 }
+
+                updateActionButton(true);
 
                 canvas.clear();
                 canvas.backgroundColor = '#ffffff';
@@ -224,19 +255,112 @@ $rows[] = [
 
             } catch (error) {
                 console.error('Load layout error:', error);
+                updateActionButton(false);
             }
         }
 
-        function editLayout() {
+        function updateActionButton(layoutExists) {
+            hasLayout = !!layoutExists;
+
+            if (!actionButton || !actionIcon || !actionText) {
+                return;
+            }
+
+            if (hasLayout) {
+                actionIcon.className = 'fa-regular fa-pen-to-square';
+                actionText.textContent = 'Edit Layout';
+            } else {
+                actionIcon.className = 'fa-solid fa-plus';
+                actionText.textContent = 'Create Layout';
+            }
+        }
+
+        function handleLayoutAction() {
             const rawEventId = "{{ $eventId ?? '' }}";
             if (rawEventId) {
-                const editUrl = "{{ route('booth-layout.edit') }}" + "?event_id=" + encodeURIComponent(rawEventId);
-                window.location.href = editUrl;
+                const targetBase = hasLayout ? "{{ route('booth-layout.edit') }}" : "{{ route('booth-layout') }}";
+                const targetUrl = targetBase + "?event_id=" + encodeURIComponent(rawEventId);
+                window.location.href = targetUrl;
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadLayout();
+        });
+
+        // Zoom functions
+        function zoomIn() {
+            let zoom = canvas.getZoom();
+            zoom += 0.1;
+            if (zoom > 3) zoom = 3;
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function zoomOut() {
+            let zoom = canvas.getZoom();
+            zoom -= 0.1;
+            if (zoom < 0.3) zoom = 0.3;
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function resetZoom() {
+            canvas.setZoom(1);
+            canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+            canvas.renderAll();
+        }
+
+        // Mouse wheel zoom
+        canvas.on('mouse:wheel', function(opt) {
+            const delta = opt.e.deltaY;
+            let zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 3) zoom = 3;
+            if (zoom < 0.3) zoom = 0.3;
+            const point = new fabric.Point(opt.e.offsetX, opt.e.offsetY);
+            canvas.zoomToPoint(point, zoom);
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+            canvas.renderAll();
+        });
+
+        // Panning functionality
+        canvas.on('mouse:down', function(opt) {
+            const evt = opt.e;
+            if (!opt.target && evt.button === 0) {
+                isPanning = true;
+                canvas.selection = false;
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grab';
+                canvas.renderAll();
+            }
+        });
+
+        canvas.on('mouse:move', function(opt) {
+            if (isPanning) {
+                const evt = opt.e;
+                const vpt = canvas.viewportTransform;
+                vpt[4] += evt.clientX - lastPosX;
+                vpt[5] += evt.clientY - lastPosY;
+                canvas.requestRenderAll();
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grabbing';
+            }
+        });
+
+        canvas.on('mouse:up', function(opt) {
+            if (isPanning) {
+                canvas.setViewportTransform(canvas.viewportTransform);
+                isPanning = false;
+                canvas.selection = false;
+                canvas.defaultCursor = 'default';
+                canvas.renderAll();
+            }
         });
     </script>
 </body>

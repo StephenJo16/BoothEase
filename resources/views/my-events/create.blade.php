@@ -134,7 +134,7 @@
                                 Save draft
                             </button>
                             <button type="submit" name="action" value="publish" class="hover:cursor-pointer inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                                Create event
+                                Setup Booths
                             </button>
                         </div>
                     </div>
