@@ -47,12 +47,28 @@
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                <div class="mb-4">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center">
-                        <i class="fa-solid fa-map me-2 text-[#ff7700]"></i>
-                        Booth Layout
-                    </h2>
-                    <p class="text-sm text-slate-600 mt-1">Click on a booth to view details and book</p>
+                <div class="mb-4 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-map me-2 text-[#ff7700]"></i>
+                            Booth Layout
+                        </h2>
+                        <p class="text-sm text-slate-600 mt-1">Click on a booth to view details and book</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="zoomIn()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
+                            <i class="fas fa-search-plus"></i>
+                            <span class="hidden sm:inline">Zoom In</span>
+                        </button>
+                        <button onclick="zoomOut()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
+                            <i class="fas fa-search-minus"></i>
+                            <span class="hidden sm:inline">Zoom Out</span>
+                        </button>
+                        <button onclick="resetZoom()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
+                            <i class="fas fa-compress"></i>
+                            <span class="hidden sm:inline">Reset</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-x-auto">
                     <canvas id="layoutCanvas" width="800" height="600"></canvas>
@@ -140,6 +156,11 @@
             // Disable all modifications - view only
             allowTouchScrolling: true
         });
+
+        // Variables for panning
+        let isPanning = false;
+        let lastPosX = 0;
+        let lastPosY = 0;
 
         const loadEndpoint = "{{ route('booth-layout.data', ['event' => $event->id]) }}";
         let selectedBooth = null;
@@ -432,6 +453,79 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadLayout();
+        });
+
+        // Zoom functions
+        function zoomIn() {
+            let zoom = canvas.getZoom();
+            zoom += 0.1;
+            if (zoom > 3) zoom = 3;
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function zoomOut() {
+            let zoom = canvas.getZoom();
+            zoom -= 0.1;
+            if (zoom < 0.3) zoom = 0.3;
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function resetZoom() {
+            canvas.setZoom(1);
+            canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+            canvas.renderAll();
+        }
+
+        // Mouse wheel zoom
+        canvas.on('mouse:wheel', function(opt) {
+            const delta = opt.e.deltaY;
+            let zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 3) zoom = 3;
+            if (zoom < 0.3) zoom = 0.3;
+            const point = new fabric.Point(opt.e.offsetX, opt.e.offsetY);
+            canvas.zoomToPoint(point, zoom);
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+            canvas.renderAll();
+        });
+
+        // Panning functionality - only on empty canvas to not interfere with booth interactions
+        canvas.on('mouse:down', function(opt) {
+            const evt = opt.e;
+            // Only allow panning on empty space (no booth interaction)
+            if (!opt.target && evt.button === 0) {
+                isPanning = true;
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grab';
+            }
+        });
+
+        canvas.on('mouse:move', function(opt) {
+            if (isPanning) {
+                const evt = opt.e;
+                const vpt = canvas.viewportTransform;
+                vpt[4] += evt.clientX - lastPosX;
+                vpt[5] += evt.clientY - lastPosY;
+                canvas.requestRenderAll();
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grabbing';
+            }
+        });
+
+        canvas.on('mouse:up', function(opt) {
+            if (isPanning) {
+                canvas.setViewportTransform(canvas.viewportTransform);
+                isPanning = false;
+                canvas.defaultCursor = 'default';
+                canvas.renderAll();
+            }
         });
 
         // Make functions global for onclick handlers

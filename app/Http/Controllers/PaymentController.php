@@ -155,6 +155,18 @@ class PaymentController extends Controller
             $transactionStatus = $request->transaction_status;
             $fraudStatus = $request->fraud_status ?? 'accept';
 
+            // Capture payment type and channel from Midtrans
+            $payment->payment_type = $request->payment_type;
+
+            // For bank transfers, capture the specific bank
+            if ($request->payment_type === 'bank_transfer' && isset($request->va_numbers[0]['bank'])) {
+                $payment->payment_channel = $request->va_numbers[0]['bank'];
+            } elseif ($request->payment_type === 'echannel') {
+                $payment->payment_channel = 'mandiri';
+            } elseif ($request->payment_type === 'permata') {
+                $payment->payment_channel = 'permata';
+            }
+
             if ($transactionStatus == 'capture') {
                 if ($fraudStatus == 'accept') {
                     $payment->payment_status = 'completed';
@@ -232,6 +244,20 @@ class PaymentController extends Controller
                 $result = $response->json();
                 $transactionStatus = $result['transaction_status'] ?? 'pending';
                 $fraudStatus = $result['fraud_status'] ?? 'accept';
+
+                // Capture payment type and channel
+                if (isset($result['payment_type'])) {
+                    $payment->payment_type = $result['payment_type'];
+                }
+
+                // For bank transfers, capture the specific bank
+                if (isset($result['payment_type']) && $result['payment_type'] === 'bank_transfer' && isset($result['va_numbers'][0]['bank'])) {
+                    $payment->payment_channel = $result['va_numbers'][0]['bank'];
+                } elseif (isset($result['payment_type']) && $result['payment_type'] === 'echannel') {
+                    $payment->payment_channel = 'mandiri';
+                } elseif (isset($result['permata_va_number'])) {
+                    $payment->payment_channel = 'permata';
+                }
 
                 // Update payment status based on Midtrans response
                 if ($transactionStatus == 'capture') {

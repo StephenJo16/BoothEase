@@ -11,58 +11,103 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-white min-h-screen">
     @include('components.navbar')
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         @include('components.back-button', ['text' => 'Back to Edit Event', 'url' => request('event_id') ? route('my-events.edit', ['event' => request('event_id')]) : route('my-events.index')])
 
-        <div class="bg-white rounded-lg shadow-lg p-5">
-            <div class="bg-gray-100 rounded-lg p-5 mb-5">
-                <h4 class="text-lg font-semibold text-gray-700 mb-4">Instructions:</h4>
-                <ul class="list-disc pl-5 space-y-2 text-gray-600">
-                    <li>Click any element button to add it to the canvas</li>
-                    <li>Select a booth to edit its properties (size, price, type) in the right panel</li>
-                    <li>Double-click any element to quickly edit its text label</li>
-                    <li>Drag elements to position them, resize using corner handles</li>
-                    <li>Keyboard shortcuts: Ctrl+D to duplicate, Delete to remove</li>
-                </ul>
-            </div>
+        <!-- Instructions Card -->
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
+            <h4 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                <i class="fas fa-info-circle mr-2 text-[#ff7700]"></i>
+                Instructions
+            </h4>
+            <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                <li>Click any element button to add it to the canvas</li>
+                <li>Select a booth to edit its properties (size, price, type) in the right panel</li>
+                <li>Double-click any element to quickly edit its text label</li>
+                <li>Drag elements to position them, resize using corner handles (booths can only be resized via properties panel)</li>
+                <li>Use Zoom In/Out buttons or mouse wheel to zoom the canvas</li>
+                <li>Click and drag on empty canvas space to pan/move around the view</li>
+                <li>Keyboard shortcuts: Ctrl+D to duplicate, Delete to remove</li>
+            </ul>
+        </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
-                <div class="flex flex-col">
-                    <!-- Tools Section -->
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5 p-4 bg-gray-50 rounded-lg">
-                        <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700">Add Elements:</div>
-                        <button class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('booth')">🏢 Add Booth</button>
-                        <button class="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('parking')">🅿️ Visitor Parking</button>
-                        <button class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('entrance')">🚪 Entrance Gate</button>
-                        <button class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('exit')">🚪 Exit Gate</button>
-                        <button class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="addElement('toilet')">🚽 Toilet</button>
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
 
-                        <div class="col-span-full pb-2 border-b border-gray-300 text-sm font-semibold text-gray-700 mt-2">Actions:</div>
-                        <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-md font-medium transition-all hover:-translate-y-0.5 hover:shadow-md" onclick="clearCanvas()">🗑️ Clear Canvas</button>
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+                <div class="flex flex-col gap-6">
+                    <!-- Toolbar Card -->
+                    <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700">Add Elements:</div>
+                            <button class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('booth')">
+                                <i class="fas fa-store"></i>
+                                Add Booth
+                            </button>
+                            <button class="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('parking')">
+                                <i class="fas fa-parking"></i>
+                                Parking
+                            </button>
+                            <button class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('entrance')">
+                                <i class="fas fa-door-open"></i>
+                                Entrance
+                            </button>
+                            <button class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('exit')">
+                                <i class="fas fa-door-closed"></i>
+                                Exit
+                            </button>
+                            <button class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('toilet')">
+                                <i class="fas fa-restroom"></i>
+                                Toilet
+                            </button>
+
+                            <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700 mt-2">Actions:</div>
+                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
+                                <i class="fas fa-search-plus"></i>
+                                Zoom In
+                            </button>
+                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomOut()">
+                                <i class="fas fa-search-minus"></i>
+                                Zoom Out
+                            </button>
+                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="resetZoom()">
+                                <i class="fas fa-compress"></i>
+                                Reset Zoom
+                            </button>
+                            <button class="px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="clearCanvas()">
+                                <i class="fas fa-trash-alt"></i>
+                                Clear Canvas
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mt-5">
-                        <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
-                            <canvas id="layoutCanvas" width="800" height="600"></canvas>
-                        </div>
+                    <!-- Canvas Card -->
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
+                        <canvas id="layoutCanvas" width="900" height="600"></canvas>
                     </div>
 
                 </div>
 
-                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 h-fit sticky top-5">
-                    <h3 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b-2 border-slate-200">⚙️ Properties</h3>
-                    <div id="propertiesContent" class="text-gray-500 italic text-center py-10">
-                        Select a booth to edit its properties
-                    </div>
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sticky top-5">
+                        <h3 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b-2 border-slate-200 flex items-center">
+                            <i class="fas fa-cog mr-2 text-[#ff7700]"></i>
+                            Properties
+                        </h3>
+                        <div id="propertiesContent" class="text-slate-500 italic text-center py-10">
+                            Select a booth to edit its properties
+                        </div>
 
-                    <div class="mt-8 pt-5 border-t border-slate-200">
-                        <button type="button" id="saveLayoutBtn" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors" onclick="saveLayout()">
-                            💾 Save Layout
-                        </button>
-                        <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
+                        <div class="mt-8 pt-5 border-t border-slate-200">
+                            <button type="button" id="saveLayoutBtn" class="w-full px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="saveLayout()">
+                                <i class="fas fa-save"></i>
+                                Save Layout
+                            </button>
+                            <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -81,6 +126,11 @@
             backgroundColor: '#ffffff',
             selection: true
         });
+
+        // Variables for panning
+        let isPanning = false;
+        let lastPosX = 0;
+        let lastPosY = 0;
 
         const elementTypes = {
             booth: {
@@ -200,9 +250,17 @@
                 ry: 5
             });
 
+            // Calculate vertical centering based on whether it's a booth (2 lines) or other element (1 line)
+            let textTop;
+            if (type === 'booth') {
+                textTop = height / 2 - 10; // Position for first line when there are 2 lines
+            } else {
+                textTop = height / 2; // Center single line vertically
+            }
+
             const text = new fabric.Text(label, {
                 left: width / 2,
-                top: height / 2 - 8,
+                top: textTop,
                 fontSize: 14,
                 fontFamily: 'Arial',
                 fill: config.textColor,
@@ -220,7 +278,7 @@
 
                 const infoText = new fabric.Text(`${boothType} - ${formatRupiah(price)}`, {
                     left: width / 2,
-                    top: height / 2 + 12,
+                    top: height / 2 + 10, // Position for second line
                     fontSize: 11,
                     fontFamily: 'Arial',
                     fill: config.textColor,
@@ -239,7 +297,9 @@
                 cornerSize: 8,
                 transparentCorners: false,
                 lockRotation: false,
-                hasRotatingPoint: true
+                hasRotatingPoint: true,
+                lockScalingX: type === 'booth', // Lock scaling for booths
+                lockScalingY: type === 'booth' // Lock scaling for booths
             });
 
             elementGroup.set({
@@ -275,7 +335,7 @@
             }
 
             if (!obj || obj.elementType !== 'booth') {
-                content.innerHTML = '<div class="text-gray-500 italic text-center py-10">Select a booth to edit its properties</div>';
+                content.innerHTML = '<div class="text-slate-500 italic text-center py-10">Select a booth to edit its properties</div>';
                 return;
             }
 
@@ -287,31 +347,34 @@
 
             content.innerHTML = `
                 <div class="mb-5">
-                    <label class="block mb-2 text-gray-700 font-medium text-sm">Booth Name:</label>
-                    <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Name:</label>
+                    <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                 </div>
 
                 <div class="mb-5">
-                    <label class="block mb-2 text-gray-700 font-medium text-sm">Booth Type:</label>
-                    <select id="propType" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
+                    <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                         ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="mb-5">
-                    <label class="block mb-2 text-gray-700 font-medium text-sm">Price:</label>
-                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
+                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                 </div>
 
                 <div class="mb-5">
-                    <label class="block mb-2 text-gray-700 font-medium text-sm">Size:</label>
+                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size:</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                     </div>
                 </div>
 
-                <button class="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-semibold transition-colors" onclick="applyProperties()">Apply Changes</button>
+                <button class="w-full px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="applyProperties()">
+                    <i class="fas fa-check"></i>
+                    Apply Changes
+                </button>
             `;
 
 
@@ -577,6 +640,88 @@
             }
         }
 
+        // Zoom functions
+        function zoomIn() {
+            let zoom = canvas.getZoom();
+            zoom += 0.1;
+            if (zoom > 3) zoom = 3; // Max zoom level
+
+            // Calculate center point
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function zoomOut() {
+            let zoom = canvas.getZoom();
+            zoom -= 0.1;
+            if (zoom < 0.3) zoom = 0.3; // Min zoom level
+
+            // Calculate center point
+            const center = new fabric.Point(canvas.width / 2, canvas.height / 2);
+            canvas.zoomToPoint(center, zoom);
+            canvas.renderAll();
+        }
+
+        function resetZoom() {
+            canvas.setZoom(1);
+            canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // Reset pan as well
+            canvas.renderAll();
+        }
+
+        // Add mouse wheel zoom
+        canvas.on('mouse:wheel', function(opt) {
+            const delta = opt.e.deltaY;
+            let zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 3) zoom = 3;
+            if (zoom < 0.3) zoom = 0.3;
+
+            // Zoom to the mouse pointer position
+            const point = new fabric.Point(opt.e.offsetX, opt.e.offsetY);
+            canvas.zoomToPoint(point, zoom);
+
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+            canvas.renderAll();
+        });
+
+        // Panning functionality - Left click on empty space to pan
+        canvas.on('mouse:down', function(opt) {
+            const evt = opt.e;
+            // Enable panning with left click only when clicking on empty canvas (no target object)
+            if (!opt.target && evt.button === 0) {
+                isPanning = true;
+                canvas.selection = false;
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grab';
+                canvas.renderAll();
+            }
+        });
+
+        canvas.on('mouse:move', function(opt) {
+            if (isPanning) {
+                const evt = opt.e;
+                const vpt = canvas.viewportTransform;
+                vpt[4] += evt.clientX - lastPosX;
+                vpt[5] += evt.clientY - lastPosY;
+                canvas.requestRenderAll();
+                lastPosX = evt.clientX;
+                lastPosY = evt.clientY;
+                canvas.defaultCursor = 'grabbing';
+            }
+        });
+
+        canvas.on('mouse:up', function(opt) {
+            if (isPanning) {
+                canvas.setViewportTransform(canvas.viewportTransform);
+                isPanning = false;
+                canvas.selection = true;
+                canvas.defaultCursor = 'default';
+                canvas.renderAll();
+            }
+        });
         window.addEventListener('load', async function() {
             // First try to load existing layout if event ID is provided
             const layoutLoaded = await loadExistingLayout();
