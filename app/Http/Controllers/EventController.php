@@ -486,27 +486,20 @@ class EventController extends Controller
 
     /**
      * Update event statuses based on current date and time
-     * Returns an array with updated counts for tracking
      */
-    public function updateEventStatuses(): array
+    private function updateEventStatuses(): void
     {
         $now = now();
 
         // Update events to 'ongoing' status
-        $ongoingCount = Event::where('status', '!=', Event::STATUS_COMPLETED)
+        Event::where('status', '!=', Event::STATUS_COMPLETED)
             ->where('start_time', '<=', $now)
             ->where('end_time', '>=', $now)
             ->update(['status' => Event::STATUS_ONGOING]);
 
         // Update events to 'completed' status
-        $completedCount = Event::where('status', '!=', Event::STATUS_COMPLETED)
+        Event::where('status', '!=', Event::STATUS_COMPLETED)
             ->where('end_time', '<', $now)
             ->update(['status' => Event::STATUS_COMPLETED]);
-
-        return [
-            'total' => $ongoingCount + $completedCount,
-            'ongoing' => $ongoingCount,
-            'completed' => $completedCount,
-        ];
     }
 }

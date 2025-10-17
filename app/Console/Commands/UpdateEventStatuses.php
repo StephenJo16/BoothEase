@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\EventController;
 use Illuminate\Console\Command;
 
 class UpdateEventStatuses extends Command
@@ -26,12 +25,24 @@ class UpdateEventStatuses extends Command
      */
     public function handle()
     {
-        $controller = new EventController();
-        $results = $controller->updateEventStatuses();
+        $now = now();
 
-        $this->info("Updated {$results['total']} event(s):");
-        $this->info("- {$results['ongoing']} event(s) set to 'ongoing'");
-        $this->info("- {$results['completed']} event(s) set to 'completed'");
+        // Update events to 'ongoing' status
+        $ongoingCount = \App\Models\Event::where('status', '!=', \App\Models\Event::STATUS_COMPLETED)
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->update(['status' => \App\Models\Event::STATUS_ONGOING]);
+
+        // Update events to 'completed' status
+        $completedCount = \App\Models\Event::where('status', '!=', \App\Models\Event::STATUS_COMPLETED)
+            ->where('end_time', '<', $now)
+            ->update(['status' => \App\Models\Event::STATUS_COMPLETED]);
+
+        $total = $ongoingCount + $completedCount;
+
+        $this->info("Updated {$total} event(s):");
+        $this->info("- {$ongoingCount} event(s) set to 'ongoing'");
+        $this->info("- {$completedCount} event(s) set to 'completed'");
 
         return Command::SUCCESS;
     }
