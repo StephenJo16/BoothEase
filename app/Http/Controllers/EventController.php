@@ -11,8 +11,16 @@ class EventController extends Controller
 {
     public function publicIndex(Request $request)
     {
-        $events = Event::with(['category', 'booths'])
+        $now = now();
+
+        // 1. Published events where registration is still open (before registration_deadline)
+        $openForRegistration = Event::with(['category', 'booths'])
             ->where('status', Event::STATUS_PUBLISHED)
+            ->where(function ($query) use ($now) {
+                $query->where('registration_deadline', '>=', $now)
+                    ->orWhereNull('registration_deadline');
+            })
+            ->where('start_time', '>', $now) // Not started yet
             ->withCount([
                 'booths',
                 'booths as available_booths_count' => function ($query) {
@@ -20,10 +28,61 @@ class EventController extends Controller
                 }
             ])
             ->latest('start_time')
-            ->paginate(12);
+            ->get();
+
+        // 2. Published events past registration deadline but not started yet
+        $registrationClosed = Event::with(['category', 'booths'])
+            ->where('status', Event::STATUS_PUBLISHED)
+            ->where('registration_deadline', '<', $now)
+            ->where('start_time', '>', $now) // Not started yet
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('start_time')
+            ->get();
+
+        // 3. Ongoing events (started but not completed)
+        $ongoingEvents = Event::with(['category', 'booths'])
+            ->where(function ($query) {
+                $query->where('status', Event::STATUS_ONGOING)
+                    ->orWhere('status', Event::STATUS_PUBLISHED);
+            })
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('start_time')
+            ->get();
+
+        // 4. Completed events
+        $completedEvents = Event::with(['category', 'booths'])
+            ->where(function ($query) {
+                $query->where('status', Event::STATUS_COMPLETED)
+                    ->orWhere('status', Event::STATUS_PUBLISHED)
+                    ->orWhere('status', Event::STATUS_ONGOING);
+            })
+            ->where('end_time', '<', $now)
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('end_time')
+            ->get();
 
         return view('events.index', [
-            'events' => $events,
+            'openForRegistration' => $openForRegistration,
+            'registrationClosed' => $registrationClosed,
+            'ongoingEvents' => $ongoingEvents,
+            'completedEvents' => $completedEvents,
         ]);
     }
 
@@ -411,5 +470,31 @@ class EventController extends Controller
         if ($event->isDraft() && $event->canBeFinalized()) {
             $event->update(['status' => Event::STATUS_FINALIZED]);
         }
+    }
+
+    /**
+     * Update event statuses based on current date and time
+     * Returns an array with updated counts for tracking
+     */
+    public function updateEventStatuses(): array
+    {
+        $now = now();
+
+        // Update events to 'ongoing' status
+        $ongoingCount = Event::where('status', '!=', Event::STATUS_COMPLETED)
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->update(['status' => Event::STATUS_ONGOING]);
+
+        // Update events to 'completed' status
+        $completedCount = Event::where('status', '!=', Event::STATUS_COMPLETED)
+            ->where('end_time', '<', $now)
+            ->update(['status' => Event::STATUS_COMPLETED]);
+
+        return [
+            'total' => $ongoingCount + $completedCount,
+            'ongoing' => $ongoingCount,
+            'completed' => $completedCount,
+        ];
     }
 }
