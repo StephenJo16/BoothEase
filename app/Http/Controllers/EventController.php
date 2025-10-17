@@ -6,13 +6,25 @@ use App\Models\Category;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class EventController extends Controller
 {
     public function publicIndex(Request $request)
     {
-        $events = Event::with(['category', 'booths'])
+        // Update event statuses before loading
+        $this->updateEventStatuses();
+
+        $now = now();
+
+        // 1. Published events where registration is still open (before registration_deadline)
+        $openForRegistration = Event::with(['category', 'booths'])
             ->where('status', Event::STATUS_PUBLISHED)
+            ->where(function ($query) use ($now) {
+                $query->where('registration_deadline', '>=', $now)
+                    ->orWhereNull('registration_deadline');
+            })
+            ->where('start_time', '>', $now) // Not started yet
             ->withCount([
                 'booths',
                 'booths as available_booths_count' => function ($query) {
@@ -20,17 +32,68 @@ class EventController extends Controller
                 }
             ])
             ->latest('start_time')
-            ->paginate(12);
+            ->get();
+
+        // 2. Published events past registration deadline but not started yet
+        $registrationClosed = Event::with(['category', 'booths'])
+            ->where('status', Event::STATUS_PUBLISHED)
+            ->where('registration_deadline', '<', $now)
+            ->where('start_time', '>', $now) // Not started yet
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('start_time')
+            ->get();
+
+        // 3. Ongoing events (started but not completed)
+        $ongoingEvents = Event::with(['category', 'booths'])
+            ->where(function ($query) {
+                $query->where('status', Event::STATUS_ONGOING)
+                    ->orWhere('status', Event::STATUS_PUBLISHED);
+            })
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('start_time')
+            ->get();
+
+        // 4. Completed events
+        $completedEvents = Event::with(['category', 'booths'])
+            ->where(function ($query) {
+                $query->where('status', Event::STATUS_COMPLETED)
+                    ->orWhere('status', Event::STATUS_PUBLISHED)
+                    ->orWhere('status', Event::STATUS_ONGOING);
+            })
+            ->where('end_time', '<', $now)
+            ->withCount([
+                'booths',
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
+                }
+            ])
+            ->latest('end_time')
+            ->get();
 
         return view('events.index', [
-            'events' => $events,
+            'openForRegistration' => $openForRegistration,
+            'registrationClosed' => $registrationClosed,
+            'ongoingEvents' => $ongoingEvents,
+            'completedEvents' => $completedEvents,
         ]);
     }
 
     public function publicShow(Event $event)
     {
-        // Only show published events
-        if ($event->status !== Event::STATUS_PUBLISHED) {
+        // Only show published, ongoing, or completed events (not draft or finalized)
+        if (!in_array($event->status, [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED])) {
             abort(404, 'Event not found or not available');
         }
 
@@ -73,6 +136,10 @@ class EventController extends Controller
         $minPrice = !empty($prices) ? min($prices) : 0;
         $maxPrice = !empty($prices) ? max($prices) : 0;
 
+        // Check if registration is still open
+        $now = now();
+        $isRegistrationOpen = is_null($event->registration_deadline) || $event->registration_deadline >= $now;
+
         return view('events.details', [
             'event' => $event,
             'averageRating' => $averageRating ? round($averageRating, 1) : 0,
@@ -82,6 +149,7 @@ class EventController extends Controller
             'bookedBooths' => $bookedBooths,
             'minPrice' => $minPrice,
             'maxPrice' => $maxPrice,
+            'isRegistrationOpen' => $isRegistrationOpen,
         ]);
     }
 
@@ -147,6 +215,9 @@ class EventController extends Controller
 
     public function index(Request $request)
     {
+        // Update event statuses before loading
+        $this->updateEventStatuses();
+
         $events = Event::with([
             'category',
             'booths',
@@ -323,6 +394,7 @@ class EventController extends Controller
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
+            'registration_deadline' => $data['registration_deadline'] ?? null,
         ]);
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);
@@ -332,7 +404,6 @@ class EventController extends Controller
             'venue' => $data['venue'] ?? null,
             'city' => $data['city'] ?? null,
             'address' => $data['address'] ?? null,
-            'registration_deadline' => $data['registration_deadline'] ?? null,
             'booths' => $this->extractBoothConfig($data),
         ], function ($value) {
             if (is_array($value)) {
@@ -411,5 +482,24 @@ class EventController extends Controller
         if ($event->isDraft() && $event->canBeFinalized()) {
             $event->update(['status' => Event::STATUS_FINALIZED]);
         }
+    }
+
+    /**
+     * Update event statuses based on current date and time
+     */
+    private function updateEventStatuses(): void
+    {
+        $now = now();
+
+        // Update events to 'ongoing' status
+        Event::where('status', '!=', Event::STATUS_COMPLETED)
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->update(['status' => Event::STATUS_ONGOING]);
+
+        // Update events to 'completed' status
+        Event::where('status', '!=', Event::STATUS_COMPLETED)
+            ->where('end_time', '<', $now)
+            ->update(['status' => Event::STATUS_COMPLETED]);
     }
 }

@@ -130,15 +130,15 @@ $rows[] = [
                 <div class="mb-4 flex items-center justify-between">
                     <h2 class="text-lg font-bold text-slate-800">Layout View</h2>
                     <div class="flex gap-2">
-                        <button onclick="zoomIn()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
+                        <button onclick="zoomIn()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
                             <i class="fas fa-search-plus"></i>
                             Zoom In
                         </button>
-                        <button onclick="zoomOut()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
+                        <button onclick="zoomOut()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
                             <i class="fas fa-search-minus"></i>
                             Zoom Out
                         </button>
-                        <button onclick="resetZoom()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
+                        <button onclick="resetZoom()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
                             <i class="fas fa-compress"></i>
                             Reset
                         </button>

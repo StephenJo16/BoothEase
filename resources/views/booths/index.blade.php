@@ -56,15 +56,15 @@
                         <p class="text-sm text-slate-600 mt-1">Click on a booth to view details and book</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="zoomIn()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
+                        <button onclick="zoomIn()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
                             <i class="fas fa-search-plus"></i>
                             <span class="hidden sm:inline">Zoom In</span>
                         </button>
-                        <button onclick="zoomOut()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
+                        <button onclick="zoomOut()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
                             <i class="fas fa-search-minus"></i>
                             <span class="hidden sm:inline">Zoom Out</span>
                         </button>
-                        <button onclick="resetZoom()" class="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
+                        <button onclick="resetZoom()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-1 text-sm">
                             <i class="fas fa-compress"></i>
                             <span class="hidden sm:inline">Reset</span>
                         </button>

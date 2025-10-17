@@ -19,6 +19,7 @@ class Event extends Model
         'location',
         'start_time',
         'end_time',
+        'registration_deadline',
         'user_id',
         'image_path',
         'capacity',
@@ -29,11 +30,14 @@ class Event extends Model
     const STATUS_DRAFT = 'draft';
     const STATUS_FINALIZED = 'finalized';
     const STATUS_PUBLISHED = 'published';
+    const STATUS_ONGOING = 'ongoing';
+    const STATUS_COMPLETED = 'completed';
 
     protected $casts = [
         'location' => 'array',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
+        'registration_deadline' => 'date',
     ];
 
     public function category(): BelongsTo
@@ -68,6 +72,23 @@ class Event extends Model
         return $query->where('user_id', $userId);
     }
 
+    public function scopeOngoing($query)
+    {
+        $now = now();
+        return $query->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now);
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('end_time', '<', now());
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_time', '>', now());
+    }
+
     public function getVenueAttribute(): ?string
     {
         return $this->location['venue'] ?? null;
@@ -81,11 +102,6 @@ class Event extends Model
     public function getAddressAttribute(): ?string
     {
         return $this->location['address'] ?? null;
-    }
-
-    public function getRegistrationDeadlineAttribute(): ?string
-    {
-        return $this->location['registration_deadline'] ?? null;
     }
 
     public function getBoothConfigurationAttribute(): array
@@ -119,6 +135,48 @@ class Event extends Model
     public function isPublished(): bool
     {
         return $this->status === self::STATUS_PUBLISHED;
+    }
+
+    public function isOngoing(): bool
+    {
+        return $this->status === self::STATUS_ONGOING;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    // Method to get the current status based on dates
+    public function getCurrentStatus(): string
+    {
+        $now = now();
+
+        // If event has started and hasn't ended yet
+        if ($this->start_time <= $now && $this->end_time >= $now) {
+            return self::STATUS_ONGOING;
+        }
+
+        // If event has ended
+        if ($this->end_time < $now) {
+            return self::STATUS_COMPLETED;
+        }
+
+        // Otherwise, return the current status
+        return $this->status;
+    }
+
+    // Method to update status based on current time
+    public function updateStatusBasedOnTime(): bool
+    {
+        $currentStatus = $this->getCurrentStatus();
+
+        if ($this->status !== $currentStatus && in_array($currentStatus, [self::STATUS_ONGOING, self::STATUS_COMPLETED])) {
+            $this->status = $currentStatus;
+            return $this->save();
+        }
+
+        return false;
     }
 
     // Method to check if event can be finalized (has booths set up)

@@ -64,15 +64,15 @@
                             </button>
 
                             <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700 mt-2">Actions:</div>
-                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
+                            <button class="px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
                                 <i class="fas fa-search-plus"></i>
                                 Zoom In
                             </button>
-                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomOut()">
+                            <button class="px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomOut()">
                                 <i class="fas fa-search-minus"></i>
                                 Zoom Out
                             </button>
-                            <button class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="resetZoom()">
+                            <button class="px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="resetZoom()">
                                 <i class="fas fa-compress"></i>
                                 Reset Zoom
                             </button>
