@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('events', function (Blueprint $table) {
-            $table->enum('status', ['draft', 'finalized', 'published', 'ongoing', 'completed'])->default('draft')->after('capacity');
+            $table->date('registration_deadline')->nullable()->after('end_time');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('events', function (Blueprint $table) {
-            $table->dropColumn('status');
+            $table->dropColumn('registration_deadline');
         });
     }
 };

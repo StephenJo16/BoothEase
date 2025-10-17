@@ -26,28 +26,62 @@ $customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '
 $roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
 $roleLabel = $roleMap[$user->role_id] ?? 'Member';
 $roleBadgeClasses = match($user->role_id) {
-    1 => 'bg-purple-100 text-purple-800',
-    2 => 'bg-blue-100 text-blue-800',
-    3 => 'bg-green-100 text-green-800',
-    default => 'bg-gray-100 text-gray-800',
+1 => 'bg-purple-100 text-purple-800',
+2 => 'bg-blue-100 text-blue-800',
+3 => 'bg-green-100 text-green-800',
+default => 'bg-gray-100 text-gray-800',
 };
-@endphp
 
-<body class="bg-gray-50 min-h-screen">
+if (!function_exists('formatPhoneNumber')) {
+function formatPhoneNumber($number) {
+$digits = preg_replace('/\D+/', '', (string) $number);
+if ($digits === '') {
+return $number;
+}
+
+if (substr($digits, 0, 2) === '62') {
+$country = '+62';
+$rest = substr($digits, 2);
+} elseif (substr($digits, 0, 1) === '0') {
+$country = '+62';
+$rest = ltrim($digits, '0');
+} else {
+return $number;
+}
+
+if ($rest === '') {
+return $country;
+}
+
+if (strlen($rest) <= 3) {
+    $formattedRest=$rest;
+    } else {
+    $firstBlock=substr($rest, 0, 3);
+    $remaining=substr($rest, 3);
+    $chunks=str_split($remaining, 4);
+    $formattedRest=$firstBlock . ($chunks ? '-' . implode('-', $chunks) : '' );
+    }
+
+    return trim($country . ' ' . $formattedRest);
+    }
+    }
+    @endphp
+
+    <body class="bg-gray-50 min-h-screen">
 
     @if (session('success'))
-        <div class="notification-popup success">
-            <i class="fa-solid fa-circle-check mr-2"></i>
-            {{ session('success') }}
-        </div>
+    <div class="notification-popup success">
+        <i class="fa-solid fa-circle-check mr-2"></i>
+        {{ session('success') }}
+    </div>
     @endif
 
     {{-- Shows a generic error if validation fails --}}
     @if ($errors->any())
-        <div class="notification-popup error">
-            <i class="fa-solid fa-triangle-exclamation mr-2"></i>
-            Please review the form for errors.
-        </div>
+    <div class="notification-popup error">
+        <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+        Please review the form for errors.
+    </div>
     @endif
     @include('components.navbar')
 
@@ -57,7 +91,7 @@ $roleBadgeClasses = match($user->role_id) {
                 <div class="border-b border-gray-200 p-6">
                     <div class="flex items-center justify-between">
                         <h1 class="text-3xl font-bold text-gray-900">My Profile</h1>
-                        <button id="edit-btn" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200" onclick="toggleEditMode()">
+                        <button id="edit-btn" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200" onclick="toggleEditMode()">
                             Edit Profile
                         </button>
                     </div>
@@ -73,7 +107,7 @@ $roleBadgeClasses = match($user->role_id) {
                     <form id="profile-form" method="POST" action="{{ route('profile.update') }}" class="space-y-6">
                         @csrf
                         @method('PUT')
-                        
+
                         {{-- All your profile form fields go here, no changes needed --}}
                         <div class="flex flex-col sm:flex-row sm:items-center">
                             <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Full Name</label>
@@ -100,7 +134,8 @@ $roleBadgeClasses = match($user->role_id) {
                             <div class="w-full sm:w-2/3">
                                 <div class="profile-field-container flex border border-gray-300 rounded-lg bg-gray-50 transition-all duration-200 focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:border-[#ff7700]">
                                     <span class="inline-flex items-center px-3 border-r border-gray-300 bg-gray-100 text-gray-700 rounded-l-lg">+62</span>
-                                    <input id="mobile_number" name="mobile_number" value="{{ old('mobile_number', ltrim($user->phone_number, '+62')) }}" class="profile-input flex-1 block w-full border-0 rounded-r-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-0" readonly>
+                                    <input id="mobile_number" name="mobile_number" value="{{ old('mobile_number', preg_replace('/^\+?62/', '', $user->phone_number)) }}" class="profile-input hidden flex-1 w-full border-0 rounded-r-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-0" readonly>
+                                    <span id="mobile-display" class="flex-1 px-3 py-3 text-gray-900">{{ preg_replace('/^\+?62\s*/', '', $user->phone_number ? formatPhoneNumber($user->phone_number) : 'N/A') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -112,7 +147,7 @@ $roleBadgeClasses = match($user->role_id) {
                                 <div class="relative">
                                     <select id="business_category" name="business_category" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled onchange="handleBusinessCategoryChange()">
                                         @foreach ($categories as $cat)
-                                        <option value="{{ $cat }}" @selected($current === $cat)>
+                                        <option value="{{ $cat }}" @selected($current===$cat)>
                                             {{ ucfirst(str_replace('-', ' ', $cat)) }}
                                         </option>
                                         @endforeach
@@ -142,9 +177,9 @@ $roleBadgeClasses = match($user->role_id) {
 
                     {{-- Password Form --}}
                     <div class="border-t border-gray-200 pt-6 mt-6">
-                         <h3 class="text-lg font-medium text-gray-900 mb-4">Security</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Security</h3>
                         <div class="flex justify-center">
-                             <button type="button" id="change-password-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 border border-gray-300" onclick="togglePasswordChange()">
+                            <button type="button" id="change-password-btn" class="hover:cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 border border-gray-300" onclick="togglePasswordChange()">
                                 Change Password
                             </button>
                         </div>
@@ -235,6 +270,13 @@ $roleBadgeClasses = match($user->role_id) {
 
             if (isEditMode) {
                 editBtn.textContent = 'Cancel Edit';
+
+                // Toggle mobile number display/edit
+                const mobileDisplay = document.getElementById('mobile-display');
+                const mobileInput = document.getElementById('mobile_number');
+                mobileDisplay.classList.add('hidden');
+                mobileInput.classList.remove('hidden');
+
                 profileInputs.forEach(input => {
                     if (input.id !== 'email') {
                         input.removeAttribute('readonly');
@@ -250,15 +292,16 @@ $roleBadgeClasses = match($user->role_id) {
                 profileFieldContainers.forEach(container => {
                     container.classList.remove('bg-gray-50');
                     container.classList.add('bg-white');
-                    container.querySelector('.profile-input').classList.remove('bg-gray-50');
                 });
             } else {
                 window.location.reload();
             }
         }
+
         function cancelEdit() {
             window.location.reload();
         }
+
         function togglePasswordChange() {
             isPasswordChangeMode = !isPasswordChangeMode;
             const passwordSection = document.getElementById('password-change-section');
@@ -272,6 +315,7 @@ $roleBadgeClasses = match($user->role_id) {
                 document.getElementById('password-form').reset();
             }
         }
+
         function handleBusinessCategoryChange() {
             const categorySelect = document.getElementById('business_category');
             const customField = document.getElementById('custom-business-category-field');
@@ -319,11 +363,13 @@ $roleBadgeClasses = match($user->role_id) {
         }
 
         .notification-popup.success {
-            border-left: 5px solid #F97316; /* Orange border for success */
+            border-left: 5px solid #F97316;
+            /* Orange border for success */
         }
 
         .notification-popup.error {
-            border-left: 5px solid #ef4444; /* Red border for error */
+            border-left: 5px solid #ef4444;
+            /* Red border for error */
         }
 
         @keyframes fadeInSlideDown {
@@ -331,14 +377,17 @@ $roleBadgeClasses = match($user->role_id) {
                 opacity: 0;
                 transform: translateX(100%);
             }
+
             10% {
                 opacity: 1;
                 transform: translateX(0);
             }
+
             90% {
                 opacity: 1;
                 transform: translateX(0);
             }
+
             100% {
                 opacity: 0;
                 transform: translateX(100%);
@@ -346,4 +395,5 @@ $roleBadgeClasses = match($user->role_id) {
         }
     </style>
     </body>
+
 </html>

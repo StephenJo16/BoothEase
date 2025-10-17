@@ -24,8 +24,7 @@ $statusStyles = [
 $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
 $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
 $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
-$deadline = $location['registration_deadline'] ?? null;
-$deadlineFormatted = $deadline ? \Carbon\Carbon::parse($deadline)->format('d M Y') : null;
+$deadlineFormatted = $event->registration_deadline ? $event->registration_deadline->format('d M Y') : null;
 
 // Helper to format rupiah with dot thousand separators
 if (!function_exists('formatRupiah')) {

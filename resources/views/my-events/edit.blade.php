@@ -130,7 +130,7 @@
                             </div>
                             <div>
                                 <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline</label>
-                                <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline', $location['registration_deadline'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline', optional($event->registration_deadline)->format('Y-m-d')) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                             </div>
                         </div>
                     </section>

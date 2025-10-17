@@ -323,6 +323,7 @@ class EventController extends Controller
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
+            'registration_deadline' => $data['registration_deadline'] ?? null,
         ]);
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);
@@ -332,7 +333,6 @@ class EventController extends Controller
             'venue' => $data['venue'] ?? null,
             'city' => $data['city'] ?? null,
             'address' => $data['address'] ?? null,
-            'registration_deadline' => $data['registration_deadline'] ?? null,
             'booths' => $this->extractBoothConfig($data),
         ], function ($value) {
             if (is_array($value)) {
