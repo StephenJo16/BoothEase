@@ -20,6 +20,8 @@ $statusStyles = [
 'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
 'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
 'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
+'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
 ];
 $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
 $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
@@ -189,7 +191,7 @@ $paidBookingRows[] = [
                 </section>
 
                 <aside class="space-y-6">
-                    @if($event->status === 'published')
+                    @if(in_array($event->status, ['published', 'ongoing', 'completed']))
                     <section class="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                         <h2 class="text-lg font-semibold text-gray-900">Booking Statistics</h2>
 
@@ -261,20 +263,39 @@ $paidBookingRows[] = [
                                     <p class="text-sm text-green-700 font-medium">Event is live and accepting bookings</p>
                                 </div>
                             </div>
+                            @elseif($event->status === 'ongoing')
+                            <div class="rounded-lg border border-purple-200 bg-purple-50 px-4 py-3">
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-circle-play text-purple-500 mr-2"></i>
+                                    <p class="text-sm text-purple-700 font-medium">Event is currently ongoing</p>
+                                </div>
+                                <p class="text-xs text-purple-600 mt-1">Editing and deletion are disabled for ongoing events.</p>
+                            </div>
+                            @elseif($event->status === 'completed')
+                            <div class="rounded-lg border border-gray-300 bg-gray-50 px-4 py-3">
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-circle-check text-gray-500 mr-2"></i>
+                                    <p class="text-sm text-gray-700 font-medium">Event has been completed</p>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">This event is archived and cannot be edited or deleted.</p>
+                            </div>
                             @endif
 
-                            @if($event->status === 'published')
+                            @if(in_array($event->status, ['published', 'ongoing', 'completed']))
                             <a href="{{ route('booking-requests', ['event' => $event->id]) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-solid fa-clipboard-list mr-2"></i>
                                 View Booking Requests
                             </a>
                             @endif
 
-                            @if($event->status !== 'published')
+                            @if(!in_array($event->status, ['published', 'ongoing', 'completed']))
                             <a href="{{ route('my-events.edit', $event) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-regular fa-pen-to-square mr-2"></i>
                                 Edit event
                             </a>
+                            @endif
+
+                            @if(!in_array($event->status, ['published', 'ongoing', 'completed']))
                             <form method="POST" action="{{ route('my-events.destroy', $event) }}" onsubmit="return confirm('Delete this event? This action cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
@@ -316,7 +337,7 @@ $paidBookingRows[] = [
                 </div>
             </section>
 
-            @if($event->status === 'published')
+            @if(in_array($event->status, ['published', 'ongoing', 'completed']))
             <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>

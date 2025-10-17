@@ -210,9 +210,15 @@ $rows[] = [
                                         <h3 class="text-lg font-semibold text-gray-900 mb-2">Available Booths</h3>
                                         <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
                                     </div>
+                                    @if($isRegistrationOpen)
                                     <a href="/events/{{ $event->id }}/booths" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
                                         View Booths
                                     </a>
+                                    @else
+                                    <div class="bg-gray-100 text-gray-600 font-medium py-2 px-6 rounded-lg">
+                                        Registration Closed
+                                    </div>
+                                    @endif
                                 </div>
 
                                 @if($event->booths->count() > 0)

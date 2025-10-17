@@ -45,6 +45,8 @@
             'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
             'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
             'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+            'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
+            'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
             ];
             @endphp
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -59,16 +61,16 @@
                 $timeDisplay = null;
 
                 if ($event->start_time && $event->end_time) {
-                    $startDate = $event->start_time->format('d M Y');
-                    $endDate = $event->end_time->format('d M Y');
-                    $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
-                    $timeDisplay = $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
+                $startDate = $event->start_time->format('d M Y');
+                $endDate = $event->end_time->format('d M Y');
+                $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
+                $timeDisplay = $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
                 } elseif ($event->start_time) {
-                    $dateDisplay = $event->start_time->format('d M Y');
-                    $timeDisplay = $event->start_time->format('H:i');
+                $dateDisplay = $event->start_time->format('d M Y');
+                $timeDisplay = $event->start_time->format('H:i');
                 } elseif ($event->end_time) {
-                    $dateDisplay = $event->end_time->format('d M Y');
-                    $timeDisplay = $event->end_time->format('H:i');
+                $dateDisplay = $event->end_time->format('d M Y');
+                $timeDisplay = $event->end_time->format('H:i');
                 }
                 $location = $event->display_location ?: 'Location to be confirmed';
                 $category = optional($event->category)->name ?: 'Uncategorised';
@@ -121,12 +123,13 @@
                                 <i class="fa-regular fa-eye mr-2"></i>
                                 View details
                             </a>
-                            @if($status !== 'published')
+                            @if(!in_array($status, ['published', 'ongoing', 'completed']))
                             <a href="{{ route('my-events.edit', $event) }}" class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900">
                                 <i class="fa-regular fa-pen-to-square mr-2"></i>
                                 Edit
                             </a>
                             @endif
+                            @if(!in_array($status, ['published', 'ongoing', 'completed']))
                             <form action="{{ route('my-events.destroy', $event) }}" method="POST" class="inline-flex">
                                 @csrf
                                 @method('DELETE')
@@ -135,6 +138,7 @@
                                     Delete
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </div>
                 </div>

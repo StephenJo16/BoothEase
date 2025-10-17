@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule event status updates to run every hour
-Schedule::command('events:update-statuses')->hourly();
+// Schedule event status updates to run every minute for real-time accuracy
+Schedule::command('events:update-statuses')->everyMinute();

@@ -59,7 +59,7 @@ return !empty($prices) ? min($prices) : 0;
                 @if($openForRegistration->count() > 0)
                 <div class="mb-12">
                     <div class="flex items-center mb-6">
-                        <i class="fas fa-calendar-check text-3xl text-green-600 mr-3"></i>
+                        <!-- <i class="fas fa-calendar-check text-3xl text-green-600 mr-3"></i> -->
                         <h2 class="text-2xl font-bold text-gray-900">Open for Registration</h2>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -90,9 +90,6 @@ return !empty($prices) ? min($prices) : 0;
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
-                                <span class="absolute top-3 left-3 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                                    <i class="fas fa-circle-check mr-1"></i> Open
-                                </span>
                                 <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
                                     {{ $event->category->name ?? 'Uncategorized' }}
                                 </span>
@@ -219,7 +216,7 @@ return !empty($prices) ? min($prices) : 0;
                 @if($ongoingEvents->count() > 0)
                 <div class="mb-12">
                     <div class="flex items-center mb-6">
-                        <i class="fas fa-circle-notch fa-spin text-3xl text-blue-600 mr-3"></i>
+                        <!-- <i class="fas fa-circle-notch fa-spin text-3xl text-[#ff7700] mr-3"></i> -->
                         <h2 class="text-2xl font-bold text-gray-900">Ongoing Events</h2>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -248,11 +245,8 @@ return !empty($prices) ? min($prices) : 0;
                         $gradient = $gradients[$gradientIndex];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative border-2 border-blue-500">
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
-                                <span class="absolute top-3 left-3 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full animate-pulse">
-                                    <i class="fas fa-play-circle mr-1"></i> Live Now
-                                </span>
                                 <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
                                     {{ $event->category->name ?? 'Uncategorized' }}
                                 </span>
@@ -279,7 +273,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     @endif
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
                                     View Details
                                 </a>
                             </div>

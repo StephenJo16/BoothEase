@@ -6,11 +6,15 @@ use App\Models\Category;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class EventController extends Controller
 {
     public function publicIndex(Request $request)
     {
+        // Update event statuses before loading
+        $this->updateEventStatuses();
+
         $now = now();
 
         // 1. Published events where registration is still open (before registration_deadline)
@@ -88,8 +92,8 @@ class EventController extends Controller
 
     public function publicShow(Event $event)
     {
-        // Only show published events
-        if ($event->status !== Event::STATUS_PUBLISHED) {
+        // Only show published, ongoing, or completed events (not draft or finalized)
+        if (!in_array($event->status, [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED])) {
             abort(404, 'Event not found or not available');
         }
 
@@ -132,6 +136,10 @@ class EventController extends Controller
         $minPrice = !empty($prices) ? min($prices) : 0;
         $maxPrice = !empty($prices) ? max($prices) : 0;
 
+        // Check if registration is still open
+        $now = now();
+        $isRegistrationOpen = is_null($event->registration_deadline) || $event->registration_deadline >= $now;
+
         return view('events.details', [
             'event' => $event,
             'averageRating' => $averageRating ? round($averageRating, 1) : 0,
@@ -141,6 +149,7 @@ class EventController extends Controller
             'bookedBooths' => $bookedBooths,
             'minPrice' => $minPrice,
             'maxPrice' => $maxPrice,
+            'isRegistrationOpen' => $isRegistrationOpen,
         ]);
     }
 
@@ -206,6 +215,9 @@ class EventController extends Controller
 
     public function index(Request $request)
     {
+        // Update event statuses before loading
+        $this->updateEventStatuses();
+
         $events = Event::with([
             'category',
             'booths',
