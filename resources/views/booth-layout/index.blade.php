@@ -57,6 +57,11 @@
 <body class="bg-white min-h-screen">
     @include('components.navbar')
 
+    <!-- Full Page Loader -->
+    <div id="pageLoader">
+        <x-loader overlay="true" message="Loading booth layout..." size="lg" />
+    </div>
+
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events.index')])
 
@@ -863,8 +868,15 @@
 
         // Initialize floor selector on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Show loader
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader) pageLoader.classList.remove('hidden');
+
             // Load existing floors on page load
-            loadFloors();
+            loadFloors().finally(() => {
+                // Hide loader after loading
+                if (pageLoader) pageLoader.classList.add('hidden');
+            });
         });
 
         function clearCanvas() {

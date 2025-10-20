@@ -48,6 +48,11 @@
 <body class="bg-white min-h-screen">
     @include('components.navbar')
 
+    <!-- Full Page Loader -->
+    <div id="pageLoader">
+        <x-loader overlay="true" message="Loading booth layout..." size="lg" />
+    </div>
+
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         @include('components.back-button', ['text' => 'Back to Edit Event', 'url' => request('event_id') ? route('my-events.edit', ['event' => request('event_id')]) : route('my-events.index')])
 
@@ -887,8 +892,13 @@
 
         // Initialize floor selector on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Show loader
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader) pageLoader.classList.remove('hidden');
+
             // Load existing floors on page load
             loadFloors();
+            // Note: loader will be hidden in window load event after layout is fully loaded
         });
 
 
@@ -1106,6 +1116,8 @@
             }
         });
         window.addEventListener('load', async function() {
+            const pageLoader = document.getElementById('pageLoader');
+
             // First try to load existing layout if event ID is provided
             const layoutLoaded = await loadExistingLayout();
 
@@ -1169,6 +1181,9 @@
 
                 canvas.renderAll();
             }
+
+            // Hide loader after everything is loaded
+            if (pageLoader) pageLoader.classList.add('hidden');
         });
 
         document.addEventListener('keydown', function(e) {

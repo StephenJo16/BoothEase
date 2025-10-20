@@ -75,6 +75,11 @@
 </head>
 
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <!-- Full Page Loader -->
+    <div id="pageLoader">
+        <x-loader overlay="true" message="Loading booth layout..." size="lg" />
+    </div>
+
     @include('components.navbar')
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
@@ -144,7 +149,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-x-auto">
+                <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-x-auto relative">
                     <canvas id="layoutCanvas" width="800" height="600"></canvas>
                 </div>
                 <div id="canvasMessage" class="mt-4 text-sm text-slate-600 text-center min-h-[20px]"></div>
@@ -498,6 +503,8 @@
             });
 
             // Show loading state
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader) pageLoader.classList.remove('hidden');
             canvas.clear();
             setCanvasMessage('Loading floor layout...', 'info');
 
@@ -506,6 +513,8 @@
 
         async function loadLayout() {
             try {
+                const pageLoader = document.getElementById('pageLoader');
+
                 const url = new URL(loadEndpoint);
                 url.searchParams.append('floor_number', currentFloor);
 
@@ -518,9 +527,11 @@
                 if (!response.ok) {
                     if (response.status === 404) {
                         setCanvasMessage('No layout found for this floor.', 'info');
+                        if (pageLoader) pageLoader.classList.add('hidden');
                         return;
                     }
                     setCanvasMessage('Unable to load booth layout. Please try again later.', 'error');
+                    if (pageLoader) pageLoader.classList.add('hidden');
                     return;
                 }
 
@@ -544,6 +555,7 @@
 
                 if (!data.layout) {
                     setCanvasMessage('No booth layout available for this floor yet.', 'info');
+                    if (pageLoader) pageLoader.classList.add('hidden');
                     return;
                 }
 
@@ -666,9 +678,14 @@
                 updateBoothStats();
                 updateCurrentFloorCard();
 
+                // Hide loader after successful load
+                if (pageLoader) pageLoader.classList.add('hidden');
+
             } catch (error) {
                 console.error('Load layout error:', error);
                 setCanvasMessage('An error occurred while loading the layout.', 'error');
+                const pageLoader = document.getElementById('pageLoader');
+                if (pageLoader) pageLoader.classList.add('hidden');
             }
         }
 
