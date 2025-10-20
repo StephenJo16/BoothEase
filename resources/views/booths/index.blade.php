@@ -9,6 +9,69 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .floor-item {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floor-item:not(.active) {
+            background: linear-gradient(to right, #e2e8f0, #cbd5e1);
+            color: #475569;
+        }
+
+        .floor-item.active {
+            background: #ff7700;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(255, 119, 0, 0.3), 0 2px 4px -1px rgba(255, 119, 0, 0.2);
+        }
+
+        .floor-item:not(.active):hover {
+            background: linear-gradient(to right, #cbd5e1, #94a3b8);
+            transform: translateX(4px);
+        }
+
+        .floor-item.active::before {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 70%;
+            background: white;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* Adjust grid for mobile when no floor selector */
+        @media (min-width: 1024px) {
+            #mainContentGrid.no-floors {
+                grid-template-columns: 1fr 380px !important;
+            }
+        }
+
+        /* Mobile: horizontal floor selector */
+        @media (max-width: 1023px) {
+            #mainContentGrid {
+                grid-template-columns: 1fr !important;
+            }
+
+            #floorSelectorContainer {
+                order: -1;
+            }
+
+            #floorList {
+                flex-direction: row !important;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+
+            .floor-item {
+                flex-shrink: 0;
+                min-width: 140px;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
@@ -36,22 +99,33 @@
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                            <span>{{ $availableBooths }} / {{ $totalBooths }} Booths Available</span>
+                            <span id="boothStatsDisplay">{{ $availableBooths }} / {{ $totalBooths }} Booths Available</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+        <!-- Main Content Grid with Floor Selector Sidebar -->
+        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-[140px_1fr_380px] gap-6">
+            <!-- Floor Selector Sidebar -->
+            <div id="floorSelectorContainer" class="bg-white rounded-xl shadow-lg border border-slate-200 p-4 hidden">
+                <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                    <i class="fas fa-layer-group mr-2 text-[#ff7700]"></i>
+                    Floors
+                </h4>
+                <div id="floorList" class="flex flex-col gap-2">
+                    <!-- Floor buttons will be populated here -->
+                </div>
+            </div>
+
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <div class="mb-4 flex items-center justify-between">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800 flex items-center">
                             <i class="fa-solid fa-map me-2 text-[#ff7700]"></i>
-                            Booth Layout
+                            <span id="layoutTitle">Booth Layout</span>
                         </h2>
                         <p class="text-sm text-slate-600 mt-1">Click on a booth to view details and book</p>
                     </div>
@@ -93,10 +167,18 @@
 
                         <!-- Booth details will be populated here -->
                         <div id="boothInfo" class="space-y-4 hidden">
-                            <!-- Booth Number -->
+                            <!-- Booth Number and Floor -->
                             <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200">
-                                <div class="text-xs text-slate-600 mb-1">Booth Number</div>
-                                <div id="boothNumber" class="text-2xl font-bold text-slate-900">—</div>
+                                <div class="flex items-end justify-between">
+                                    <div>
+                                        <div class="text-xs text-slate-600 mb-1">Booth Number</div>
+                                        <div id="boothNumber" class="text-2xl font-bold text-slate-900">—</div>
+                                    </div>
+                                    <div class="text-right" id="boothFloorContainer">
+                                        <div class="text-xs text-slate-600 mb-1">Floor</div>
+                                        <div id="boothFloor" class="text-sm font-semibold text-slate-700">—</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Type and Size -->
@@ -166,6 +248,8 @@
         let selectedBooth = null;
         let hoveredBooth = null;
         let boothsData = [];
+        let allFloors = [];
+        let currentFloor = 1;
 
         // Helper function to format Rupiah
         function formatRupiah(value) {
@@ -228,6 +312,17 @@
             document.getElementById('boothType').textContent = booth.type ?? 'Standard';
             document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
             document.getElementById('boothPrice').textContent = formatRupiah(booth.price ?? 0);
+
+            // Show floor information
+            const boothFloorContainer = document.getElementById('boothFloorContainer');
+            const boothFloor = document.getElementById('boothFloor');
+            if (allFloors.length > 1 && booth.floor_number) {
+                const floorData = allFloors.find(f => f.floor_number === booth.floor_number);
+                boothFloor.textContent = floorData?.floor_name ?? `Floor ${booth.floor_number}`;
+                boothFloorContainer.classList.remove('hidden');
+            } else {
+                boothFloorContainer.classList.add('hidden');
+            }
 
             // Set status badge
             const statusColors = {
@@ -309,24 +404,146 @@
             window.location.href = `/booths/${boothId}/details`;
         }
 
+        function updateBoothStats() {
+            const boothStatsDisplay = document.getElementById('boothStatsDisplay');
+            if (!boothStatsDisplay) return;
+
+            const availableBooths = boothsData.filter(b => b.status === 'available').length;
+            const totalBooths = boothsData.length;
+
+            boothStatsDisplay.textContent = `${availableBooths} / ${totalBooths} Booths Available`;
+        }
+
+        function updateCurrentFloorCard() {
+            const currentFloorCard = document.getElementById('currentFloorCard');
+            const currentFloorName = document.getElementById('currentFloorName');
+            const currentFloorStats = document.getElementById('currentFloorStats');
+
+            if (!currentFloorCard || allFloors.length <= 1) {
+                currentFloorCard?.classList.add('hidden');
+                return;
+            }
+
+            const floorData = allFloors.find(f => f.floor_number === currentFloor);
+            if (!floorData) return;
+
+            currentFloorCard.classList.remove('hidden');
+            currentFloorName.textContent = floorData.floor_name;
+
+            const availableBooths = boothsData.filter(b => b.status === 'available').length;
+            const totalBooths = boothsData.length;
+            currentFloorStats.textContent = `${availableBooths} available out of ${totalBooths} booths`;
+        }
+
+        function renderFloorTabs() {
+            const floorListContainer = document.getElementById('floorList');
+            const floorSelectorContainer = document.getElementById('floorSelectorContainer');
+            const mainGrid = document.getElementById('mainContentGrid');
+
+            if (allFloors.length <= 1) {
+                floorSelectorContainer.classList.add('hidden');
+                mainGrid.classList.add('no-floors');
+                return;
+            }
+
+            floorSelectorContainer.classList.remove('hidden');
+            mainGrid.classList.remove('no-floors');
+            floorListContainer.innerHTML = '';
+
+            allFloors.forEach(floor => {
+                const button = document.createElement('button');
+                button.className = `floor-item px-4 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-between gap-2 ${
+                    floor.floor_number === currentFloor ? 'active' : ''
+                }`;
+                button.setAttribute('data-floor', floor.floor_number);
+
+                const badgeClass = floor.floor_number === currentFloor ?
+                    'text-xs bg-white/30 px-2 py-0.5 rounded-full' :
+                    'text-xs bg-slate-300 px-2 py-0.5 rounded-full';
+
+                button.innerHTML = `
+                    <span class="font-semibold text-sm">${floor.floor_name}</span>
+                    <span class="${badgeClass}">${floor.booth_count}</span>
+                `;
+                button.onclick = () => switchFloor(floor.floor_number);
+                floorListContainer.appendChild(button);
+            });
+        }
+        async function switchFloor(floorNumber) {
+            if (floorNumber === currentFloor) return;
+
+            currentFloor = floorNumber;
+            selectedBooth = null;
+            hoveredBooth = null;
+            showBoothDetails(null);
+
+            // Update floor button states
+            document.querySelectorAll('.floor-item').forEach(btn => {
+                const btnFloor = parseInt(btn.dataset.floor);
+                if (btnFloor === floorNumber) {
+                    btn.classList.add('active');
+                    // Update badge style
+                    const badge = btn.querySelector('span:last-child');
+                    if (badge) {
+                        badge.className = 'text-xs bg-white/30 px-2 py-0.5 rounded-full';
+                    }
+                } else {
+                    btn.classList.remove('active');
+                    // Update badge style
+                    const badge = btn.querySelector('span:last-child');
+                    if (badge) {
+                        badge.className = 'text-xs bg-slate-300 px-2 py-0.5 rounded-full';
+                    }
+                }
+            });
+
+            // Show loading state
+            canvas.clear();
+            setCanvasMessage('Loading floor layout...', 'info');
+
+            await loadLayout();
+        }
+
         async function loadLayout() {
             try {
-                const response = await fetch(loadEndpoint, {
+                const url = new URL(loadEndpoint);
+                url.searchParams.append('floor_number', currentFloor);
+
+                const response = await fetch(url, {
                     headers: {
                         'Accept': 'application/json'
                     }
                 });
 
                 if (!response.ok) {
+                    if (response.status === 404) {
+                        setCanvasMessage('No layout found for this floor.', 'info');
+                        return;
+                    }
                     setCanvasMessage('Unable to load booth layout. Please try again later.', 'error');
                     return;
                 }
 
                 const data = await response.json();
                 boothsData = data.booths ?? [];
+                allFloors = data.all_floors ?? [];
+
+                // Update current floor info from response
+                if (data.current_floor) {
+                    currentFloor = data.current_floor.floor_number;
+
+                    // Update layout title with floor name
+                    const layoutTitle = document.getElementById('layoutTitle');
+                    if (layoutTitle) {
+                        layoutTitle.textContent = `${data.current_floor.floor_name} - Booth Layout`;
+                    }
+                }
+
+                // Render floor tabs if multiple floors exist
+                renderFloorTabs();
 
                 if (!data.layout) {
-                    setCanvasMessage('No booth layout available for this event yet.', 'info');
+                    setCanvasMessage('No booth layout available for this floor yet.', 'info');
                     return;
                 }
 
@@ -445,11 +662,31 @@
                     });
                 });
 
+                // Update booth statistics after loading
+                updateBoothStats();
+                updateCurrentFloorCard();
+
             } catch (error) {
                 console.error('Load layout error:', error);
                 setCanvasMessage('An error occurred while loading the layout.', 'error');
             }
         }
+
+        // Keyboard navigation for floors
+        document.addEventListener('keydown', (e) => {
+            if (allFloors.length <= 1) return;
+
+            const currentIndex = allFloors.findIndex(f => f.floor_number === currentFloor);
+            if (currentIndex === -1) return;
+
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                e.preventDefault();
+                switchFloor(allFloors[currentIndex - 1].floor_number);
+            } else if (e.key === 'ArrowRight' && currentIndex < allFloors.length - 1) {
+                e.preventDefault();
+                switchFloor(allFloors[currentIndex + 1].floor_number);
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             loadLayout();

@@ -9,6 +9,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .floor-item {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floor-item:not(.active) {
+            background: linear-gradient(to right, #e2e8f0, #cbd5e1);
+            color: #475569;
+        }
+
+        .floor-item.active {
+            background: linear-gradient(to right, #ff7700, #ff9933);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(255, 119, 0, 0.3), 0 2px 4px -1px rgba(255, 119, 0, 0.2);
+        }
+
+        .floor-item:not(.active):hover {
+            background: linear-gradient(to right, #cbd5e1, #94a3b8);
+            transform: translateX(4px);
+        }
+
+        .floor-item.active::before {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 70%;
+            background: white;
+            border-radius: 0 2px 2px 0;
+        }
+    </style>
 </head>
 
 <body class="bg-white min-h-screen">
@@ -16,6 +50,46 @@
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         @include('components.back-button', ['text' => 'Back to Edit Event', 'url' => request('event_id') ? route('my-events.edit', ['event' => request('event_id')]) : route('my-events.index')])
+
+        <!-- Floor Selector Card -->
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-6">
+            <div class="flex items-start gap-6">
+                <!-- Vertical Floor Selector -->
+                <div class="flex-shrink-0">
+                    <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                        <i class="fas fa-layer-group mr-2 text-[#ff7700]"></i>
+                        Floors
+                    </h4>
+                    <div id="floorList" class="flex flex-col gap-2 min-w-[140px]">
+                        <!-- Floor items will be dynamically added here -->
+                    </div>
+                    <!-- Add Floor Button -->
+                    <button onclick="addNewFloor()" class="mt-3 w-full px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-medium transition-all border-2 border-dashed border-slate-300 hover:border-slate-400 flex items-center justify-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span class="text-sm">Add Floor</span>
+                    </button>
+                </div>
+
+                <!-- Floor Actions -->
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-slate-700 mb-3">Floor Actions</h4>
+                    <div class="flex flex-wrap gap-3">
+                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all hover:shadow-md flex items-center gap-2" onclick="renameCurrentFloor()">
+                            <i class="fas fa-edit"></i>
+                            Rename Floor
+                        </button>
+                        <button id="deleteFloorBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all hover:shadow-md flex items-center gap-2" onclick="deleteCurrentFloor()" style="display: none;">
+                            <i class="fas fa-trash"></i>
+                            Delete Floor
+                        </button>
+                    </div>
+                    <div class="mt-3 text-sm text-slate-600">
+                        <i class="fas fa-info-circle mr-1 text-[#ff7700]"></i>
+                        <span>Current: <strong id="currentFloorDisplay">Floor 1</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Instructions Card -->
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
@@ -104,7 +178,7 @@
                         <div class="mt-8 pt-5 border-t border-slate-200">
                             <button type="button" id="saveLayoutBtn" class="w-full px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="saveLayout()">
                                 <i class="fas fa-save"></i>
-                                Save Layout
+                                Save All Floors
                             </button>
                             <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
                         </div>
@@ -131,6 +205,16 @@
         let isPanning = false;
         let lastPosX = 0;
         let lastPosY = 0;
+
+        // Floor management variables
+        let currentFloorNumber = 1;
+        let currentFloorName = 'Floor 1';
+        let allFloors = [{
+            floor_number: 1,
+            floor_name: 'Floor 1',
+            booth_count: 0
+        }];
+        let floorLayouts = {}; // Store layouts for each floor
 
         const elementTypes = {
             booth: {
@@ -440,73 +524,372 @@
                 return;
             }
 
-            const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
-            if (boothCount === 0) {
-                statusElement.textContent = 'At least one booth is required. Please add at least one booth to your layout before saving.';
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
-                return;
-            }
+            // Save current floor to memory first
+            floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
 
             // Show loading state
             saveBtn.disabled = true;
-            saveBtn.textContent = '💾 Saving...';
-            statusElement.textContent = 'Saving layout...';
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving All Floors...';
+            statusElement.textContent = 'Saving all floor layouts...';
             statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-blue-600';
 
-            const canvasData = canvas.toJSON(trackedProperties);
-            const payload = {
-                event_id: parseInt(initialEventId, 10),
-                layout_json: JSON.stringify(canvasData),
-                replace_existing: true
-            };
+            let totalSaved = 0;
+            let errors = [];
 
             try {
-                const response = await fetch(saveEndpoint, {
-                    method: 'POST',
+                // Save all floors that have layouts in memory
+                for (const [floorNum, layoutData] of Object.entries(floorLayouts)) {
+                    const floorNumber = parseInt(floorNum);
+                    const floor = allFloors.find(f => f.floor_number === floorNumber);
+                    const floorName = floor ? floor.floor_name : `Floor ${floorNumber}`;
+
+                    // Check if this floor has at least one booth
+                    const boothCount = (layoutData.objects || []).filter(obj => obj.elementType === 'booth').length;
+
+                    if (boothCount === 0) {
+                        console.log(`Skipping ${floorName} - no booths`);
+                        continue; // Skip floors without booths
+                    }
+
+                    const payload = {
+                        event_id: parseInt(initialEventId, 10),
+                        floor_number: floorNumber,
+                        floor_name: floorName,
+                        layout_json: JSON.stringify(layoutData),
+                        replace_existing: true
+                    };
+
+                    try {
+                        const response = await fetch(saveEndpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            totalSaved++;
+                            console.log(`Saved ${floorName} with ${boothCount} booths`);
+                        } else {
+                            const errorData = await response.json();
+                            errors.push(`${floorName}: ${errorData.message || 'Failed to save'}`);
+                        }
+                    } catch (error) {
+                        errors.push(`${floorName}: Network error`);
+                        console.error(`Error saving ${floorName}:`, error);
+                    }
+                }
+
+                // Show result
+                if (totalSaved > 0) {
+                    statusElement.textContent = `Successfully saved ${totalSaved} floor${totalSaved > 1 ? 's' : ''}!`;
+                    statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
+                } else {
+                    statusElement.textContent = 'No floors with booths to save. Add at least one booth to any floor.';
+                    statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-orange-600';
+                }
+
+                if (errors.length > 0) {
+                    statusElement.textContent += ` (${errors.length} error${errors.length > 1 ? 's' : ''})`;
+                    console.error('Save errors:', errors);
+                }
+
+                // Refresh floor list to get updated booth counts
+                await loadFloors();
+
+            } catch (error) {
+                console.error('Save layout error:', error);
+                statusElement.textContent = 'Error while saving layouts.';
+                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
+            } finally {
+                // Reset button state
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All Floors';
+            }
+        }
+
+        // Load all floors for the event
+        async function loadFloors() {
+            if (!initialEventId) return;
+
+            try {
+                const response = await fetch(`{{ url('booth-layout/floors') }}/${initialEventId}`, {
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.floors && data.floors.length > 0) {
+                        // Merge server data with local floor list
+                        const serverFloors = data.floors;
+
+                        // Update booth counts from server for floors that exist
+                        serverFloors.forEach(serverFloor => {
+                            const localFloorIndex = allFloors.findIndex(f => f.floor_number === serverFloor.floor_number);
+                            if (localFloorIndex !== -1) {
+                                allFloors[localFloorIndex].booth_count = serverFloor.booth_count;
+                            } else {
+                                // Add floor from server if not in local list
+                                allFloors.push(serverFloor);
+                            }
+                        });
+
+                        // Sort floors
+                        allFloors.sort((a, b) => a.floor_number - b.floor_number);
+                    } else {
+                        // No floors exist yet, keep current allFloors (might have new unsaved floors)
+                        if (allFloors.length === 0) {
+                            allFloors = [{
+                                floor_number: 1,
+                                floor_name: 'Floor 1',
+                                booth_count: 0
+                            }];
+                        }
+                    }
+                    updateFloorSelector();
+                }
+            } catch (error) {
+                console.error('Error loading floors:', error);
+                // On error, keep current allFloors
+                if (allFloors.length === 0) {
+                    allFloors = [{
+                        floor_number: 1,
+                        floor_name: 'Floor 1',
+                        booth_count: 0
+                    }];
+                }
+                updateFloorSelector();
+            }
+        }
+
+        // Update the floor selector UI
+        function updateFloorSelector() {
+            const floorList = document.getElementById('floorList');
+            const deleteBtn = document.getElementById('deleteFloorBtn');
+            const currentFloorDisplay = document.getElementById('currentFloorDisplay');
+
+            floorList.innerHTML = '';
+
+            // Sort floors by floor number (old to new, top to bottom)
+            const sortedFloors = [...allFloors].sort((a, b) => a.floor_number - b.floor_number);
+
+            sortedFloors.forEach(floor => {
+                const floorBtn = document.createElement('button');
+                floorBtn.className = 'floor-item px-4 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-between gap-2';
+                floorBtn.dataset.floor = floor.floor_number;
+
+                if (floor.floor_number === currentFloorNumber) {
+                    floorBtn.classList.add('active');
+                }
+
+                floorBtn.innerHTML = `
+                    <span class="font-semibold text-sm">${floor.floor_name}</span>
+                    <span class="text-xs ${floor.floor_number === currentFloorNumber ? 'bg-white/30' : 'bg-slate-300'} px-2 py-0.5 rounded-full">${floor.booth_count || 0}</span>
+                `;
+
+                floorBtn.onclick = () => switchFloor(floor.floor_number);
+                floorList.appendChild(floorBtn);
+            });
+
+            // Show delete button only if there's more than one floor
+            deleteBtn.style.display = allFloors.length > 1 ? 'flex' : 'none';
+
+            // Update current floor display
+            if (currentFloorDisplay) {
+                currentFloorDisplay.textContent = currentFloorName;
+            }
+        }
+
+        // Switch to a different floor
+        async function switchFloor(floorNumber) {
+            floorNumber = parseInt(floorNumber);
+
+            // Don't switch if already on this floor
+            if (floorNumber === currentFloorNumber) {
+                return;
+            }
+
+            // ALWAYS save current floor layout in memory before switching
+            const currentCanvas = canvas.toJSON(trackedProperties);
+            floorLayouts[currentFloorNumber] = currentCanvas;
+
+            // Update the booth count for current floor before switching
+            const currentBoothCount = (currentCanvas.objects || []).filter(obj => obj.elementType === 'booth').length;
+            const currentFloorIndex = allFloors.findIndex(f => f.floor_number === currentFloorNumber);
+            if (currentFloorIndex !== -1) {
+                allFloors[currentFloorIndex].booth_count = currentBoothCount;
+            }
+
+            // Switch to new floor
+            currentFloorNumber = floorNumber;
+            const floor = allFloors.find(f => f.floor_number === currentFloorNumber);
+            currentFloorName = floor ? floor.floor_name : `Floor ${currentFloorNumber}`;
+
+            // Clear canvas
+            canvas.clear();
+            canvas.backgroundColor = '#ffffff';
+
+            // Load the floor layout
+            if (floorLayouts[currentFloorNumber]) {
+                // Load from memory if available
+                canvas.loadFromJSON(floorLayouts[currentFloorNumber], function() {
+                    canvas.renderAll();
+                    updateCountersFromCanvas();
+                });
+            } else {
+                // Load from server
+                try {
+                    const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(initialEventId));
+                    const response = await fetch(`${endpoint}?floor_number=${currentFloorNumber}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.layout) {
+                            isLoadingLayout = true;
+                            canvas.loadFromJSON(data.layout, function() {
+                                canvas.renderAll();
+                                updateCountersFromCanvas();
+                                isLoadingLayout = false;
+                            });
+                            floorLayouts[currentFloorNumber] = data.layout;
+                        }
+                    } else {
+                        // Floor doesn't exist in database yet, start with empty canvas
+                        console.log(`Floor ${currentFloorNumber} not found in database, starting with empty canvas`);
+                        resetCounters();
+                    }
+                } catch (error) {
+                    console.error('Error loading floor layout:', error);
+                    resetCounters();
+                }
+            }
+
+            canvas.renderAll();
+            updatePropertiesPanel(null);
+            updateFloorSelector(); // Update UI to reflect new active floor
+
+            // Clear save status
+            document.getElementById('saveStatus').textContent = '';
+        }
+
+        // Add a new floor
+        function addNewFloor() {
+            const newFloorNumber = Math.max(...allFloors.map(f => f.floor_number), 0) + 1;
+            const floorName = prompt('Enter name for the new floor:', `Floor ${newFloorNumber}`);
+
+            if (floorName && floorName.trim() !== '') {
+                // Save current floor before switching
+                floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
+
+                // Add new floor to the list
+                allFloors.push({
+                    floor_number: newFloorNumber,
+                    floor_name: floorName.trim(),
+                    booth_count: 0
+                });
+
+                // Switch to the new floor
+                currentFloorNumber = newFloorNumber;
+                currentFloorName = floorName.trim();
+
+                // Clear canvas for new floor
+                canvas.clear();
+                canvas.backgroundColor = '#ffffff';
+                Object.keys(elementCounters).forEach(type => {
+                    elementCounters[type] = 1;
+                });
+                canvas.renderAll();
+
+                updateFloorSelector();
+
+                alert(`New floor "${floorName.trim()}" created. Add booths and save the layout.`);
+            }
+        }
+
+        // Rename current floor
+        function renameCurrentFloor() {
+            const newName = prompt('Enter new name for this floor:', currentFloorName);
+
+            if (newName && newName.trim() !== '' && newName.trim() !== currentFloorName) {
+                currentFloorName = newName.trim();
+
+                const floorIndex = allFloors.findIndex(f => f.floor_number === currentFloorNumber);
+                if (floorIndex !== -1) {
+                    allFloors[floorIndex].floor_name = currentFloorName;
+                }
+
+                updateFloorSelector();
+                alert(`Floor renamed to "${currentFloorName}". Remember to save the layout.`);
+            }
+        }
+
+        // Delete current floor
+        async function deleteCurrentFloor() {
+            if (allFloors.length <= 1) {
+                alert('Cannot delete the last floor. At least one floor is required.');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete "${currentFloorName}"? This will remove all booths on this floor.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`{{ url('booth-layout/floors') }}/${initialEventId}/${currentFloorNumber}`, {
+                    method: 'DELETE',
+                    headers: {
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                     credentials: 'same-origin',
-                    body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    let message = 'Failed to save layout.';
-                    try {
-                        const errorData = await response.json();
-                        if (errorData.message) {
-                            message = errorData.message;
-                        } else if (errorData.errors && errorData.errors.layout_json) {
-                            // Handle Laravel validation errors
-                            message = errorData.errors.layout_json[0];
-                        }
-                    } catch (error) {
-                        console.error('Error parsing save response:', error);
+                if (response.ok) {
+                    alert('Floor deleted successfully.');
+
+                    // Remove from memory
+                    delete floorLayouts[currentFloorNumber];
+
+                    // Remove from allFloors
+                    allFloors = allFloors.filter(f => f.floor_number !== currentFloorNumber);
+
+                    // Switch to first available floor
+                    if (allFloors.length > 0) {
+                        await switchFloor(allFloors[0].floor_number);
                     }
 
-                    statusElement.textContent = message;
-                    statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
-                    return;
+                    updateFloorSelector();
+                } else {
+                    const errorData = await response.json();
+                    alert('Failed to delete floor: ' + (errorData.message || 'Unknown error'));
                 }
-
-                const data = await response.json();
-                statusElement.textContent = data.message || `Layout saved successfully! ${boothCount} booths created and event finalized.`;
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
-
             } catch (error) {
-                console.error('Save layout error:', error);
-                statusElement.textContent = 'Network error while saving layout.';
-                statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
-            } finally {
-                // Reset button state
-                saveBtn.disabled = false;
-                saveBtn.textContent = '💾 Save Layout';
+                console.error('Error deleting floor:', error);
+                alert('Network error while deleting floor.');
             }
         }
 
+        // Initialize floor selector on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load existing floors on page load
+            loadFloors();
+        });
 
 
         function updateCountersFromCanvas() {

@@ -269,7 +269,7 @@ $paidBookingRows[] = [
                                     <i class="fa-solid fa-circle-play text-purple-500 mr-2"></i>
                                     <p class="text-sm text-purple-700 font-medium">Event is currently ongoing</p>
                                 </div>
-                                <p class="text-xs text-purple-600 mt-1">Editing and deletion are disabled for ongoing events.</p>
+                                <p class="text-xs text-purple-600 mt-1">You can no longer view booking requests.</p>
                             </div>
                             @elseif($event->status === 'completed')
                             <div class="rounded-lg border border-gray-300 bg-gray-50 px-4 py-3">
@@ -281,7 +281,7 @@ $paidBookingRows[] = [
                             </div>
                             @endif
 
-                            @if(in_array($event->status, ['published', 'ongoing', 'completed']))
+                            @if(in_array($event->status, ['published']))
                             <a href="{{ route('booking-requests', ['event' => $event->id]) }}" class="flex items-center justify-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                                 <i class="fa-solid fa-clipboard-list mr-2"></i>
                                 View Booking Requests
@@ -341,7 +341,7 @@ $paidBookingRows[] = [
             <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Paid Bookings</h2>
+                        <h2 class="text-lg font-semibold text-gray-900">Attendants</h2>
                         <p class="text-sm text-gray-500">All confirmed bookings that have been paid for this event.</p>
                     </div>
                 </div>

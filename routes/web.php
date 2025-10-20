@@ -154,3 +154,5 @@ Route::get('/booth-layout/view', function (Request $request) {
     ]);
 })->name('booth-layout.view');
 Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');
+Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
+Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
