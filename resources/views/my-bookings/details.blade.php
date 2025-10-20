@@ -66,6 +66,8 @@ if (strlen($rest) <= 3) {
     function getStatusDisplay($status) {
     $statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
     'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
+    'ongoing' => ['label' => 'Ongoing', 'color' => 'bg-purple-100 text-purple-800'],
+    'completed' => ['label' => 'Completed', 'color' => 'bg-gray-100 text-gray-800'],
     'paid' => ['label' => 'Paid', 'color' => 'bg-blue-100 text-blue-800'],
     'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
     'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
@@ -78,21 +80,27 @@ if (strlen($rest) <= 3) {
     $booth = $booking->booth;
     $statusDisplay = getStatusDisplay($booking->status);
 
-    // Format event dates
-    $eventDates = '';
+    // Format event dates and times
+    $dateDisplay = 'Schedule to be announced';
+    $timeDisplay = null;
+
     if ($event->start_time && $event->end_time) {
-    $start = $event->start_time;
-    $end = $event->end_time;
-    $eventDates = $start->format('d') . ' - ' . $end->format('d F Y');
+    $startDate = $event->start_time->format('d M Y');
+    $endDate = $event->end_time->format('d M Y');
+    $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
+    $timeDisplay = $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
+    } elseif ($event->start_time) {
+    $dateDisplay = $event->start_time->format('d M Y');
+    $timeDisplay = $event->start_time->format('H:i');
+    } elseif ($event->end_time) {
+    $dateDisplay = $event->end_time->format('d M Y');
+    $timeDisplay = $event->end_time->format('H:i');
     }
 
     // Calculate duration
     $eventDuration = 0;
     if ($event->start_time && $event->end_time) {
-    $start = $event->start_time;
-    $end = $event->end_time;
-    $eventDuration = floor($start->diffInDays($end)) + 1;
-    $eventDates = $start->format('F d') . ' - ' . $end->format('d, Y') . ' (' . $eventDuration . ' days)';
+    $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
     }
     @endphp
 
@@ -116,7 +124,14 @@ if (strlen($rest) <= 3) {
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
-                                <i class="fas fa-{{ $booking->status === 'confirmed' ? 'check-circle' : ($booking->status === 'paid' ? 'credit-card' : ($booking->status === 'pending' ? 'clock' : ($booking->status === 'rejected' ? 'times-circle' : 'ban'))) }} mr-2"></i>
+                                <i class="fas fa-{{ 
+                                    $booking->status === 'confirmed' ? 'check-circle' : 
+                                    ($booking->status === 'paid' ? 'credit-card' : 
+                                    ($booking->status === 'ongoing' ? 'spinner fa-pulse' : 
+                                    ($booking->status === 'completed' ? 'check-double' : 
+                                    ($booking->status === 'pending' ? 'clock' : 
+                                    ($booking->status === 'rejected' ? 'times-circle' : 'ban'))))) 
+                                }} mr-2"></i>
                                 {{ $statusDisplay['label'] }}
                             </span>
                         </div>
@@ -136,11 +151,19 @@ if (strlen($rest) <= 3) {
                                         <i class="fas fa-map-marker-alt mr-3 text-[#ff7700]"></i>
                                         <span class="text-gray-700">{{ $event->venue ?? 'Venue not specified' }}</span>
                                     </div>
-                                    <div class="flex items-center mb-4">
-                                        <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
-                                        <span class="text-gray-700">{{ $eventDates ?: 'Dates not specified' }}</span>
+                                    <div class="text-gray-700">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
+                                            <span>{{ $dateDisplay }}</span>
+                                        </div>
+                                        @if($timeDisplay)
+                                        <div class="mt-1 flex items-center">
+                                            <i class="fa-regular fa-clock mr-3 text-[#ff7700]"></i>
+                                            <span>{{ $timeDisplay }}</span>
+                                        </div>
+                                        @endif
                                     </div>
-                                    <p class="text-gray-600 leading-relaxed">
+                                    <p class="text-gray-600 leading-relaxed mt-4">
                                         {{ $event->description ?? 'No description available' }}
                                     </p>
                                 </div>
@@ -261,7 +284,7 @@ if (strlen($rest) <= 3) {
                         </div>
 
                         <!-- Payment Details -->
-                        @if(in_array($booking->status, ['confirmed', 'cancelled', 'paid']))
+                        @if(in_array($booking->status, ['confirmed', 'cancelled', 'paid', 'ongoing', 'completed']))
                         <div class="bg-white rounded-lg shadow-md p-6">
                             <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Details</h2>
                             <div class="space-y-4">
@@ -362,7 +385,7 @@ if (strlen($rest) <= 3) {
                     </div> -->
 
                         <!-- Action Buttons -->
-                        @if($booking->status === 'confirmed')
+                        @if($booking->status === 'confirmed' || $booking->status === 'ongoing')
                         <div class="space-y-3">
                             @if(!$booking->payment || $booking->payment->payment_status !== 'completed')
                             <a href="{{ route('payment.create', $booking->id) }}">
@@ -384,18 +407,20 @@ if (strlen($rest) <= 3) {
                             </a>
                             @endif
                         </div>
-                        @elseif($booking->status === 'paid')
+                        @elseif($booking->status === 'paid' || $booking->status === 'completed')
                         <div class="space-y-3">
                             <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-download mr-2"></i>
                                 Download Invoice
                             </button>
+                            @if($booking->status !== 'completed')
                             <a href="{{ route('request-refund') }}">
                                 <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                     <i class="fas fa-undo mr-2"></i>
                                     Request Refund
                                 </button>
                             </a>
+                            @endif
                         </div>
                         @endif
                     </div>
