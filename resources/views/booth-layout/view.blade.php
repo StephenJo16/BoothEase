@@ -13,11 +13,18 @@ $event = null;
 $booths = [];
 $totalBooths = 0;
 $availableBooths = 0;
+$allFloors = [];
 
 if ($eventId) {
 $event = \App\Models\Event::with(['user', 'category'])->find($eventId);
 if ($event) {
+// Get all floors for this event
+$allFloors = \App\Models\EventLayout::where('event_id', $eventId)
+->orderBy('floor_number')
+->get(['floor_number', 'floor_name', 'booth_count']);
+
 $booths = \App\Models\Booth::where('event_id', $eventId)
+->orderBy('floor_number')
 ->orderBy('number')
 ->get();
 $totalBooths = $booths->count();
@@ -27,6 +34,7 @@ $availableBooths = $booths->where('status', 'available')->count();
 
 // Define table headers
 $headers = [
+['title' => 'Floor', 'class' => 'w-16'],
 ['title' => 'Booth', 'class' => 'w-20'],
 ['title' => 'Type', 'class' => 'w-24'],
 ['title' => 'Price', 'class' => 'w-24'],
@@ -41,9 +49,20 @@ $isAvailable = strtolower($booth->status) === 'available';
 $statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 $statusText = ucfirst($booth->status);
 
+// Get floor name
+$floorName = 'Floor ' . ($booth->floor_number ?? 1);
+$floor = $allFloors->firstWhere('floor_number', $booth->floor_number);
+if ($floor) {
+$floorName = $floor->floor_name;
+}
+
 $rows[] = [
 'rowClass' => 'h-14',
 'cells' => [
+[
+'content' => $floorName,
+'class' => 'text-slate-600 text-xs'
+],
 [
 'content' => $booth->number ?? '-',
 'class' => 'font-semibold text-slate-800'
@@ -78,6 +97,40 @@ $rows[] = [
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .floor-item {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floor-item:not(.active) {
+            background: linear-gradient(to right, #e2e8f0, #cbd5e1);
+            color: #475569;
+        }
+
+        .floor-item.active {
+            background: #ff7700;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(255, 119, 0, 0.3), 0 2px 4px -1px rgba(255, 119, 0, 0.2);
+        }
+
+        .floor-item:not(.active):hover {
+            background: linear-gradient(to right, #cbd5e1, #94a3b8);
+            transform: translateX(4px);
+        }
+
+        .floor-item.active::before {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 70%;
+            background: white;
+            border-radius: 0 2px 2px 0;
+        }
+    </style>
 </head>
 
 <body class="bg-white min-h-screen">
@@ -123,7 +176,26 @@ $rows[] = [
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-[140px_1fr_320px] gap-6" id="mainContentGrid" data-floors='@json($allFloors)' data-booths='@json($booths)'>
+            <!-- Floor Selector Sidebar -->
+            @if($allFloors->count() > 0)
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
+                <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                    <i class="fas fa-layer-group mr-2 text-[#ff7700]"></i>
+                    Floors
+                </h4>
+                <div id="floorList" class="flex flex-col gap-2">
+                    @foreach($allFloors as $floor)
+                    <button class="floor-item px-4 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-between gap-2 {{ $loop->first ? 'active' : '' }}"
+                        data-floor="{{ $floor->floor_number }}">
+                        <span class="font-semibold text-sm">{{ $floor->floor_name }}</span>
+                        <span class="text-xs {{ $loop->first ? 'bg-white/30' : 'bg-slate-300' }} px-2 py-0.5 rounded-full">{{ $floor->booth_count }}</span>
+                    </button>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <!-- Zoom Controls -->
@@ -151,25 +223,61 @@ $rows[] = [
 
             <!-- Sidebar -->
             <div class="space-y-6">
-
-
                 <!-- Booth Details Card -->
-                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-                        <i class="fa-solid fa-box me-2"></i>
+                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-info-circle me-2 text-[#ff7700]"></i>
                         Booth Details
                     </h2>
-                    <div class="max-h-56 overflow-auto border border-slate-200 rounded-lg">
-                        @if($booths->count() > 0)
-                        @include('components.table', [
-                        'headers' => $headers,
-                        'rows' => $rows,
-                        'tableClass' => 'w-full min-w-[640px] text-xs',
-                        'containerClass' => 'min-w-full',
-                        ])
-                        @else
-                        <div class="px-3 py-6 text-center text-slate-500">No booths are stored for this event.</div>
-                        @endif
+                    <div id="boothDetailsContent">
+                        <!-- Default state when no booth is selected/hovered -->
+                        <div id="noBoothSelected" class="text-center py-12">
+                            <i class="fas fa-mouse-pointer text-6xl text-slate-300 mb-4"></i>
+                            <p class="text-slate-500 text-sm">Hover over or click a booth on the map to view details</p>
+                        </div>
+
+                        <!-- Booth details will be populated here -->
+                        <div id="boothInfo" class="space-y-4 hidden">
+                            <!-- Booth Number -->
+                            <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200">
+                                <div class="text-xs text-slate-600 mb-1">Booth Number</div>
+                                <div id="boothNumber" class="text-2xl font-bold text-slate-900">—</div>
+                            </div>
+
+                            <!-- Floor -->
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <div class="text-xs text-slate-600 mb-1">Floor</div>
+                                <div id="boothFloor" class="font-semibold text-slate-900">—</div>
+                            </div>
+
+                            <!-- Type and Size -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-slate-50 rounded-lg">
+                                    <div class="text-xs text-slate-600 mb-1">Type</div>
+                                    <div id="boothType" class="font-semibold text-slate-900">—</div>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg">
+                                    <div class="text-xs text-slate-600 mb-1">Size</div>
+                                    <div id="boothSize" class="font-semibold text-slate-900">—</div>
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="p-4 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
+                                <div class="text-xs text-slate-600 mb-1">Price per Event</div>
+                                <div id="boothPrice" class="text-2xl font-bold text-[#ff7700]">—</div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="p-3 rounded-lg">
+                                <div class="text-xs text-slate-600 mb-1">Status</div>
+                                <div id="boothStatus">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-200 text-slate-600">
+                                        Unknown
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -193,8 +301,121 @@ $rows[] = [
         const actionIcon = document.getElementById('layoutActionIcon');
         const actionText = document.getElementById('layoutActionText');
         let hasLayout = false;
+        let currentFloorNumber = 1;
+        let selectedBooth = null;
+        let hoveredBooth = null;
 
-        async function loadLayout() {
+        // Get floors and booths data from data attributes
+        const mainGrid = document.getElementById('mainContentGrid');
+        const allFloorsData = mainGrid ? JSON.parse(mainGrid.dataset.floors || '[]') : [];
+        const boothsData = mainGrid ? JSON.parse(mainGrid.dataset.booths || '[]') : [];
+
+        // Helper function to format Rupiah
+        function formatRupiah(value) {
+            const digits = String(value ?? 0).replace(/\D/g, '');
+            const num = digits === '' ? 0 : parseInt(digits);
+            return 'Rp' + num.toLocaleString('id-ID');
+        }
+
+        // Helper function to get booth color based on status
+        function getBoothColor(status) {
+            const colors = {
+                'available': '#22c55e', // green
+                'booked': '#ef4444', // red
+                'reserved': '#eab308', // yellow
+                'selected': '#3b82f6' // blue
+            };
+            return colors[status] || colors['available'];
+        }
+
+        // Helper function to get booth border color
+        function getBoothBorderColor(status) {
+            const colors = {
+                'available': '#15803d', // green
+                'booked': '#b91c1c', // red
+                'reserved': '#a16207', // yellow
+                'selected': '#1e40af' // blue
+            };
+            return colors[status] || colors['available'];
+        }
+
+        function showBoothDetails(booth) {
+            const noBoothSelected = document.getElementById('noBoothSelected');
+            const boothInfo = document.getElementById('boothInfo');
+
+            if (!booth) {
+                noBoothSelected.classList.remove('hidden');
+                boothInfo.classList.add('hidden');
+                return;
+            }
+
+            noBoothSelected.classList.add('hidden');
+            boothInfo.classList.remove('hidden');
+
+            // Get floor name
+            let floorName = 'Floor ' + (booth.floor_number ?? 1);
+            const floor = allFloorsData.find(f => f.floor_number === booth.floor_number);
+            if (floor) {
+                floorName = floor.floor_name;
+            }
+
+            // Populate booth details
+            document.getElementById('boothNumber').textContent = booth.number ?? 'N/A';
+            document.getElementById('boothFloor').textContent = floorName;
+            document.getElementById('boothType').textContent = booth.type ?? 'Standard';
+            document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
+            document.getElementById('boothPrice').textContent = formatRupiah(booth.price ?? 0);
+
+            // Set status badge
+            const statusColors = {
+                'available': 'bg-green-100 text-green-800',
+                'booked': 'bg-red-100 text-red-800',
+                'reserved': 'bg-yellow-100 text-yellow-800',
+                'selected': 'bg-blue-100 text-blue-800'
+            };
+            const statusColor = statusColors[booth.status] || 'bg-slate-200 text-slate-600';
+            const statusText = booth.status ? booth.status.charAt(0).toUpperCase() + booth.status.slice(1) : 'Unknown';
+
+            document.getElementById('boothStatus').innerHTML = `
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColor}">
+                    ${statusText}
+                </span>
+            `;
+        }
+
+        function selectBooth(booth) {
+            // Deselect previous booth
+            if (selectedBooth) {
+                canvas.getObjects().forEach(obj => {
+                    if (obj.boothData && obj.boothData.id === selectedBooth.id) {
+                        obj.set({
+                            fill: getBoothColor(selectedBooth.status),
+                            stroke: getBoothBorderColor(selectedBooth.status),
+                            strokeWidth: 2
+                        });
+                    }
+                });
+            }
+
+            // Select new booth
+            selectedBooth = booth;
+
+            // Highlight on canvas
+            canvas.getObjects().forEach(obj => {
+                if (obj.boothData && obj.boothData.id === booth.id) {
+                    obj.set({
+                        fill: getBoothColor('selected'),
+                        stroke: getBoothBorderColor('selected'),
+                        strokeWidth: 3
+                    });
+                }
+            });
+
+            canvas.renderAll();
+            showBoothDetails(booth);
+        }
+
+        async function loadLayout(floorNumber = 1) {
             const rawEventId = "{{ $eventId ?? '' }}".toString().trim();
 
             if (!rawEventId) {
@@ -203,7 +424,7 @@ $rows[] = [
                 return;
             }
 
-            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(rawEventId));
+            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(rawEventId)) + '?floor_number=' + floorNumber;
 
             try {
                 const response = await fetch(endpoint, {
@@ -213,7 +434,10 @@ $rows[] = [
                 });
 
                 if (!response.ok) {
-                    console.error('Unable to load layout.');
+                    console.error('Unable to load layout for floor', floorNumber);
+                    canvas.clear();
+                    canvas.backgroundColor = '#ffffff';
+                    canvas.renderAll();
                     return;
                 }
 
@@ -221,7 +445,10 @@ $rows[] = [
 
                 if (!data.layout) {
                     updateActionButton(false);
-                    console.error('No layout data found for this event.');
+                    console.error('No layout data found for floor', floorNumber);
+                    canvas.clear();
+                    canvas.backgroundColor = '#ffffff';
+                    canvas.renderAll();
                     return;
                 }
 
@@ -232,20 +459,84 @@ $rows[] = [
 
                 await new Promise((resolve) => {
                     canvas.loadFromJSON(data.layout, () => {
-                        // Lock all objects - this is a view-only page
-                        canvas.getObjects().forEach(obj => {
-                            obj.set({
-                                selectable: false,
-                                evented: false,
-                                hasControls: false,
-                                hasBorders: false,
-                                lockMovementX: true,
-                                lockMovementY: true,
-                                lockRotation: true,
-                                lockScalingX: true,
-                                lockScalingY: true,
-                                hoverCursor: 'default'
-                            });
+                        // Add booth data to canvas objects and make them interactive
+                        canvas.getObjects().forEach((obj) => {
+                            // Check if this is a booth element
+                            if (obj.elementType === 'booth' && obj.elementLabel) {
+                                // Find booth data by matching the booth number from the label
+                                const booth = boothsData.find(b => b.number === obj.elementLabel && b.floor_number === floorNumber);
+                                if (booth) {
+                                    obj.boothData = booth;
+
+                                    // Set colors based on status
+                                    obj.set({
+                                        fill: getBoothColor(booth.status),
+                                        stroke: getBoothBorderColor(booth.status),
+                                        strokeWidth: 2,
+                                        // Lock all modifications - view only
+                                        selectable: false,
+                                        evented: true,
+                                        hasControls: false,
+                                        hasBorders: false,
+                                        lockMovementX: true,
+                                        lockMovementY: true,
+                                        lockRotation: true,
+                                        lockScalingX: true,
+                                        lockScalingY: true,
+                                        hoverCursor: 'pointer'
+                                    });
+
+                                    obj.on('mousedown', function() {
+                                        selectBooth(booth);
+                                    });
+
+                                    obj.on('mouseover', function() {
+                                        hoveredBooth = booth;
+                                        // Only show hover details if no booth is selected
+                                        if (!selectedBooth) {
+                                            showBoothDetails(booth);
+                                        }
+
+                                        if (!selectedBooth || selectedBooth.id !== booth.id) {
+                                            this.set({
+                                                strokeWidth: 3,
+                                                opacity: 0.8
+                                            });
+                                            canvas.renderAll();
+                                        }
+                                    });
+
+                                    obj.on('mouseout', function() {
+                                        hoveredBooth = null;
+                                        // Clear details if no booth is selected
+                                        if (!selectedBooth) {
+                                            showBoothDetails(null);
+                                        }
+
+                                        if (!selectedBooth || selectedBooth.id !== booth.id) {
+                                            this.set({
+                                                strokeWidth: 2,
+                                                opacity: 1
+                                            });
+                                            canvas.renderAll();
+                                        }
+                                    });
+                                }
+                            } else {
+                                // Lock all non-booth elements (parking, entrance, exit, toilet, etc.)
+                                obj.set({
+                                    selectable: false,
+                                    evented: false,
+                                    hasControls: false,
+                                    hasBorders: false,
+                                    lockMovementX: true,
+                                    lockMovementY: true,
+                                    lockRotation: true,
+                                    lockScalingX: true,
+                                    lockScalingY: true,
+                                    hoverCursor: 'default'
+                                });
+                            }
                         });
 
                         canvas.renderAll();
@@ -257,6 +548,41 @@ $rows[] = [
                 console.error('Load layout error:', error);
                 updateActionButton(false);
             }
+        }
+
+        function switchFloor(floorNumber) {
+            if (typeof floorNumber === 'undefined') {
+                return;
+            }
+
+            if (floorNumber === currentFloorNumber) {
+                return;
+            }
+
+            currentFloorNumber = floorNumber;
+
+            // Update UI
+            document.querySelectorAll('.floor-item').forEach(btn => {
+                const btnFloor = parseInt(btn.dataset.floor);
+                if (btnFloor === floorNumber) {
+                    btn.classList.add('active');
+                    // Update badge style
+                    const badge = btn.querySelector('span:last-child');
+                    if (badge) {
+                        badge.className = 'text-xs bg-white/30 px-2 py-0.5 rounded-full';
+                    }
+                } else {
+                    btn.classList.remove('active');
+                    // Update badge style
+                    const badge = btn.querySelector('span:last-child');
+                    if (badge) {
+                        badge.className = 'text-xs bg-slate-300 px-2 py-0.5 rounded-full';
+                    }
+                }
+            });
+
+            // Load the floor layout
+            loadLayout(floorNumber);
         }
 
         function updateActionButton(layoutExists) {
@@ -285,7 +611,16 @@ $rows[] = [
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadLayout();
+            // Add click handlers to floor buttons
+            document.querySelectorAll('.floor-item').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const floorNum = parseInt(this.dataset.floor);
+                    switchFloor(floorNum);
+                });
+            });
+
+            // Load the first floor by default
+            loadLayout(currentFloorNumber);
         });
 
         // Zoom functions

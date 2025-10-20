@@ -36,6 +36,8 @@ class BoothController extends Controller
         }
 
         $eventId = $validated['event_id'];
+        $floorNumber = $request->input('floor_number', 1);
+        $floorName = $request->input('floor_name', 'Floor ' . $floorNumber);
 
         // Ensure the user owns the event before allowing booth creation
         $event = Event::ownedBy($request->user())->findOrFail($eventId);
@@ -44,9 +46,12 @@ class BoothController extends Controller
         $boothCount = count($boothObjects);
         $now = now();
 
-        DB::transaction(static function () use ($eventId, $replaceExisting, $boothObjects, $now, $layoutData, $boothCount): void {
+        DB::transaction(static function () use ($eventId, $floorNumber, $floorName, $replaceExisting, $boothObjects, $now, $layoutData, $boothCount): void {
             if ($replaceExisting) {
-                Booth::where('event_id', $eventId)->delete();
+                // Only delete booths for this specific floor
+                Booth::where('event_id', $eventId)
+                    ->where('floor_number', $floorNumber)
+                    ->delete();
             }
 
             $payload = [];
@@ -70,6 +75,7 @@ class BoothController extends Controller
 
                 $payload[] = [
                     'event_id' => $eventId,
+                    'floor_number' => $floorNumber,
                     'number' => $label,
                     'size' => $size,
                     'type' => $object['boothType'] ?? 'Standard',
@@ -85,8 +91,12 @@ class BoothController extends Controller
             }
 
             EventLayout::updateOrCreate(
-                ['event_id' => $eventId],
                 [
+                    'event_id' => $eventId,
+                    'floor_number' => $floorNumber,
+                ],
+                [
+                    'floor_name' => $floorName,
                     'layout_json' => $layoutData,
                     'booth_count' => $boothCount,
                 ]
@@ -97,31 +107,91 @@ class BoothController extends Controller
         });
 
         return response()->json([
-            'message' => 'Booths and layout saved successfully. Event status updated to finalized.',
+            'message' => 'Booths and layout saved successfully for ' . $floorName . '. Event status updated to finalized.',
             'saved' => $boothCount,
+            'floor_number' => $floorNumber,
+            'floor_name' => $floorName,
         ], 201);
     }
 
     public function show(int $eventId): JsonResponse
     {
-        $layout = EventLayout::where('event_id', $eventId)->first();
+        $floorNumber = request()->input('floor_number', 1);
+
+        $layout = EventLayout::where('event_id', $eventId)
+            ->where('floor_number', $floorNumber)
+            ->first();
 
         if (! $layout) {
             return response()->json([
-                'message' => 'No saved layout found for this event.',
+                'message' => 'No saved layout found for this floor.',
             ], 404);
         }
 
         $event = Event::find($eventId);
         $booths = Booth::where('event_id', $eventId)
+            ->where('floor_number', $floorNumber)
             ->orderBy('number')
-            ->get(['id', 'event_id', 'number', 'size', 'type', 'price', 'status']);
+            ->get(['id', 'event_id', 'floor_number', 'number', 'size', 'type', 'price', 'status']);
+
+        // Get all floors for this event
+        $allFloors = EventLayout::where('event_id', $eventId)
+            ->orderBy('floor_number')
+            ->get(['floor_number', 'floor_name', 'booth_count']);
 
         return response()->json([
             'event' => $event,
             'layout' => $layout->layout_json,
             'booth_count' => $layout->booth_count,
             'booths' => $booths,
+            'current_floor' => [
+                'floor_number' => $layout->floor_number,
+                'floor_name' => $layout->floor_name,
+            ],
+            'all_floors' => $allFloors,
+        ]);
+    }
+
+    /**
+     * Get all floors for an event
+     */
+    public function getFloors(int $eventId): JsonResponse
+    {
+        $floors = EventLayout::where('event_id', $eventId)
+            ->orderBy('floor_number')
+            ->get(['id', 'floor_number', 'floor_name', 'booth_count', 'created_at', 'updated_at']);
+
+        return response()->json([
+            'floors' => $floors,
+            'total' => $floors->count(),
+        ]);
+    }
+
+    /**
+     * Delete a specific floor
+     */
+    public function deleteFloor(int $eventId, int $floorNumber): JsonResponse
+    {
+        $layout = EventLayout::where('event_id', $eventId)
+            ->where('floor_number', $floorNumber)
+            ->first();
+
+        if (!$layout) {
+            return response()->json([
+                'message' => 'Floor not found.',
+            ], 404);
+        }
+
+        // Delete associated booths
+        Booth::where('event_id', $eventId)
+            ->where('floor_number', $floorNumber)
+            ->delete();
+
+        // Delete the layout
+        $layout->delete();
+
+        return response()->json([
+            'message' => 'Floor deleted successfully.',
         ]);
     }
 }
