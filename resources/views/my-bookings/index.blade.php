@@ -30,9 +30,11 @@ return 'Rp' . number_format($num, 0, ',', '.');
 
 // Helper to format status with proper label and color
 function getStatusDisplay($status) {
-$statusMap = [
-'pending' => ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
+$statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
 'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
+'ongoing' => ['label' => 'Ongoing', 'color' => 'bg-purple-100 text-purple-800'],
+'completed' => ['label' => 'Completed', 'color' => 'bg-gray-100 text-gray-800'],
+'paid' => ['label' => 'Paid', 'color' => 'bg-blue-100 text-blue-800'],
 'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
 'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
 ];
@@ -132,12 +134,21 @@ $filterTabs = [
                 $event = $booking->booth->event;
                 $statusDisplay = getStatusDisplay($booking->status);
 
-                // Format event dates
-                $eventDates = '';
+                // Format event dates and times
+                $dateDisplay = 'Schedule to be announced';
+                $timeDisplay = null;
+
                 if ($event->start_time && $event->end_time) {
-                $start = $event->start_time;
-                $end = $event->end_time;
-                $eventDates = $start->format('d') . ' - ' . $end->format('d F Y');
+                $startDate = $event->start_time->format('d M Y');
+                $endDate = $event->end_time->format('d M Y');
+                $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
+                $timeDisplay = $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
+                } elseif ($event->start_time) {
+                $dateDisplay = $event->start_time->format('d M Y');
+                $timeDisplay = $event->start_time->format('H:i');
+                } elseif ($event->end_time) {
+                $dateDisplay = $event->end_time->format('d M Y');
+                $timeDisplay = $event->end_time->format('H:i');
                 }
                 @endphp
 
@@ -150,9 +161,17 @@ $filterTabs = [
                                     <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
                                     <p class="text-sm text-gray-600">{{ $event->venue ?? 'Venue not specified' }}</p>
                                 </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                    <p class="text-sm text-gray-600">{{ $eventDates ?: 'Dates not specified' }}</p>
+                                <div class="text-sm text-gray-600">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
+                                        <span>{{ $dateDisplay }}</span>
+                                    </div>
+                                    @if($timeDisplay)
+                                    <div class="mt-1 flex items-center">
+                                        <i class="fa-regular fa-clock mr-2 text-[#ff7700]"></i>
+                                        <span>{{ $timeDisplay }}</span>
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
@@ -205,7 +224,7 @@ $filterTabs = [
 
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
-                            @if($booking->status === 'confirmed' || $booking->status === 'pending')
+                            @if(in_array($booking->status, ['confirmed', 'pending', 'ongoing']))
                             <button class="hover:cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 Request Refund
                             </button>

@@ -136,6 +136,10 @@ $rows[] = [
 <body class="bg-white min-h-screen">
     @include('components.navbar')
 
+    <!-- Full Page Loader -->
+    <div id="pageLoader">
+        <x-loader overlay="true" message="Loading booth layout..." size="lg" />
+    </div>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         @include('components.back-button', [
@@ -176,9 +180,9 @@ $rows[] = [
         </div>
 
         <!-- Main Content Grid -->
+        @if($allFloors->count() > 0)
         <div class="grid grid-cols-1 lg:grid-cols-[140px_1fr_320px] gap-6" id="mainContentGrid" data-floors='@json($allFloors)' data-booths='@json($booths)'>
             <!-- Floor Selector Sidebar -->
-            @if($allFloors->count() > 0)
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
                 <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center">
                     <i class="fas fa-layer-group mr-2 text-[#ff7700]"></i>
@@ -194,7 +198,6 @@ $rows[] = [
                     @endforeach
                 </div>
             </div>
-            @endif
 
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
@@ -282,6 +285,20 @@ $rows[] = [
                 </div>
             </div>
         </div>
+        @else
+        <!-- No Layout Message -->
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-12">
+            <div class="text-center max-w-2xl mx-auto">
+                <div class="mb-6">
+                    <i class="fas fa-map-marked-alt text-8xl text-slate-300"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-3">No Layout Created Yet</h2>
+                <p class="text-slate-600 mb-6">
+                    You haven't set up a booth layout for this event yet. Create a layout to organize your event space and manage booth bookings.
+                </p>
+            </div>
+        </div>
+        @endif
 
     </div>
 
@@ -611,6 +628,10 @@ $rows[] = [
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Show loader
+            const pageLoader = document.getElementById('pageLoader');
+            if (pageLoader) pageLoader.classList.remove('hidden');
+
             // Add click handlers to floor buttons
             document.querySelectorAll('.floor-item').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -619,8 +640,18 @@ $rows[] = [
                 });
             });
 
-            // Load the first floor by default
-            loadLayout(currentFloorNumber);
+            // Load the first floor by default only if floors exist
+            if (allFloorsData.length > 0) {
+                loadLayout(currentFloorNumber).finally(() => {
+                    // Hide loader after loading
+                    if (pageLoader) pageLoader.classList.add('hidden');
+                });
+            } else {
+                // No layout exists, update button accordingly
+                updateActionButton(false);
+                // Hide loader
+                if (pageLoader) pageLoader.classList.add('hidden');
+            }
         });
 
         // Zoom functions

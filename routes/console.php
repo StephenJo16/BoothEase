@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Schedule event status updates to run every minute for real-time accuracy
 Schedule::command('events:update-statuses')->everyMinute();
+
+// Schedule booking status updates to run every minute for real-time accuracy
+Schedule::command('bookings:update-statuses')->everyMinute();
