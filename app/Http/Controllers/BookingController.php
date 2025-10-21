@@ -18,6 +18,9 @@ class BookingController extends Controller
      */
     public function index()
     {
+        // Update booking statuses before loading
+        $this->updateBookingStatuses();
+
         // Get all bookings with related booth and event data
         $bookings = Booking::with(['booth.event.category', 'user'])
             ->orderBy('created_at', 'desc')
@@ -120,11 +123,11 @@ class BookingController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            // Update booth status to booked
-            $booth->update(['status' => 'booked']);
+            // Update booth status to pending (will become 'booked' after payment)
+            $booth->update(['status' => 'pending']);
 
             return redirect()->route('my-bookings')
-                ->with('success', 'Booking request submitted successfully! Your booking is pending confirmation. We will contact you shortly.');
+                ->with('success', 'Booking request submitted successfully! Your booking is pending confirmation.');
         } catch (\Exception $e) {
             Log::error('Booking creation failed: ' . $e->getMessage());
 
@@ -139,6 +142,9 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
+        // Update booking statuses before loading
+        $this->updateBookingStatuses();
+
         // Load relationships
         $booking->load([
             'booth.event.category',
@@ -302,7 +308,8 @@ class BookingController extends Controller
             if ($targetStatus === 'rejected') {
                 $booking->booth?->update(['status' => 'available']);
             } elseif ($targetStatus === 'confirmed') {
-                $booking->booth?->update(['status' => 'booked']);
+                // Keep booth as 'pending' until payment is completed
+                $booking->booth?->update(['status' => 'pending']);
             }
         });
 
@@ -331,5 +338,28 @@ class BookingController extends Controller
             ->firstOrFail();
 
         return [$event, $booking];
+    }
+
+    /**
+     * Update booking statuses based on associated event date and time
+     */
+    private function updateBookingStatuses(): void
+    {
+        $now = now();
+
+        // Update bookings to 'ongoing' status when event has started
+        Booking::whereHas('booth.event', function ($query) use ($now) {
+            $query->where('start_time', '<=', $now)
+                ->where('end_time', '>=', $now);
+        })
+            ->whereIn('status', ['pending', 'confirmed', 'paid'])
+            ->update(['status' => 'ongoing']);
+
+        // Update bookings to 'completed' status when event has ended
+        Booking::whereHas('booth.event', function ($query) use ($now) {
+            $query->where('end_time', '<', $now);
+        })
+            ->whereIn('status', ['pending', 'confirmed', 'paid', 'ongoing'])
+            ->update(['status' => 'completed']);
     }
 }

@@ -83,8 +83,8 @@ $rows[] = [
 $boothCount = count($rows);
 $boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 1 ? '1 booth configured' : "$boothCount booths configured");
 
-// Paid Bookings Data
-$paidBookings = $event->booths->flatMap->bookings->where('status', 'paid');
+// Paid Bookings Data (including ongoing and completed)
+$paidBookings = $event->booths->flatMap->bookings->whereIn('status', ['paid', 'ongoing', 'completed']);
 $paidBookingsCount = $paidBookings->count();
 $totalRevenue = $paidBookings->sum('total_price');
 
@@ -199,7 +199,7 @@ $paidBookingRows[] = [
                         $totalBookings = $event->booths->flatMap->bookings->count();
                         $pendingBookings = $event->booths->flatMap->bookings->where('status', 'pending')->count();
                         $confirmedBookings = $event->booths->flatMap->bookings->where('status', 'confirmed')->count();
-                        $paidBookings = $event->booths->flatMap->bookings->where('status', 'paid')->count();
+                        $paidBookings = $event->booths->flatMap->bookings->whereIn('status', ['paid', 'ongoing', 'completed'])->count();
                         $cancelledBookings = $event->booths->flatMap->bookings->where('status', 'cancelled')->count();
                         @endphp
 

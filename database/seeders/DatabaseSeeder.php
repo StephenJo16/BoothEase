@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // IMPORTANT: Seed roles first before anything else
+        $this->call(RoleSeeder::class);
+        $this->call(CategorySeeder::class);
+
         // User::factory(10)->create();
 
         // User::factory()->create([
@@ -23,7 +27,5 @@ class DatabaseSeeder extends Seeder
         //     'phone_number' => '1234567890',
         //     'role_id' => 1
         // ]);
-        // $this->call(RoleSeeder::class);
-        $this->call(CategorySeeder::class);
     }
 }

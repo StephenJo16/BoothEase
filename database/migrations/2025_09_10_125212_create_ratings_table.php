@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('ratings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->integer('rating'); // e.g., 1 to 5
-            $table->string('rating_type'); // e.g., 'event', 'booth', 'organizer'
-            $table->text('feedback')->nullable();
+            $table->foreignId('rater_id')->constrained('users')->onDelete('cascade'); // User who gives the rating
+            $table->foreignId('ratee_id')->constrained('users')->onDelete('cascade'); // User who receives the rating (event organizer)
+            $table->integer('rating'); // 1 to 5 stars
+            $table->text('feedback')->nullable(); // Optional comment
             $table->timestamps();
         });
     }
