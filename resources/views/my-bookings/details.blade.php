@@ -345,7 +345,18 @@ if (strlen($rest) <= 3) {
                                     <i class="fas fa-check-circle"></i>
                                 </div>
                                 <h3 class="text-xl font-semibold text-gray-900 mb-2">Thank You!</h3>
-                                <p class="text-gray-600">Your rating has been submitted successfully.</p>
+                                <p class="text-gray-600 mb-4">Your rating has been submitted successfully.</p>
+
+                                <!-- Display submitted rating -->
+                                <div class="mt-6 pt-6 border-t border-gray-200">
+                                    <p class="text-sm font-medium text-gray-700 mb-2">Your Rating</p>
+                                    <div class="flex justify-center gap-1 mb-4" id="submitted-stars">
+                                        <!-- Stars will be populated by JavaScript -->
+                                    </div>
+                                    <div id="submitted-feedback" class="text-left bg-gray-50 rounded-lg p-4 text-sm text-gray-700 hidden">
+                                        <!-- Feedback will be populated by JavaScript -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endif
@@ -523,10 +534,31 @@ if (strlen($rest) <= 3) {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        if (data.has_rated) {
+                        if (data.has_rated && data.rating) {
                             // User has already rated, show thank you message
                             ratingForm.classList.add('hidden');
                             thankYouMessage.classList.remove('hidden');
+
+                            // Display the submitted rating stars
+                            const submittedStars = document.getElementById('submitted-stars');
+                            const userRating = data.rating.rating;
+
+                            for (let i = 1; i <= 5; i++) {
+                                const starIcon = document.createElement('i');
+                                if (i <= userRating) {
+                                    starIcon.className = 'fas fa-star text-[#ff7700] text-2xl';
+                                } else {
+                                    starIcon.className = 'far fa-star text-gray-300 text-2xl';
+                                }
+                                submittedStars.appendChild(starIcon);
+                            }
+
+                            // Display the feedback if available
+                            if (data.rating.feedback) {
+                                const feedbackDiv = document.getElementById('submitted-feedback');
+                                feedbackDiv.textContent = data.rating.feedback;
+                                feedbackDiv.classList.remove('hidden');
+                            }
                         }
                     })
                     .catch(error => {
@@ -602,6 +634,27 @@ if (strlen($rest) <= 3) {
                                 // Show thank you message
                                 ratingForm.classList.add('hidden');
                                 thankYouMessage.classList.remove('hidden');
+
+                                // Display the submitted rating stars
+                                const submittedStars = document.getElementById('submitted-stars');
+                                submittedStars.innerHTML = ''; // Clear any existing stars
+
+                                for (let i = 1; i <= 5; i++) {
+                                    const starIcon = document.createElement('i');
+                                    if (i <= rating) {
+                                        starIcon.className = 'fas fa-star text-[#ff7700] text-2xl';
+                                    } else {
+                                        starIcon.className = 'far fa-star text-gray-300 text-2xl';
+                                    }
+                                    submittedStars.appendChild(starIcon);
+                                }
+
+                                // Display the feedback if available
+                                if (feedback) {
+                                    const feedbackDiv = document.getElementById('submitted-feedback');
+                                    feedbackDiv.textContent = feedback;
+                                    feedbackDiv.classList.remove('hidden');
+                                }
                             } else {
                                 alert('❌ ' + (data.message || 'Failed to submit rating'));
                                 submitBtn.disabled = false;

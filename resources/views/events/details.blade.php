@@ -322,7 +322,7 @@ $rows[] = [
                             <!-- Reviews Tab -->
                             <div id="reviews" class="tab-content p-6 hidden">
                                 <div class="flex items-center justify-between mb-6">
-                                    <h3 class="text-lg font-semibold text-gray-900">Reviews ({{ number_format($totalReviews) }})</h3>
+                                    <h3 class="text-lg font-semibold text-gray-900">Organizer Reviews ({{ number_format($totalReviews) }})</h3>
                                     @if($averageRating > 0)
                                     <div class="flex items-center">
                                         <div class="flex text-[#ff7700] mr-2">
@@ -340,16 +340,22 @@ $rows[] = [
                                     </div>
                                     @endif
                                 </div>
+                                <p class="text-sm text-gray-600 mb-4">Reviews from tenants across all events organized by {{ $event->user->name ?? 'this organizer' }}</p>
                                 <div class="space-y-4">
-                                    @forelse($event->ratings as $rating)
+                                    @forelse($organizerRatings as $rating)
                                     <div class="border-b border-gray-200 pb-4 last:border-b-0">
                                         <div class="flex items-start space-x-3">
                                             <div class="bg-[#ff7700] text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold">
-                                                {{ strtoupper(substr($rating->user->name ?? 'A', 0, 1)) }}{{ strtoupper(substr(explode(' ', $rating->user->name ?? 'N')[1] ?? '', 0, 1)) }}
+                                                {{ strtoupper(substr($rating->rater->name ?? 'A', 0, 1)) }}{{ strtoupper(substr(explode(' ', $rating->rater->name ?? 'N')[1] ?? '', 0, 1)) }}
                                             </div>
                                             <div class="flex-1">
                                                 <div class="flex items-center justify-between mb-1">
-                                                    <h4 class="font-medium text-gray-900">{{ $rating->user->name ?? 'Anonymous' }}</h4>
+                                                    <div>
+                                                        <h4 class="font-medium text-gray-900">{{ $rating->rater->name ?? 'Anonymous' }}</h4>
+                                                        @if($rating->event_id !== $event->id && $rating->event)
+                                                        <p class="text-xs text-gray-500">from event: {{ $rating->event->title }}</p>
+                                                        @endif
+                                                    </div>
                                                     <span class="text-sm text-gray-500">{{ $rating->created_at->diffForHumans() }}</span>
                                                 </div>
                                                 <div class="flex text-[#ff7700] mb-2">
@@ -369,7 +375,7 @@ $rows[] = [
                                     @empty
                                     <div class="text-center py-8 text-gray-500">
                                         <i class="far fa-star text-4xl mb-2"></i>
-                                        <p>No reviews yet. Be the first to review this event!</p>
+                                        <p>No reviews yet for this organizer.</p>
                                     </div>
                                     @endforelse
                                 </div>

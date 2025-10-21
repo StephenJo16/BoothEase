@@ -42,35 +42,6 @@
             background: white;
             border-radius: 0 2px 2px 0;
         }
-
-        /* Adjust grid for mobile when no floor selector */
-        @media (min-width: 1024px) {
-            #mainContentGrid.no-floors {
-                grid-template-columns: 1fr 380px !important;
-            }
-        }
-
-        /* Mobile: horizontal floor selector */
-        @media (max-width: 1023px) {
-            #mainContentGrid {
-                grid-template-columns: 1fr !important;
-            }
-
-            #floorSelectorContainer {
-                order: -1;
-            }
-
-            #floorList {
-                flex-direction: row !important;
-                overflow-x: auto;
-                padding-bottom: 0.5rem;
-            }
-
-            .floor-item {
-                flex-shrink: 0;
-                min-width: 140px;
-            }
-        }
     </style>
 </head>
 
@@ -111,21 +82,15 @@
             </div>
         </div>
 
-        <!-- Main Content Grid with Floor Selector Sidebar -->
-        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-[140px_1fr_380px] gap-6">
-            <!-- Floor Selector Sidebar -->
-            <div id="floorSelectorContainer" class="bg-white rounded-xl shadow-lg border border-slate-200 p-4 hidden">
-                <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center">
-                    <i class="fas fa-layer-group mr-2 text-[#ff7700]"></i>
-                    Floors
-                </h4>
-                <div id="floorList" class="flex flex-col gap-2">
-                    <!-- Floor buttons will be populated here -->
-                </div>
-            </div>
-
+        <!-- Main Content Grid -->
+        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <!-- Floor Pills -->
+                <div id="floorPills" class="mb-4 flex flex-wrap gap-2 hidden">
+                    <!-- Floor buttons will be populated here -->
+                </div>
+
                 <div class="mb-4 flex items-center justify-between">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800 flex items-center">
@@ -441,23 +406,19 @@
         }
 
         function renderFloorTabs() {
-            const floorListContainer = document.getElementById('floorList');
-            const floorSelectorContainer = document.getElementById('floorSelectorContainer');
-            const mainGrid = document.getElementById('mainContentGrid');
+            const floorPillsContainer = document.getElementById('floorPills');
 
             if (allFloors.length <= 1) {
-                floorSelectorContainer.classList.add('hidden');
-                mainGrid.classList.add('no-floors');
+                floorPillsContainer.classList.add('hidden');
                 return;
             }
 
-            floorSelectorContainer.classList.remove('hidden');
-            mainGrid.classList.remove('no-floors');
-            floorListContainer.innerHTML = '';
+            floorPillsContainer.classList.remove('hidden');
+            floorPillsContainer.innerHTML = '';
 
             allFloors.forEach(floor => {
                 const button = document.createElement('button');
-                button.className = `floor-item px-4 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-between gap-2 ${
+                button.className = `floor-item px-4 py-2 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2 ${
                     floor.floor_number === currentFloor ? 'active' : ''
                 }`;
                 button.setAttribute('data-floor', floor.floor_number);
@@ -471,7 +432,7 @@
                     <span class="${badgeClass}">${floor.booth_count}</span>
                 `;
                 button.onclick = () => switchFloor(floor.floor_number);
-                floorListContainer.appendChild(button);
+                floorPillsContainer.appendChild(button);
             });
         }
         async function switchFloor(floorNumber) {

@@ -186,6 +186,8 @@ class PaymentController extends Controller
             // Update booking status if payment is completed
             if ($payment->payment_status === 'completed') {
                 $payment->booking->update(['status' => 'paid']);
+                // Update booth status to 'booked' after successful payment
+                $payment->booking->booth?->update(['status' => 'booked']);
             }
 
             return response()->json(['message' => 'Callback processed']);
@@ -266,16 +268,18 @@ class PaymentController extends Controller
                         $payment->payment_date = now();
                         $payment->save();
 
-                        // Update booking status
+                        // Update booking status and booth status
                         $payment->booking->update(['status' => 'paid']);
+                        $payment->booking->booth?->update(['status' => 'booked']);
                     }
                 } else if ($transactionStatus == 'settlement') {
                     $payment->payment_status = 'completed';
                     $payment->payment_date = now();
                     $payment->save();
 
-                    // Update booking status
+                    // Update booking status and booth status
                     $payment->booking->update(['status' => 'paid']);
+                    $payment->booking->booth?->update(['status' => 'booked']);
                 } else if (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
                     $payment->payment_status = 'failed';
                     $payment->save();

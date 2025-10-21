@@ -102,19 +102,21 @@ class EventController extends Controller
             'user',
             'booths' => function ($query) {
                 $query->orderBy('number');
-            },
-            'ratings' => function ($query) {
-                $query->with('user')
-                    ->latest()
-                    ->limit(10);
             }
         ]);
 
-        // Calculate average rating
-        $averageRating = $event->ratings()
+        // Load all ratings for the organizer (across all events)
+        $organizerRatings = \App\Models\Rating::with(['rater', 'ratee', 'event'])
+            ->where('ratee_id', $event->user_id)
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        // Calculate average rating for the organizer (across all events)
+        $averageRating = \App\Models\Rating::where('ratee_id', $event->user_id)
             ->avg('rating');
 
-        $totalReviews = $event->ratings()
+        $totalReviews = \App\Models\Rating::where('ratee_id', $event->user_id)
             ->count();
 
         // Get booth statistics
@@ -139,6 +141,7 @@ class EventController extends Controller
 
         return view('events.details', [
             'event' => $event,
+            'organizerRatings' => $organizerRatings,
             'averageRating' => $averageRating ? round($averageRating, 1) : 0,
             'totalReviews' => $totalReviews,
             'totalBooths' => $totalBooths,

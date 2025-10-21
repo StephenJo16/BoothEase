@@ -181,26 +181,22 @@ $rows[] = [
 
         <!-- Main Content Grid -->
         @if($allFloors->count() > 0)
-        <div class="grid grid-cols-1 lg:grid-cols-[140px_1fr_320px] gap-6" id="mainContentGrid" data-floors='@json($allFloors)' data-booths='@json($booths)'>
-            <!-- Floor Selector Sidebar -->
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
-                <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center">
-                    <i class="fas fa-layer-group mr-2 text-[#ff7700]"></i>
-                    Floors
-                </h4>
-                <div id="floorList" class="flex flex-col gap-2">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6" id="mainContentGrid" data-floors='@json($allFloors)' data-booths='@json($booths)'>
+            <!-- Canvas Section -->
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <!-- Floor Pills -->
+                @if($allFloors->count() > 1)
+                <div id="floorPills" class="mb-4 flex flex-wrap gap-2">
                     @foreach($allFloors as $floor)
-                    <button class="floor-item px-4 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-between gap-2 {{ $loop->first ? 'active' : '' }}"
+                    <button class="floor-item px-4 py-2 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2 {{ $loop->first ? 'active' : '' }}"
                         data-floor="{{ $floor->floor_number }}">
                         <span class="font-semibold text-sm">{{ $floor->floor_name }}</span>
                         <span class="text-xs {{ $loop->first ? 'bg-white/30' : 'bg-slate-300' }} px-2 py-0.5 rounded-full">{{ $floor->booth_count }}</span>
                     </button>
                     @endforeach
                 </div>
-            </div>
+                @endif
 
-            <!-- Canvas Section -->
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <!-- Zoom Controls -->
                 <div class="mb-4 flex items-center justify-between">
                     <h2 class="text-lg font-bold text-slate-800">Layout View</h2>
