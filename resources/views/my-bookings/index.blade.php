@@ -224,7 +224,7 @@ $filterTabs = [
 
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
-                            @if(in_array($booking->status, ['confirmed', 'pending', 'ongoing']))
+                            @if($booking->status === 'paid')
                             <button class="hover:cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 Request Refund
                             </button>

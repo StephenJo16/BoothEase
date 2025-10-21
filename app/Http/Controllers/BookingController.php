@@ -124,7 +124,7 @@ class BookingController extends Controller
             $booth->update(['status' => 'booked']);
 
             return redirect()->route('my-bookings')
-                ->with('success', 'Booking request submitted successfully! Your booking is pending confirmation. We will contact you shortly.');
+                ->with('success', 'Booking request submitted successfully! Your booking is pending confirmation.');
         } catch (\Exception $e) {
             Log::error('Booking creation failed: ' . $e->getMessage());
 

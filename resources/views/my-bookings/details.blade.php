@@ -283,6 +283,73 @@ if (strlen($rest) <= 3) {
                             </div>
                         </div>
 
+                        <!-- Rating Section (only for completed bookings) -->
+                        @if($booking->status === 'completed')
+                        <div class="bg-white rounded-lg shadow-md p-6" id="rating-section">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Rate Your Experience</h2>
+
+                            <div id="rating-form">
+                                <div class="space-y-4">
+                                    <!-- Star Rating -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+                                        <div class="flex gap-2" id="star-rating">
+                                            <button type="button" class="star-btn text-3xl text-gray-300 hover:text-[#ff7700] transition-colors duration-200" data-rating="1">
+                                                <i class="far fa-star"></i>
+                                            </button>
+                                            <button type="button" class="star-btn text-3xl text-gray-300 hover:text-[#ff7700] transition-colors duration-200" data-rating="2">
+                                                <i class="far fa-star"></i>
+                                            </button>
+                                            <button type="button" class="star-btn text-3xl text-gray-300 hover:text-[#ff7700] transition-colors duration-200" data-rating="3">
+                                                <i class="far fa-star"></i>
+                                            </button>
+                                            <button type="button" class="star-btn text-3xl text-gray-300 hover:text-[#ff7700] transition-colors duration-200" data-rating="4">
+                                                <i class="far fa-star"></i>
+                                            </button>
+                                            <button type="button" class="star-btn text-3xl text-gray-300 hover:text-[#ff7700] transition-colors duration-200" data-rating="5">
+                                                <i class="far fa-star"></i>
+                                            </button>
+                                        </div>
+                                        <input type="hidden" id="rating-value" value="0">
+                                        <p class="text-sm text-red-600 mt-1 hidden" id="rating-error">Please select a rating</p>
+                                    </div>
+
+                                    <!-- Feedback/Comment (Optional) -->
+                                    <div>
+                                        <label for="feedback" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Comment <span class="text-gray-500 text-xs">(Optional)</span>
+                                        </label>
+                                        <textarea
+                                            id="feedback"
+                                            rows="4"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none"
+                                            placeholder="Share your experience with this event..."
+                                            maxlength="1000"></textarea>
+                                        <p class="text-xs text-gray-500 mt-1">Maximum 1000 characters</p>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <button
+                                        type="button"
+                                        id="submit-rating-btn"
+                                        class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-paper-plane mr-2"></i>
+                                        Submit Rating
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Thank You Message (Hidden initially) -->
+                            <div id="rating-thank-you" class="hidden text-center py-8">
+                                <div class="text-[#ff7700] text-5xl mb-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2">Thank You!</h3>
+                                <p class="text-gray-600">Your rating has been submitted successfully.</p>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Payment Details -->
                         @if(in_array($booking->status, ['confirmed', 'cancelled', 'paid', 'ongoing', 'completed']))
                         <div class="bg-white rounded-lg shadow-md p-6">
@@ -430,6 +497,127 @@ if (strlen($rest) <= 3) {
 
         <!-- Footer -->
         @include('components.footer')
+
+        <!-- Rating System Script -->
+        @if($booking->status === 'completed')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const starButtons = document.querySelectorAll('.star-btn');
+                const ratingValue = document.getElementById('rating-value');
+                const ratingError = document.getElementById('rating-error');
+                const submitBtn = document.getElementById('submit-rating-btn');
+                const feedbackInput = document.getElementById('feedback');
+                const ratingForm = document.getElementById('rating-form');
+                const thankYouMessage = document.getElementById('rating-thank-you');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                let selectedRating = 0;
+
+                // Check if user has already rated
+                fetch('{{ route("rating.check", $booking->id) }}', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken || ''
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.has_rated) {
+                            // User has already rated, show thank you message
+                            ratingForm.classList.add('hidden');
+                            thankYouMessage.classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking rating status:', error);
+                    });
+
+                // Star rating interaction
+                starButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        selectedRating = parseInt(this.getAttribute('data-rating'));
+                        ratingValue.value = selectedRating;
+                        ratingError.classList.add('hidden');
+
+                        // Update star display
+                        updateStars(selectedRating);
+                    });
+
+                    // Hover effect
+                    button.addEventListener('mouseenter', function() {
+                        const hoverRating = parseInt(this.getAttribute('data-rating'));
+                        updateStars(hoverRating);
+                    });
+                });
+
+                // Reset stars on mouse leave
+                document.getElementById('star-rating').addEventListener('mouseleave', function() {
+                    updateStars(selectedRating);
+                });
+
+                function updateStars(rating) {
+                    starButtons.forEach((btn, index) => {
+                        const star = btn.querySelector('i');
+                        if (index < rating) {
+                            star.classList.remove('far', 'text-gray-300');
+                            star.classList.add('fas', 'text-[#ff7700]');
+                        } else {
+                            star.classList.remove('fas', 'text-[#ff7700]');
+                            star.classList.add('far', 'text-gray-300');
+                        }
+                    });
+                }
+
+                // Submit rating
+                submitBtn.addEventListener('click', function() {
+                    const rating = parseInt(ratingValue.value);
+                    const feedback = feedbackInput.value.trim();
+
+                    // Validate rating
+                    if (rating < 1 || rating > 5) {
+                        ratingError.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Disable button and show loading
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+
+                    // Submit the rating
+                    fetch('{{ route("rating.store", $booking->id) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken || ''
+                            },
+                            body: JSON.stringify({
+                                rating: rating,
+                                feedback: feedback || null
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Show thank you message
+                                ratingForm.classList.add('hidden');
+                                thankYouMessage.classList.remove('hidden');
+                            } else {
+                                alert('❌ ' + (data.message || 'Failed to submit rating'));
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Rating';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('❌ An error occurred while submitting your rating');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Rating';
+                        });
+                });
+            });
+        </script>
+        @endif
 
         <!-- Check Payment Status Script -->
         @if($booking->payment && $booking->payment->payment_status === 'pending')

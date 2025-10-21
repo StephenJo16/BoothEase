@@ -135,6 +135,11 @@ Route::middleware('auth')->group(function () {
 // Midtrans callback (no auth required)
 Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
 
+// Rating routes
+Route::middleware('auth')->group(function () {
+    Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'store'])->name('rating.store');
+    Route::get('/bookings/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkRating'])->name('rating.check');
+});
 
 
 Route::get('/booth-layout', function (Request $request) {

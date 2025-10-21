@@ -281,7 +281,7 @@ $rows[] = [
                                                 <i class="fas fa-users mr-3 text-[#ff7700]"></i>
                                                 <div>
                                                     <p class="text-sm text-gray-600">Capacity</p>
-                                                    <p class="font-medium">{{ number_format($event->capacity) }} attendees</p>
+                                                    <p class="font-medium">{{ number_format($event->capacity) }} tenants</p>
                                                 </div>
                                             </div>
                                             @endif

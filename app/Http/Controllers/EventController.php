@@ -104,8 +104,7 @@ class EventController extends Controller
                 $query->orderBy('number');
             },
             'ratings' => function ($query) {
-                $query->where('rating_type', 'event')
-                    ->with('user')
+                $query->with('user')
                     ->latest()
                     ->limit(10);
             }
@@ -113,11 +112,9 @@ class EventController extends Controller
 
         // Calculate average rating
         $averageRating = $event->ratings()
-            ->where('rating_type', 'event')
             ->avg('rating');
 
         $totalReviews = $event->ratings()
-            ->where('rating_type', 'event')
             ->count();
 
         // Get booth statistics

@@ -58,4 +58,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    /**
+     * Get the ratings given by this user.
+     */
+    public function ratingsGiven()
+    {
+        return $this->hasMany(Rating::class, 'rater_id');
+    }
+
+    /**
+     * Get the ratings received by this user.
+     */
+    public function ratingsReceived()
+    {
+        return $this->hasMany(Rating::class, 'ratee_id');
+    }
 }

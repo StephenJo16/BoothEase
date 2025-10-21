@@ -12,9 +12,9 @@ class Rating extends Model
 
     protected $fillable = [
         'event_id',
-        'user_id',
+        'rater_id',
+        'ratee_id',
         'rating',
-        'rating_type',
         'feedback',
     ];
 
@@ -23,8 +23,13 @@ class Rating extends Model
         return $this->belongsTo(Event::class);
     }
 
-    public function user(): BelongsTo
+    public function rater(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'rater_id');
+    }
+
+    public function ratee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ratee_id');
     }
 }
