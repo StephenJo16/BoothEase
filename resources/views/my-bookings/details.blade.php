@@ -19,14 +19,6 @@
 </head>
 
 @php
-// Helper to format rupiah with dot thousand separators
-if (!function_exists('formatRupiah')) {
-function formatRupiah($value) {
-$digits = preg_replace('/\D/', '', (string) $value);
-$num = $digits === '' ? 0 : intval($digits);
-return 'Rp' . number_format($num, 0, ',', '.');
-}
-}
 
 if (!function_exists('formatPhoneNumber')) {
 function formatPhoneNumber($number) {
@@ -473,10 +465,12 @@ if (strlen($rest) <= 3) {
                                 </button>
                             </a>
                             @else
-                            <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-download mr-2"></i>
-                                Download Invoice
-                            </button>
+                            <a href="{{ route('booking.invoice', $booking->id) }}">
+                                <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download Invoice
+                                </button>
+                            </a>
                             <a href="{{ route('request-refund') }}">
                                 <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                     <i class="fas fa-undo mr-2"></i>
@@ -487,10 +481,12 @@ if (strlen($rest) <= 3) {
                         </div>
                         @elseif($booking->status === 'paid' || $booking->status === 'completed')
                         <div class="space-y-3">
-                            <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-download mr-2"></i>
-                                Download Invoice
-                            </button>
+                            <a href="{{ route('booking.invoice', $booking->id) }}">
+                                <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download Invoice
+                                </button>
+                            </a>
                             @if($booking->status !== 'completed')
                             <a href="{{ route('request-refund') }}">
                                 <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">

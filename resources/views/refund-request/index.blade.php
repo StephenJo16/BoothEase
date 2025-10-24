@@ -18,14 +18,6 @@
 </head>
 
 @php
-// Helper to format rupiah (reusable)
-if (!function_exists('formatRupiah')) {
-function formatRupiah($value) {
-$digits = preg_replace('/\D/', '', (string) $value);
-$num = $digits === '' ? 0 : intval($digits);
-return 'Rp' . number_format($num, 0, ',', '.');
-}
-}
 
 // Mock refund requests (would come from DB in real app)
 $refundRequests = [

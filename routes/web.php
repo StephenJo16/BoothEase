@@ -74,6 +74,8 @@ Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookin
 
 Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
 
+Route::get('/my-bookings/{booking}/invoice', [BookingController::class, 'downloadInvoice'])->name('booking.invoice')->middleware('auth');
+
 Route::get('/my-events/details', function () {
     return view('my-events.details');
 })->name('my-event-details');

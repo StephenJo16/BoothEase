@@ -18,14 +18,6 @@
 </head>
 
 @php
-// Reuse formatter
-if (!function_exists('formatRupiah')) {
-function formatRupiah($value) {
-$digits = preg_replace('/\D/', '', (string) $value);
-$num = $digits === '' ? 0 : intval($digits);
-return 'Rp' . number_format($num, 0, ',', '.');
-}
-}
 
 // Mocked refund request data for REQ-0001 (Pegasus Peripherals)
 $refund = [
