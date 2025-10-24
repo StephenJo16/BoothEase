@@ -28,15 +28,6 @@ $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
 $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
 $deadlineFormatted = $event->registration_deadline ? $event->registration_deadline->format('d M Y') : null;
 
-// Helper to format rupiah with dot thousand separators
-if (!function_exists('formatRupiah')) {
-function formatRupiah($value) {
-$digits = preg_replace('/\D/', '', (string) $value);
-$num = $digits === '' ? 0 : intval($digits);
-return 'Rp' . number_format($num, 0, ',', '.');
-}
-}
-
 // Define table headers
 $headers = [
 ['title' => 'Booth Number', 'class' => 'text-left'],
