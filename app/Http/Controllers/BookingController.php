@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class BookingController extends Controller
 {
@@ -361,5 +362,53 @@ class BookingController extends Controller
         })
             ->whereIn('status', ['pending', 'confirmed', 'paid', 'ongoing'])
             ->update(['status' => 'completed']);
+    }
+
+    /**
+     * Download invoice for a booking
+     */
+    public function downloadInvoice(Request $request, Booking $booking)
+    {
+        // Load relationships
+        $booking->load([
+            'booth.event.category',
+            'booth.event.user',
+            'user',
+            'payment'
+        ]);
+
+        // Check if user is authorized to download this invoice
+        if ($request->user()->id !== $booking->user_id) {
+            abort(403, 'Unauthorized access to this invoice.');
+        }
+
+        // Check if booking has payment completed
+        if (!$booking->payment || $booking->payment->payment_status !== 'completed') {
+            return redirect()->back()->with('error', 'Invoice is only available for completed payments.');
+        }
+
+        $event = $booking->booth->event;
+        $booth = $booking->booth;
+
+        // Prepare data for invoice
+        $data = [
+            'booking' => $booking,
+            'event' => $event,
+            'booth' => $booth,
+            'user' => $booking->user,
+            'payment' => $booking->payment,
+            'invoiceNumber' => 'INV-' . str_pad($booking->id, 6, '0', STR_PAD_LEFT),
+            'invoiceDate' => $booking->payment->updated_at ?? $booking->payment->created_at ?? now(),
+        ];
+
+        // Generate PDF with options to support PNG images
+        $pdf = PDF::setOptions([
+            'isRemoteEnabled' => true,
+            'isHtml5ParserEnabled' => true,
+        ])->loadView('invoices.booking', $data);
+
+        // Download the PDF
+        $filename = 'invoice-' . str_pad($booking->id, 6, '0', STR_PAD_LEFT) . '.pdf';
+        return $pdf->download($filename);
     }
 }
