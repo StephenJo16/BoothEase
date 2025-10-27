@@ -139,6 +139,16 @@ class EventController extends Controller
         $now = now();
         $isRegistrationOpen = is_null($event->registration_deadline) || $event->registration_deadline >= $now;
 
+        $completedEvents = Event::where('user_id', $event->user_id)
+            ->where('status', Event::STATUS_COMPLETED)
+            ->count();
+
+        $completedBookings = \App\Models\Booking::whereHas('booth.event', function ($query) use ($event) {
+            $query->where('user_id', $event->user_id);
+        })
+            ->where('status', 'completed')
+            ->count();
+
         return view('events.details', [
             'event' => $event,
             'organizerRatings' => $organizerRatings,
@@ -150,6 +160,8 @@ class EventController extends Controller
             'minPrice' => $minPrice,
             'maxPrice' => $maxPrice,
             'isRegistrationOpen' => $isRegistrationOpen,
+            'completedEvents' => $completedEvents,
+            'completedBookings' => $completedBookings,
         ]);
     }
 
