@@ -303,6 +303,17 @@ $rows[] = [
                                     </div>
                                     <div class="border-t pt-4">
                                         <h5 class="font-semibold text-gray-900 mb-3">About this Organizer</h5>
+                                        <!-- Statistics Grid -->
+                                        <div class="grid grid-cols-2 gap-4 mb-4">
+                                            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                                                <div class="text-2xl font-bold text-[#ff7700]">{{ $completedEvents ?? 0 }}</div>
+                                                <div class="text-sm text-gray-600 mt-1">Events Completed</div>
+                                            </div>
+                                            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                                                <div class="text-2xl font-bold text-[#ff7700]">{{ $completedBookings ?? 0 }}</div>
+                                                <div class="text-sm text-gray-600 mt-1">Completed Bookings</div>
+                                            </div>
+                                        </div>
                                         <p class="text-sm text-gray-600">
                                             This event is organized by {{ $event->user->name ?? 'the event organizer' }}.
                                             For any inquiries or questions about this event, please use the contact button below.
