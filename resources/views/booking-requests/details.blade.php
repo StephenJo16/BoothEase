@@ -17,6 +17,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
+@php
 if (!function_exists('formatPhoneNumber')) {
 function formatPhoneNumber($number) {
 $digits = preg_replace('/\D+/', '', (string) $number);

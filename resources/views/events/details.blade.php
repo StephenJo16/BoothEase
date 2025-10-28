@@ -115,12 +115,6 @@ $rows[] = [
                             <div class="p-8">
                                 <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $event->title }}</h1>
                                 <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
-                                    @if($totalReviews > 0)
-                                    <div class="flex items-center">
-                                        <i class="fas fa-star mr-2 text-[#ff7700]"></i>
-                                        <span>{{ $averageRating }} ({{ number_format($totalReviews) }} Reviews)</span>
-                                    </div>
-                                    @endif
                                     <div class="flex items-center">
                                         <i class="fas fa-store mr-2 text-[#ff7700]"></i>
                                         <span>{{ $availableBooths }} / {{ $totalBooths }} Booths Available</span>
