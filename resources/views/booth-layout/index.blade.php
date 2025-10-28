@@ -150,6 +150,14 @@
                                 <i class="fas fa-restroom"></i>
                                 Toilet
                             </button>
+                            <button class="px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('stairs')">
+                                <i class="fas fa-stairs"></i>
+                                Stairs
+                            </button>
+                            <button class="px-4 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('elevator')">
+                                <i class="fas fa-elevator"></i>
+                                Elevator
+                            </button>
 
                             <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700 mt-2">Actions:</div>
                             <button class="px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
@@ -266,6 +274,22 @@
                 defaultLabel: 'Toilet',
                 width: 80,
                 height: 80
+            },
+            stairs: {
+                color: '#fff3e0',
+                strokeColor: '#fb8c00',
+                textColor: '#e65100',
+                defaultLabel: 'Stairs',
+                width: 80,
+                height: 80
+            },
+            elevator: {
+                color: '#e0f7fa',
+                strokeColor: '#00acc1',
+                textColor: '#007c91',
+                defaultLabel: 'Elevator',
+                width: 80,
+                height: 80
             }
         };
 
@@ -276,7 +300,9 @@
             parking: 1,
             entrance: 1,
             exit: 1,
-            toilet: 1
+            toilet: 1,
+            stairs: 1,
+            elevator: 1
         };
 
         // Helper function to format Rupiah
@@ -1014,18 +1040,19 @@
                     type: 'toilet',
                     x: 100,
                     y: 350,
-                    label: 'Restroom'
+                    label: 'Toilet 1'
                 }
             ];
 
             sampleElements.forEach(item => {
                 const element = createElement(item.type, item.x, item.y, item.label, item.props || {});
                 canvas.add(element);
-                if (item.type === 'booth') {
-                    const match = item.label.match(/Booth (\d+)/);
-                    if (match) {
-                        const num = parseInt(match[1]);
-                        elementCounters.booth = Math.max(elementCounters.booth, num + 1);
+                // If the sample element label contains a trailing number, update that type's counter
+                const match = item.label && item.label.toString().match(/(\d+)\s*$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (item.type && elementCounters[item.type] !== undefined) {
+                        elementCounters[item.type] = Math.max(elementCounters[item.type], num + 1);
                     }
                 }
             });

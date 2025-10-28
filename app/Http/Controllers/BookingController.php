@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateBookingRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
@@ -23,14 +24,22 @@ class BookingController extends Controller
         $this->updateBookingStatuses();
 
         // Get all bookings with related booth and event data
+        // Only load bookings for the authenticated user
+        $userId = Auth::id();
+
         $bookings = Booking::with(['booth.event.category', 'user'])
+            ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Calculate statistics
         $totalBookings = $bookings->count();
         $confirmedBookings = $bookings->where('status', 'confirmed')->count();
-        $totalSpent = $bookings->where('status', 'confirmed')->sum('total_price');
+        // Compute total spent across the user's paid/completed bookings.
+        // Use a DB-level sum so this works even if bookings are later paginated.
+        $totalSpent = Booking::where('user_id', $userId)
+            ->whereIn('status', ['paid', 'completed'])
+            ->sum('total_price');
 
         // Group bookings by status for filtering
         $bookingsByStatus = [
