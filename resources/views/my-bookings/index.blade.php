@@ -66,23 +66,14 @@ return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-
                 </form>
 
                 <!-- Active Filters Display -->
-                @if(($filters['search'] ?? '') || !empty($filters['statuses'] ?? []) || ($filters['min_price'] ?? '') || ($filters['max_price'] ?? ''))
+                @if(!empty($filters['statuses'] ?? []) || ($filters['min_price'] ?? '') || ($filters['max_price'] ?? ''))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
-
-                    @if($filters['search'] ?? '')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#ff7700] text-white">
-                        Search: "{{ $filters['search'] }}"
-                        <button type="button" data-remove-filter="search" class="ml-2 hover:text-gray-200">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </span>
-                    @endif
 
                     @foreach($filters['statuses'] ?? [] as $status)
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
                         {{ ucfirst($status) }}
-                        <button type="button" data-remove-status="{{ $status }}" class="ml-2 hover:text-blue-600">
+                        <button type="button" data-remove-status="{{ $status }}" class="hover:cursor-pointer ml-2 hover:text-blue-600">
                             <i class="fas fa-times"></i>
                         </button>
                     </span>
@@ -91,7 +82,7 @@ return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-
                     @if($filters['min_price'] ?? '')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
                         Min: {{ formatRupiah($filters['min_price']) }}
-                        <button type="button" data-remove-filter="min_price" class="ml-2 hover:text-green-600">
+                        <button type="button" data-remove-filter="min_price" class="hover:cursor-pointer ml-2 hover:text-green-600">
                             <i class="fas fa-times"></i>
                         </button>
                     </span>
@@ -100,7 +91,7 @@ return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-
                     @if($filters['max_price'] ?? '')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
                         Max: {{ formatRupiah($filters['max_price']) }}
-                        <button type="button" data-remove-filter="max_price" class="ml-2 hover:text-green-600">
+                        <button type="button" data-remove-filter="max_price" class="hover:cursor-pointer ml-2 hover:text-green-600">
                             <i class="fas fa-times"></i>
                         </button>
                     </span>

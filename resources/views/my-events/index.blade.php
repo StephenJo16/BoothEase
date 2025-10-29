@@ -16,6 +16,79 @@
 
     <div class="min-h-screen">
         @include('components.header', ['title' => 'My Events', 'subtitle' => 'Manage your events'])
+
+        <!-- Search and Filter Section -->
+        <section class="bg-white border-b border-gray-200 py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <form id="filter-form" method="GET" action="{{ route('my-events.index') }}" class="flex flex-col md:flex-row gap-4">
+                    <!-- Search Bar -->
+                    <div class="flex-1">
+                        @include('components.search-bar', [
+                        'placeholder' => 'Search by title, description, venue, or city...',
+                        'value' => $filters['search'] ?? ''
+                        ])
+                    </div>
+
+                    <!-- Filter Buttons -->
+                    <div class="flex gap-2">
+                        <x-filter-button
+                            type="category"
+                            label="Category"
+                            :categories="$allCategories"
+                            :selectedCategories="$filters['categories'] ?? []" />
+
+                        <x-filter-button
+                            type="event-status"
+                            label="Status"
+                            :selectedStatuses="$filters['statuses'] ?? []" />
+                    </div>
+                </form>
+
+                <!-- Active Filters Display -->
+                @if(!empty($filters['categories'] ?? []) || !empty($filters['statuses'] ?? []))
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="text-sm text-gray-600">Active filters:</span>
+
+                    @foreach($filters['categories'] ?? [] as $categoryId)
+                    @php
+                    $category = $allCategories->find($categoryId);
+                    @endphp
+                    @if($category)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        {{ $category->name }}
+                        <button type="button" data-remove-category="{{ $categoryId }}" class="hover:cursor-pointer ml-2 hover:text-blue-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+                    @endforeach
+
+                    @foreach($filters['statuses'] ?? [] as $status)
+                    @php
+                    $statusLabels = [
+                    'draft' => 'Draft',
+                    'finalized' => 'Finalized',
+                    'published' => 'Published',
+                    'ongoing' => 'Ongoing',
+                    'completed' => 'Completed',
+                    ];
+                    @endphp
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        {{ $statusLabels[$status] ?? ucfirst($status) }}
+                        <button type="button" data-remove-status="{{ $status }}" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endforeach
+
+                    <a href="{{ route('my-events.index') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
+                        Clear all filters
+                    </a>
+                </div>
+                @endif
+            </div>
+        </section>
+
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             @if(session('status'))
             <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800 text-sm">
@@ -150,6 +223,36 @@
             @endif
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('filter-form');
+
+            // Handle removing individual category filters
+            document.querySelectorAll('[data-remove-category]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const categoryId = this.getAttribute('data-remove-category');
+                    const checkbox = form.querySelector(`[name="categories[]"][value="${categoryId}"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        form.submit();
+                    }
+                });
+            });
+
+            // Handle removing individual status filters
+            document.querySelectorAll('[data-remove-status]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const status = this.getAttribute('data-remove-status');
+                    const checkbox = form.querySelector(`[name="statuses[]"][value="${status}"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 @include('components.footer')
 
