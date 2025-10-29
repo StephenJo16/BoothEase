@@ -30,8 +30,9 @@ class EventController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', '%' . $search . '%')
                         ->orWhere('description', 'like', '%' . $search . '%')
-                        ->orWhereJsonContains('location->venue', $search)
-                        ->orWhereJsonContains('location->city', $search);
+                        ->orWhere('location->venue', 'like', '%' .  $search . '%')
+                        ->orWhere('location->city', 'like', '%' . $search . '%')
+                        ->orWhere('location->address', 'like', '%' . $search . '%');
                 });
             }
 
@@ -286,7 +287,13 @@ class EventController extends Controller
         // Update event statuses before loading
         $this->updateEventStatuses();
 
-        $events = Event::with([
+        // Get filter parameters
+        $search = $request->input('search');
+        $categories = $request->input('categories', []);
+        $statuses = $request->input('statuses', []);
+
+        // Build query with filters
+        $query = Event::with([
             'category',
             'booths',
             'bookings' => function ($query) {
@@ -299,12 +306,42 @@ class EventController extends Controller
                     $query->where('bookings.status', '!=', 'cancelled');
                 }
             ])
-            ->ownedBy($request->user())
-            ->latest('created_at')
-            ->paginate(9);
+            ->ownedBy($request->user());
+
+        // Search filter
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhere('location->venue', 'like', '%' . $search . '%')
+                    ->orWhere('location->city', 'like', '%' . $search . '%')
+                    ->orWhere('location->address', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Category filter
+        if (!empty($categories)) {
+            $query->whereIn('category_id', $categories);
+        }
+
+        // Status filter
+        if (!empty($statuses)) {
+            $query->whereIn('status', $statuses);
+        }
+
+        $events = $query->latest('created_at')->paginate(9);
+
+        // Get all categories for filter dropdown
+        $allCategories = Category::orderBy('name')->get();
 
         return view('my-events.index', [
             'events' => $events,
+            'allCategories' => $allCategories,
+            'filters' => [
+                'search' => $search,
+                'categories' => $categories,
+                'statuses' => $statuses,
+            ],
         ]);
     }
 

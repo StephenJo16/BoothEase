@@ -55,9 +55,35 @@
                 <span class="text-sm text-gray-700">{{ $statusLabel }}</span>
             </label>
             @endforeach
+            @elseif($type === 'event-status')
+            <!-- Event Status Filter Section -->
+            <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
+                Filter by Status
+            </div>
+            @php
+            $eventStatusOptions = [
+            'draft' => 'Draft',
+            'finalized' => 'Finalized',
+            'published' => 'Published',
+            'ongoing' => 'Ongoing',
+            'completed' => 'Completed',
+            ];
+            @endphp
+            @foreach($eventStatusOptions as $statusValue => $statusLabel)
+            <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                <input
+                    type="checkbox"
+                    name="statuses[]"
+                    value="{{ $statusValue }}"
+                    {{ in_array($statusValue, $selectedStatuses) ? 'checked' : '' }}
+                    class="filter-checkbox mr-3 accent-[#ff7700] focus:ring-[#ff7700] border-gray-300 rounded">
+                <span class="text-sm text-gray-700">{{ $statusLabel }}</span>
+            </label>
+            @endforeach
             @endif
 
-            <!-- Price Filter Section (Common to both types) -->
+            @if($type === 'category')
+            <!-- Price Filter Section (only for category type) -->
             <div class="px-4 py-2 mt-2 text-sm font-semibold text-gray-900 border-t border-gray-200">
                 Filter by Price
             </div>
@@ -81,6 +107,7 @@
                         class="price-input w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]">
                 </div>
             </div>
+            @endif
 
             <!-- Action Buttons -->
             <div class="px-4 py-2 mt-2 border-t border-gray-200 flex space-x-2">
