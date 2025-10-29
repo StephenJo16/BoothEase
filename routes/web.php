@@ -10,6 +10,7 @@ use App\Http\Controllers\BoothController;
 use App\Http\Controllers\EventController;
 
 use App\Models\User;
+use App\Models\Event;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -21,7 +22,16 @@ Route::get('/', function () {
             return redirect()->route('my-events.index');
         }
     }
-    return view('landingpage.index');
+
+    // Get top 3 published events sorted by booking count
+    $topEvents = Event::where('status', Event::STATUS_PUBLISHED)
+        ->withCount('bookings')
+        ->with(['category', 'booths'])
+        ->orderBy('bookings_count', 'desc')
+        ->limit(3)
+        ->get();
+
+    return view('landingpage.index', compact('topEvents'));
 })->name('home');
 
 // --- GRUP ROUTE UNTUK USER YANG BELUM LOGIN (GUEST) ---

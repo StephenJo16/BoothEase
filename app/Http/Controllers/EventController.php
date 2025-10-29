@@ -17,6 +17,48 @@ class EventController extends Controller
 
         $now = now();
 
+        // Get filter parameters
+        $search = $request->input('search');
+        $categories = $request->input('categories', []);
+        $minPrice = $request->input('min_price');
+        $maxPrice = $request->input('max_price');
+
+        // Base query with filters
+        $baseQuery = function ($query) use ($search, $categories, $minPrice, $maxPrice) {
+            // Search filter
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('description', 'like', '%' . $search . '%')
+                        ->orWhereJsonContains('location->venue', $search)
+                        ->orWhereJsonContains('location->city', $search);
+                });
+            }
+
+            // Category filter
+            if (!empty($categories)) {
+                $query->whereIn('category_id', $categories);
+            }
+
+            // Price filter - check booth configuration in location JSON
+            if ($minPrice !== null || $maxPrice !== null) {
+                $query->where(function ($q) use ($minPrice, $maxPrice) {
+                    $boothTypes = ['standard', 'premium', 'vip'];
+
+                    foreach ($boothTypes as $type) {
+                        $q->orWhere(function ($subQ) use ($type, $minPrice, $maxPrice) {
+                            if ($minPrice !== null) {
+                                $subQ->where('location->booths->' . $type . '->price', '>=', $minPrice);
+                            }
+                            if ($maxPrice !== null) {
+                                $subQ->where('location->booths->' . $type . '->price', '<=', $maxPrice);
+                            }
+                        });
+                    }
+                });
+            }
+        };
+
         // 1. Published events where registration is still open (before registration_deadline)
         $openForRegistration = Event::with(['category', 'booths'])
             ->where('status', Event::STATUS_PUBLISHED)
@@ -25,6 +67,7 @@ class EventController extends Controller
                     ->orWhereNull('registration_deadline');
             })
             ->where('start_time', '>', $now) // Not started yet
+            ->where($baseQuery)
             ->withCount([
                 'booths',
                 'booths as available_booths_count' => function ($query) {
@@ -39,6 +82,7 @@ class EventController extends Controller
             ->where('status', Event::STATUS_PUBLISHED)
             ->where('registration_deadline', '<', $now)
             ->where('start_time', '>', $now) // Not started yet
+            ->where($baseQuery)
             ->withCount([
                 'booths',
                 'booths as available_booths_count' => function ($query) {
@@ -56,6 +100,7 @@ class EventController extends Controller
             })
             ->where('start_time', '<=', $now)
             ->where('end_time', '>=', $now)
+            ->where($baseQuery)
             ->withCount([
                 'booths',
                 'booths as available_booths_count' => function ($query) {
@@ -73,6 +118,7 @@ class EventController extends Controller
                     ->orWhere('status', Event::STATUS_ONGOING);
             })
             ->where('end_time', '<', $now)
+            ->where($baseQuery)
             ->withCount([
                 'booths',
                 'booths as available_booths_count' => function ($query) {
@@ -82,11 +128,21 @@ class EventController extends Controller
             ->latest('end_time')
             ->get();
 
+        // Get all categories for filter dropdown
+        $allCategories = Category::orderBy('name')->get();
+
         return view('events.index', [
             'openForRegistration' => $openForRegistration,
             'registrationClosed' => $registrationClosed,
             'ongoingEvents' => $ongoingEvents,
             'completedEvents' => $completedEvents,
+            'allCategories' => $allCategories,
+            'filters' => [
+                'search' => $search,
+                'categories' => $categories,
+                'min_price' => $minPrice,
+                'max_price' => $maxPrice,
+            ],
         ]);
     }
 

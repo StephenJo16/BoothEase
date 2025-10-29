@@ -33,13 +33,6 @@ $statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-y
 return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-100 text-gray-800'];
 }
 
-// Filter Tabs Data
-$filterTabs = [
-['name' => 'All Bookings', 'active' => true],
-['name' => 'Confirmed', 'active' => false],
-['name' => 'Rejected', 'active' => false],
-['name' => 'Cancelled', 'active' => false]
-];
 @endphp
 
 <body class="bg-gray-50 min-h-screen">
@@ -50,7 +43,78 @@ $filterTabs = [
     <div class="min-h-screen mb-8">
         <!-- Header -->
         @include('components.header', ['title' => 'My Bookings', 'subtitle' => 'Manage Your Booth Reservations'])
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Search and Filter Section -->
+        <section class="py-6 bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <form id="filter-form" method="GET" action="{{ route('my-bookings') }}" class="flex flex-col md:flex-row gap-4">
+                    <!-- Search Bar -->
+                    <div class="flex-1">
+                        @include('components.search-bar', [
+                        'placeholder' => 'Search by event title, venue, booth number, or booking ID...',
+                        'value' => $filters['search'] ?? ''
+                        ])
+                    </div>
+
+                    <!-- Filter Button -->
+                    <x-filter-button
+                        type="status"
+                        label="Filter"
+                        :selectedStatuses="$filters['statuses'] ?? []"
+                        :minPrice="$filters['min_price'] ?? ''"
+                        :maxPrice="$filters['max_price'] ?? ''" />
+                </form>
+
+                <!-- Active Filters Display -->
+                @if(($filters['search'] ?? '') || !empty($filters['statuses'] ?? []) || ($filters['min_price'] ?? '') || ($filters['max_price'] ?? ''))
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="text-sm text-gray-600">Active filters:</span>
+
+                    @if($filters['search'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#ff7700] text-white">
+                        Search: "{{ $filters['search'] }}"
+                        <button type="button" data-remove-filter="search" class="ml-2 hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
+                    @foreach($filters['statuses'] ?? [] as $status)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        {{ ucfirst($status) }}
+                        <button type="button" data-remove-status="{{ $status }}" class="ml-2 hover:text-blue-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endforeach
+
+                    @if($filters['min_price'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Min: {{ formatRupiah($filters['min_price']) }}
+                        <button type="button" data-remove-filter="min_price" class="ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
+                    @if($filters['max_price'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Max: {{ formatRupiah($filters['max_price']) }}
+                        <button type="button" data-remove-filter="max_price" class="ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
+                    <a href="{{ route('my-bookings') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
+                        Clear all filters
+                    </a>
+                </div>
+                @endif
+            </div>
+        </section>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
 
             <!-- Success/Error Messages -->
             @if(session('success'))
@@ -90,8 +154,8 @@ $filterTabs = [
                 <div class="bg-white rounded-lg shadow-md p-6 text-center">
                     <div class="flex items-center justify-between mb-4">
                         <div class="text-left">
-                            <p class="text-sm text-gray-600 mb-1">Confirmed</p>
-                            <p class="text-3xl font-bold text-gray-900">{{ $confirmedBookings }}</p>
+                            <p class="text-sm text-gray-600 mb-1">Completed</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $completedBookings }}</p>
                         </div>
                         <div class="bg-green-100 p-3 rounded-full">
                             <i class="fas fa-check-circle text-green-600 text-xl"></i>
@@ -113,13 +177,8 @@ $filterTabs = [
                 </div>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="bg-white rounded-lg shadow-md mb-6">
-                @include('components.tabs', ['tabs' => $filterTabs])
-            </div>
-
             <!-- Booking Cards -->
-            <div class="space-y-6">
+            <div>
                 @forelse($bookings as $booking)
                 @php
                 $event = $booking->booth->event;
@@ -143,7 +202,7 @@ $filterTabs = [
                 }
                 @endphp
 
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 m-6">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
@@ -249,6 +308,36 @@ $filterTabs = [
 
     <!-- Footer -->
     @include('components.footer')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('filter-form');
+
+            // Handle removing individual filters
+            document.querySelectorAll('[data-remove-filter]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterName = this.getAttribute('data-remove-filter');
+                    const input = form.querySelector(`[name="${filterName}"]`);
+                    if (input) {
+                        input.value = '';
+                        form.submit();
+                    }
+                });
+            });
+
+            // Handle removing status filters
+            document.querySelectorAll('[data-remove-status]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const status = this.getAttribute('data-remove-status');
+                    const checkbox = form.querySelector(`[name="statuses[]"][value="${status}"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
