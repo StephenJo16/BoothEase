@@ -18,7 +18,7 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Update booking statuses before loading
         $this->updateBookingStatuses();
@@ -27,35 +27,70 @@ class BookingController extends Controller
         // Only load bookings for the authenticated user
         $userId = Auth::id();
 
-        $bookings = Booking::with(['booth.event.category', 'user'])
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Get filter parameters
+        $search = $request->input('search');
+        $statuses = $request->input('statuses', []);
+        $minPrice = $request->input('min_price');
+        $maxPrice = $request->input('max_price');
 
-        // Calculate statistics
-        $totalBookings = $bookings->count();
-        $confirmedBookings = $bookings->where('status', 'confirmed')->count();
+        // Build query with filters
+        $query = Booking::with(['booth.event.category', 'user'])
+            ->where('user_id', $userId);
+
+        // Search filter - search in event title, venue, booth number, booking ID
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('booth.event', function ($eventQuery) use ($search) {
+                    $eventQuery->where('title', 'like', '%' . $search . '%')
+                        ->orWhereJsonContains('location->venue', $search)
+                        ->orWhereJsonContains('location->city', $search);
+                })
+                    ->orWhereHas('booth', function ($boothQuery) use ($search) {
+                        $boothQuery->where('number', 'like', '%' . $search . '%');
+                    })
+                    ->orWhere('id', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Status filter
+        if (!empty($statuses)) {
+            $query->whereIn('status', $statuses);
+        }
+
+        // Price filter
+        if ($minPrice !== null) {
+            $query->where('total_price', '>=', $minPrice);
+        }
+        if ($maxPrice !== null) {
+            $query->where('total_price', '<=', $maxPrice);
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->get();
+
+        // Calculate statistics (all bookings, not filtered)
+        $allBookings = Booking::where('user_id', $userId)->get();
+        $totalBookings = $allBookings->count();
+        $confirmedBookings = $allBookings->where('status', 'confirmed')->count();
+        $completedBookings = $allBookings->where('status', 'completed')->count();
+
         // Compute total spent across the user's paid/completed bookings.
-        // Use a DB-level sum so this works even if bookings are later paginated.
         $totalSpent = Booking::where('user_id', $userId)
             ->whereIn('status', ['paid', 'completed'])
             ->sum('total_price');
 
-        // Group bookings by status for filtering
-        $bookingsByStatus = [
-            'all' => $bookings,
-            'confirmed' => $bookings->where('status', 'confirmed'),
-            'rejected' => $bookings->where('status', 'rejected'),
-            'cancelled' => $bookings->where('status', 'cancelled'),
-        ];
-
-        return view('my-bookings.index', compact(
-            'bookings',
-            'totalBookings',
-            'confirmedBookings',
-            'totalSpent',
-            'bookingsByStatus'
-        ));
+        return view('my-bookings.index', [
+            'bookings' => $bookings,
+            'totalBookings' => $totalBookings,
+            'confirmedBookings' => $confirmedBookings,
+            'completedBookings' => $completedBookings,
+            'totalSpent' => $totalSpent,
+            'filters' => [
+                'search' => $search,
+                'statuses' => $statuses,
+                'min_price' => $minPrice,
+                'max_price' => $maxPrice,
+            ],
+        ]);
     }
 
     /**

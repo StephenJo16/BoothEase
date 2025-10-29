@@ -44,6 +44,82 @@ return !empty($prices) ? min($prices) : 0;
     <div class="min-h-screen">
         @include('components.header', ['title' => 'All Events', 'subtitle' => 'Browse through our extensive list of events'])
 
+        <!-- Search and Filter Section -->
+        <section class="py-6 bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <form id="filter-form" method="GET" action="{{ route('events') }}" class="flex flex-col md:flex-row gap-4">
+                    <!-- Search Bar -->
+                    <div class="flex-1">
+                        @include('components.search-bar', [
+                        'placeholder' => 'Search by title, description, venue, or city...',
+                        'value' => $filters['search'] ?? ''
+                        ])
+                    </div>
+
+                    <!-- Filter Button -->
+                    <x-filter-button
+                        type="category"
+                        label="Filter"
+                        :categories="$allCategories"
+                        :selectedCategories="$filters['categories'] ?? []"
+                        :minPrice="$filters['min_price'] ?? ''"
+                        :maxPrice="$filters['max_price'] ?? ''" />
+                </form>
+
+                <!-- Active Filters Display -->
+                @if(($filters['search'] ?? '') || !empty($filters['categories'] ?? []) || ($filters['min_price'] ?? '') || ($filters['max_price'] ?? ''))
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="text-sm text-gray-600">Active filters:</span>
+
+                    @if($filters['search'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#ff7700] text-white">
+                        Search: "{{ $filters['search'] }}"
+                        <button type="button" data-remove-filter="search" class="ml-2 hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
+                    @foreach($filters['categories'] ?? [] as $categoryId)
+                    @php
+                    $category = $allCategories->find($categoryId);
+                    @endphp
+                    @if($category)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        {{ $category->name }}
+                        <button type="button" data-remove-category="{{ $categoryId }}" class="ml-2 hover:text-blue-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+                    @endforeach
+
+                    @if($filters['min_price'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Min: {{ formatRupiah($filters['min_price']) }}
+                        <button type="button" data-remove-filter="min_price" class="ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
+                    @if($filters['max_price'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Max: {{ formatRupiah($filters['max_price']) }}
+                        <button type="button" data-remove-filter="max_price" class="ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
+                    <a href="{{ route('events') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
+                        Clear all filters
+                    </a>
+                </div>
+                @endif
+            </div>
+        </section>
+
         <!-- Events Grid -->
         <section class="py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,7 +190,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     @endif
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
                                     View Details
                                 </a>
                             </div>
@@ -265,7 +341,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     @endif
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-[#ff7700] hover:bg-[#e66600] text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
                                     View Details
                                 </a>
                             </div>
@@ -333,9 +409,6 @@ return !empty($prices) ? min($prices) : 0;
                                         <span>{{ $event->booths_count ?? 0 }} Total Booths</span>
                                     </div>
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-400 hover:bg-gray-500 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
-                                    View Details
-                                </a>
                             </div>
                         </div>
                         @endforeach
@@ -357,6 +430,36 @@ return !empty($prices) ? min($prices) : 0;
 
     <!-- Footer -->
     @include('components.footer')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('filter-form');
+
+            // Handle removing individual filters
+            document.querySelectorAll('[data-remove-filter]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterName = this.getAttribute('data-remove-filter');
+                    const input = form.querySelector(`[name="${filterName}"]`);
+                    if (input) {
+                        input.value = '';
+                        form.submit();
+                    }
+                });
+            });
+
+            // Handle removing category filters
+            document.querySelectorAll('[data-remove-category]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const categoryId = this.getAttribute('data-remove-category');
+                    const checkbox = form.querySelector(`[name="categories[]"][value="${categoryId}"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

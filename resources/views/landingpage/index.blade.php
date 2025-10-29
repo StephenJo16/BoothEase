@@ -18,47 +18,22 @@
 </head>
 
 @php
-
-// Events Data
-$events = [
+// Color schemes for different event cards
+$colorSchemes = [
 [
-'name' => 'Tech Innovation Expo 2025',
-'category' => 'Technology',
 'categoryColor' => 'text-blue-600',
 'gradientFrom' => 'from-blue-400',
 'gradientTo' => 'to-blue-600',
-'location' => 'Convention Center, Jakarta',
-'date' => '15 December 2025',
-'booths' => '50 Booths Available',
-'price' => 500000,
-'url' => '/event/details',
-'buttonType' => 'link'
 ],
 [
-'name' => 'Green Tech Summit 2025',
-'category' => 'Technology',
 'categoryColor' => 'text-green-600',
 'gradientFrom' => 'from-green-400',
 'gradientTo' => 'to-green-600',
-'location' => 'Convention Center, Jakarta',
-'date' => '15 December 2025',
-'booths' => '30 Booths Available',
-'price' => 750000,
-'url' => '#',
-'buttonType' => 'button'
 ],
 [
-'name' => 'Digital Innovation Expo',
-'category' => 'Technology',
 'categoryColor' => 'text-purple-600',
 'gradientFrom' => 'from-purple-400',
 'gradientTo' => 'to-purple-600',
-'location' => 'Convention Center, Jakarta',
-'date' => '15 December 2025',
-'booths' => '25 Booths Available',
-'price' => 600000,
-'url' => '#',
-'buttonType' => 'button'
 ],
 ];
 @endphp
@@ -137,45 +112,56 @@ $events = [
     <section class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl lg:text-2xl font-bold text-gray-900 mb-8 text-center">Top Events Right Now</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @foreach($events as $event)
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-                    <div class="h-48 bg-gradient-to-br {{ $event['gradientFrom'] }} {{ $event['gradientTo'] }} relative">
-                        <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $event['categoryColor'] }} text-xs font-semibold px-2 py-1 rounded-full">{{ $event['category'] }}</span>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event['name'] }}</h3>
-                        <div class="space-y-2 text-sm text-gray-600 mb-4">
-                            <div class="flex items-center">
-                                <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                <span>{{ $event['location'] }}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                <span>{{ $event['date'] }}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-store mr-2 text-[#ff7700]"></i>
-                                <span>{{ $event['booths'] }}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
-                                <span>Starting from: {{ formatRupiah($event['price']) }}</span>
-                            </div>
-                        </div>
-                        @if($event['buttonType'] === 'link')
-                        <a href="{{ $event['url'] }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
-                            View Details
-                        </a>
-                        @else
-                        <button class="w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 hover:cursor-pointer">
-                            View Details
-                        </button>
-                        @endif
-                    </div>
-                </div>
-                @endforeach
+            @if($topEvents->isEmpty())
+            <div class="text-center py-12">
+                <p class="text-gray-600 text-lg">No published events available at the moment.</p>
             </div>
+            @else
+            <div class="flex justify-center">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-fit">
+                    @foreach($topEvents as $index => $event)
+                    @php
+                    $scheme = $colorSchemes[$index % count($colorSchemes)];
+                    $availableBooths = $event->booths->where('status', 'available')->count();
+                    $minPrice = $event->booths->min('price');
+                    @endphp
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative w-full md:w-80">
+                        <div class="h-48 bg-gradient-to-br {{ $scheme['gradientFrom'] }} {{ $scheme['gradientTo'] }} relative">
+                            <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $scheme['categoryColor'] }} text-xs font-semibold px-2 py-1 rounded-full">
+                                {{ $event->category->name ?? 'General' }}
+                            </span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
+                            <div class="space-y-2 text-sm text-gray-600 mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
+                                    <span>{{ $event->display_location ?? 'Location TBA' }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
+                                    <span>{{ $event->start_time->format('d F Y') }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-store mr-2 text-[#ff7700]"></i>
+                                    <span>{{ $availableBooths }} {{ $availableBooths === 1 ? 'Booth' : 'Booths' }} Available</span>
+                                </div>
+                                @if($minPrice)
+                                <div class="flex items-center">
+                                    <i class="fas fa-tag mr-2 text-[#ff7700]"></i>
+                                    <span>Starting from: {{ formatRupiah($minPrice) }}</span>
+                                </div>
+                                @endif
+                            </div>
+                            <a href="{{ route('login') }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
     </section>
 
