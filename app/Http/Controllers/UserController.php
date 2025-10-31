@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -14,10 +15,8 @@ class UserController extends Controller
     {
         $user = User::findOrFail(Auth::id());
 
-        $categories = [
-            'technology', 'healthcare', 'education', 'retail', 'food-beverage',
-            'automotive', 'real-estate', 'finance', 'entertainment', 'other'
-        ];
+        // Fetch categories from database
+        $categories = Category::orderBy('name')->get();
 
         return view('profile.index', [
             'user' => $user,

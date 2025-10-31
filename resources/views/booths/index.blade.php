@@ -87,7 +87,7 @@
             <!-- Canvas Section -->
             <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <!-- Floor Pills -->
-                <div id="floorPills" class="mb-4 flex flex-wrap gap-2 hidden">
+                <div id="floorPills" class="mb-4 flex-wrap gap-2 hidden">
                     <!-- Floor buttons will be populated here -->
                 </div>
 
