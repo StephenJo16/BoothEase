@@ -17,10 +17,12 @@
 </head>
 
 @php
-/* --- This PHP block remains the same --- */
-$categories = ['technology','healthcare','education','retail','food-beverage','automotive','real-estate','finance','entertainment','other'];
+/* --- This PHP block handles category logic --- */
+// Get all category names from the database collection
+$categoryNames = $categories->pluck('name')->toArray();
+
 $rawCategory = $user->business_category;
-$isCustomSaved = $rawCategory && !in_array($rawCategory, $categories, true);
+$isCustomSaved = $rawCategory && !in_array($rawCategory, $categoryNames, true);
 $current = old('business_category', $isCustomSaved ? 'other' : $rawCategory);
 $customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '');
 $roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
@@ -146,9 +148,9 @@ if (strlen($rest) <= 3) {
                             <div class="w-full sm:w-2/3">
                                 <div class="relative">
                                     <select id="business_category" name="business_category" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled onchange="handleBusinessCategoryChange()">
-                                        @foreach ($categories as $cat)
-                                        <option value="{{ $cat }}" @selected($current===$cat)>
-                                            {{ ucfirst(str_replace('-', ' ', $cat)) }}
+                                        @foreach ($categories as $category)
+                                        <option value="{{ $category->name }}" @selected($current===$category->name)>
+                                            {{ ucfirst(str_replace('-', ' ', $category->name)) }}
                                         </option>
                                         @endforeach
                                     </select>
