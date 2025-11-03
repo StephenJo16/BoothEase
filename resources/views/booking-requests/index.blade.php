@@ -71,27 +71,8 @@ if (strlen($rest) <= 3) {
     // Transform booking requests data into rows format
     $rows = [];
     foreach ($bookings as $booking) {
-    // Determine status styling
-    $statusColors = [
-    'pending' => 'bg-yellow-100 text-yellow-800',
-    'confirmed' => 'bg-green-100 text-green-800',
-    'rejected' => 'bg-red-100 text-red-800',
-    'cancelled' => 'bg-gray-100 text-gray-800',
-    'paid' => 'bg-blue-100 text-blue-800'
-    ];
-
-    $statusColor = $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-800';
-
-    // Display status
-    $statusDisplay = [
-    'confirmed' => 'Confirmed',
-    'pending' => 'Pending',
-    'rejected' => 'Rejected',
-    'cancelled' => 'Cancelled',
-    'paid' => 'Paid'
-    ];
-
-    $displayStatus = $statusDisplay[$booking->status] ?? ucfirst($booking->status);
+    // Get booking status display properties
+    $bookingStatus = getBookingStatusDisplay($booking->status);
 
     // Action: View link
     $actionButtons = '<a href="' . route('booking-request-details', ['event' => $event->id, 'booking' => $booking->id]) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-[#e66600] text-white text-sm">View</a>';
@@ -127,8 +108,8 @@ if (strlen($rest) <= 3) {
     'class' => 'text-sm text-gray-600'
     ],
     [
-    'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $statusColor . '">' .
-        $displayStatus . '</span>',
+    'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $bookingStatus['class'] . '">' .
+        $bookingStatus['label'] . '</span>',
     'class' => ''
     ],
     [

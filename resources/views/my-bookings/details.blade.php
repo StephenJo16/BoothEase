@@ -54,23 +54,9 @@ if (strlen($rest) <= 3) {
     }
     }
 
-    // Helper to format status with proper label and color
-    function getStatusDisplay($status) {
-    $statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
-    'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
-    'ongoing' => ['label' => 'Ongoing', 'color' => 'bg-purple-100 text-purple-800'],
-    'completed' => ['label' => 'Completed', 'color' => 'bg-gray-100 text-gray-800'],
-    'paid' => ['label' => 'Paid', 'color' => 'bg-blue-100 text-blue-800'],
-    'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
-    'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
-    ];
-
-    return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-100 text-gray-800'];
-    }
-
-    $event = $booking->booth->event;
+    $event=$booking->booth->event;
     $booth = $booking->booth;
-    $statusDisplay = getStatusDisplay($booking->status);
+    $statusDisplay = getBookingStatusDisplay($booking->status);
 
     // Format event dates and times
     $dateDisplay = 'Schedule to be announced';
@@ -115,7 +101,7 @@ if (strlen($rest) <= 3) {
                             <p class="text-gray-600">Booking ID: ID-{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
+                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $statusDisplay['class'] }}">
                                 <i class="fas fa-{{ 
                                     $booking->status === 'confirmed' ? 'check-circle' : 
                                     ($booking->status === 'paid' ? 'credit-card' : 
