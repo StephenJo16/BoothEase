@@ -19,20 +19,6 @@
 
 @php
 
-// Helper to format status with proper label and color
-function getStatusDisplay($status) {
-$statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
-'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
-'ongoing' => ['label' => 'Ongoing', 'color' => 'bg-purple-100 text-purple-800'],
-'completed' => ['label' => 'Completed', 'color' => 'bg-gray-100 text-gray-800'],
-'paid' => ['label' => 'Paid', 'color' => 'bg-blue-100 text-blue-800'],
-'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
-'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
-];
-
-return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-100 text-gray-800'];
-}
-
 @endphp
 
 <body class="bg-gray-50 min-h-screen">
@@ -173,7 +159,7 @@ return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-
                 @forelse($bookings as $booking)
                 @php
                 $event = $booking->booth->event;
-                $statusDisplay = getStatusDisplay($booking->status);
+                $statusDisplay = getBookingStatusDisplay($booking->status);
 
                 // Format event dates and times
                 $dateDisplay = 'Schedule to be announced';
@@ -215,7 +201,7 @@ return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-
                                     @endif
                                 </div>
                             </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusDisplay['class'] }}">
                                 {{ $statusDisplay['label'] }}
                             </span>
                         </div>

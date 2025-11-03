@@ -9,3 +9,67 @@ if (!function_exists('formatRupiah')) {
         return 'Rp' . number_format($num, 0, ',', '.');
     }
 }
+
+// Helper function to get booking status display properties
+if (!function_exists('getBookingStatusDisplay')) {
+    function getBookingStatusDisplay($status)
+    {
+        $statusMap = [
+            'pending' => ['label' => 'Pending', 'class' => 'bg-yellow-100 text-yellow-800'],
+            'confirmed' => ['label' => 'Confirmed', 'class' => 'bg-green-100 text-green-800'],
+            'paid' => ['label' => 'Paid', 'class' => 'bg-blue-100 text-blue-800'],
+            'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
+            'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
+            'rejected' => ['label' => 'Rejected', 'class' => 'bg-red-100 text-red-800'],
+            'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-gray-100 text-gray-800'],
+        ];
+
+        return $statusMap[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+    }
+}
+
+// Helper function to format payment method display name
+if (!function_exists('formatPaymentMethod')) {
+    function formatPaymentMethod($paymentMethod, $paymentType = null, $paymentChannel = null)
+    {
+        if (!$paymentType) {
+            return ucfirst($paymentMethod);
+        }
+
+        $paymentTypeMap = [
+            'gopay' => 'GoPay',
+            'shopeepay' => 'ShopeePay',
+            'qris' => 'QRIS',
+            'credit_card' => 'Credit Card',
+            'cimb_clicks' => 'CIMB Clicks',
+            'bca_klikpay' => 'BCA KlikPay',
+            'bca_klikbca' => 'BCA KlikBCA',
+            'mandiri_clickpay' => 'Mandiri Clickpay',
+            'bri_epay' => 'BRI e-Pay',
+            'echannel' => 'Mandiri Bill Payment',
+            'permata_va' => 'Permata Virtual Account',
+            'bca_va' => 'BCA Virtual Account',
+            'bni_va' => 'BNI Virtual Account',
+            'bri_va' => 'BRI Virtual Account',
+            'other_va' => 'Bank Transfer',
+            'indomaret' => 'Indomaret',
+            'alfamart' => 'Alfamart',
+            'akulaku' => 'Akulaku',
+        ];
+
+        // For bank_transfer, check if we have payment_channel info
+        if ($paymentType === 'bank_transfer' && $paymentChannel) {
+            $bankMap = [
+                'permata' => 'Permata Virtual Account',
+                'bca' => 'BCA Virtual Account',
+                'bni' => 'BNI Virtual Account',
+                'bri' => 'BRI Virtual Account',
+                'mandiri' => 'Mandiri Virtual Account',
+                'cimb' => 'CIMB Niaga Virtual Account',
+            ];
+            return $bankMap[strtolower($paymentChannel)] ?? ucfirst($paymentChannel) . ' Virtual Account';
+        }
+
+        return $paymentTypeMap[$paymentType] ?? ucfirst(str_replace('_', ' ', $paymentType));
+    }
+}

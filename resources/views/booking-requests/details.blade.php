@@ -52,14 +52,7 @@ if (strlen($rest) <= 3) {
     }
     }
 
-    // Status display mapping
-    $statusDisplay=[ 'pending'=> ['label' => 'Pending', 'class' => 'bg-yellow-100 text-yellow-800'],
-    'confirmed' => ['label' => 'Confirmed', 'class' => 'bg-green-100 text-green-800'],
-    'rejected' => ['label' => 'Rejected', 'class' => 'bg-red-100 text-red-800'],
-    'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-gray-100 text-gray-800']
-    ];
-
-    $status = $statusDisplay[$booking->status] ?? ['label' => ucfirst($booking->status), 'class' => 'bg-gray-100 text-gray-800'];
+    $bookingStatus=getBookingStatusDisplay($booking->status);
 
     // Calculate tenant's average rating
     $tenant = $booking->user;
@@ -109,7 +102,7 @@ if (strlen($rest) <= 3) {
                             <h2 class="text-xl font-semibold text-gray-900">Request Information</h2>
                             <!-- Status -->
                             <div>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $status['class'] }}">{{ $status['label'] }}</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $bookingStatus['class'] }}">{{ $bookingStatus['label'] }}</span>
                             </div>
                         </div>
 
