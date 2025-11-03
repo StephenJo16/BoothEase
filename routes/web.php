@@ -151,6 +151,11 @@ Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class
 Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'store'])->name('rating.store');
     Route::get('/bookings/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkRating'])->name('rating.check');
+
+    // Organizer rating tenant routes
+    Route::get('/events/{event}/attendants/{booking}', [BookingController::class, 'showAttendant'])->name('attendant.details');
+    Route::post('/events/{event}/attendants/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'storeOrganizerRating'])->name('attendant.rating.store');
+    Route::get('/events/{event}/attendants/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkOrganizerRating'])->name('attendant.rating.check');
 });
 
 

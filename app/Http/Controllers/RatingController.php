@@ -80,4 +80,82 @@ class RatingController extends Controller
             'rating' => $rating
         ]);
     }
+
+    /**
+     * Store a rating from organizer to tenant
+     */
+    public function storeOrganizerRating(Request $request, $eventId, $bookingId)
+    {
+        $booking = Booking::findOrFail($bookingId);
+        $event = $booking->booth->event;
+
+        // Validate that the event belongs to the authenticated user (organizer)
+        if ($event->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
+
+        // Validate that the booking is completed
+        if ($booking->status !== 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only rate completed bookings.'
+            ], 400);
+        }
+
+        // Check if organizer has already rated this tenant for this event
+        $existingRating = Rating::where('event_id', $event->id)
+            ->where('rater_id', Auth::id())
+            ->where('ratee_id', $booking->user_id)
+            ->first();
+
+        if ($existingRating) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already rated this tenant for this event.'
+            ], 400);
+        }
+
+        // Validate the request
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+
+        // Create the rating
+        $rating = Rating::create([
+            'event_id' => $event->id,
+            'rater_id' => Auth::id(), // Event organizer
+            'ratee_id' => $booking->user_id, // Tenant
+            'rating' => $validated['rating'],
+            'feedback' => $validated['feedback'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thank you for your rating!',
+            'rating' => $rating
+        ]);
+    }
+
+    /**
+     * Check if organizer has already rated a tenant for a specific booking
+     */
+    public function checkOrganizerRating($eventId, $bookingId)
+    {
+        $booking = Booking::findOrFail($bookingId);
+        $event = $booking->booth->event;
+
+        $rating = Rating::where('event_id', $event->id)
+            ->where('rater_id', Auth::id())
+            ->where('ratee_id', $booking->user_id)
+            ->first();
+
+        return response()->json([
+            'has_rated' => $rating !== null,
+            'rating' => $rating
+        ]);
+    }
 }

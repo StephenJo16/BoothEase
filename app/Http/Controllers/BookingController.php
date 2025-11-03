@@ -309,7 +309,7 @@ class BookingController extends Controller
 
         $booking = Booking::with([
             'booth.event',
-            'user',
+            'user.ratingsReceived.event',
             'payment'
         ])
             ->where('id', $bookingId)
@@ -454,5 +454,31 @@ class BookingController extends Controller
         // Download the PDF
         $filename = 'invoice-' . str_pad($booking->id, 6, '0', STR_PAD_LEFT) . '.pdf';
         return $pdf->download($filename);
+    }
+
+    /**
+     * Show attendant details for event organizer
+     */
+    public function showAttendant(Request $request, $eventId, $bookingId)
+    {
+        $booking = Booking::with([
+            'booth.event.category',
+            'user.ratingsReceived.event',
+            'payment'
+        ])->findOrFail($bookingId);
+
+        $event = $booking->booth->event;
+
+        // Validate that the event belongs to the authenticated user (organizer)
+        if ($event->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to this attendant.');
+        }
+
+        // Validate that the booking belongs to the specified event
+        if ($booking->booth->event_id != $eventId) {
+            abort(404, 'Booking not found for this event.');
+        }
+
+        return view('attendants.details', compact('booking', 'event'));
     }
 }

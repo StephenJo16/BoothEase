@@ -88,11 +88,22 @@ $paidBookingHeaders = [
 ['title' => 'Booth Number', 'class' => 'text-left'],
 ['title' => 'Booking Date', 'class' => 'text-left'],
 ['title' => 'Payment Method', 'class' => 'text-left'],
+['title' => 'Actions', 'class' => 'text-center'],
 ];
 
 // Transform paid bookings data into rows format
 $paidBookingRows = [];
 foreach($paidBookings as $booking) {
+// Check if organizer has rated this tenant
+$hasRated = \App\Models\Rating::where('event_id', $event->id)
+->where('rater_id', auth()->id())
+->where('ratee_id', $booking->user_id)
+->exists();
+
+$ratingBadge = $hasRated
+? '<span class="inline-flex items-center text-xs text-green-600"><i class="fas fa-check-circle mr-1"></i> Rated</span>'
+: '<span class="inline-flex items-center text-xs text-gray-400"><i class="far fa-star mr-1"></i> Not Rated</span>';
+
 $paidBookingRows[] = [
 'rowClass' => 'hover:bg-gray-50',
 'cells' => [
@@ -115,6 +126,15 @@ $paidBookingRows[] = [
 [
 'content' => $booking->payment ? $booking->payment->formatted_payment_method : 'N/A',
 'class' => 'text-gray-700'
+],
+[
+'content' => '<div class="flex items-center justify-center gap-2">' .
+    '<a href="' . route('attendant.details', ['event' => $event->id, 'booking' => $booking->id]) . '" class="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-[#ff7700] rounded hover:bg-[#e66600] transition-colors">' .
+        '<i class="fas fa-eye mr-1"></i> View Details' .
+        '</a>' .
+    ($booking->status === 'completed' ? $ratingBadge : '') .
+    '</div>',
+'class' => 'text-center'
 ],
 ]
 ];

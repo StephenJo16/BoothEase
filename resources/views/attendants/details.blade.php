@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Booking Details - BoothEase</title>
+    <title>Attendant Details - BoothEase</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -19,7 +19,6 @@
 </head>
 
 @php
-
 if (!function_exists('formatPhoneNumber')) {
 function formatPhoneNumber($number) {
 $digits = preg_replace('/\D+/', '', (string) $number);
@@ -54,23 +53,9 @@ if (strlen($rest) <= 3) {
     }
     }
 
-    // Helper to format status with proper label and color
-    function getStatusDisplay($status) {
-    $statusMap=[ 'pending'=> ['label' => 'Pending', 'color' => 'bg-yellow-100 text-yellow-800'],
-    'confirmed' => ['label' => 'Confirmed', 'color' => 'bg-green-100 text-green-800'],
-    'ongoing' => ['label' => 'Ongoing', 'color' => 'bg-purple-100 text-purple-800'],
-    'completed' => ['label' => 'Completed', 'color' => 'bg-gray-100 text-gray-800'],
-    'paid' => ['label' => 'Paid', 'color' => 'bg-blue-100 text-blue-800'],
-    'rejected' => ['label' => 'Rejected', 'color' => 'bg-red-100 text-red-800'],
-    'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-gray-100 text-gray-800'],
-    ];
-
-    return $statusMap[$status] ?? ['label' => ucfirst($status), 'color' => 'bg-gray-100 text-gray-800'];
-    }
-
-    $event = $booking->booth->event;
+    $event=$booking->booth->event;
     $booth = $booking->booth;
-    $statusDisplay = getStatusDisplay($booking->status);
+    $tenant = $booking->user;
 
     // Format event dates and times
     $dateDisplay = 'Schedule to be announced';
@@ -94,6 +79,11 @@ if (strlen($rest) <= 3) {
     if ($event->start_time && $event->end_time) {
     $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
     }
+
+    // Calculate tenant's average rating
+    $tenantRatings = $tenant->ratingsReceived;
+    $averageRating = $tenantRatings->count() > 0 ? round($tenantRatings->avg('rating'), 1) : 0;
+    $totalRatings = $tenantRatings->count();
     @endphp
 
     <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
@@ -102,30 +92,17 @@ if (strlen($rest) <= 3) {
 
         <!-- Main Content -->
         <div class="min-h-screen py-8">
-
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <!-- Back Button -->
-                @include('components.back-button', ['text' => 'Back to My Bookings', 'url' => route('my-bookings')])
+                @include('components.back-button', ['text' => 'Back to Event Details', 'url' => route('my-events.show', $event->id)])
+
                 <!-- Header -->
                 <div class="mb-8">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Details</h1>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Attendant Details</h1>
                             <p class="text-gray-600">Booking ID: ID-{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $statusDisplay['color'] }}">
-                                <i class="fas fa-{{ 
-                                    $booking->status === 'confirmed' ? 'check-circle' : 
-                                    ($booking->status === 'paid' ? 'credit-card' : 
-                                    ($booking->status === 'ongoing' ? 'spinner fa-pulse' : 
-                                    ($booking->status === 'completed' ? 'check-double' : 
-                                    ($booking->status === 'pending' ? 'clock' : 
-                                    ($booking->status === 'rejected' ? 'times-circle' : 'ban'))))) 
-                                }} mr-2"></i>
-                                {{ $statusDisplay['label'] }}
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -133,12 +110,82 @@ if (strlen($rest) <= 3) {
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Main Details -->
                     <div class="lg:col-span-2 space-y-6">
+                        <!-- Tenant Information -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Tenant Information</h2>
+                            <div class="space-y-4">
+                                <!-- Tenant Profile -->
+                                <div class="flex items-start gap-4 pb-4 border-b border-gray-200">
+                                    <div class="flex-shrink-0">
+                                        @if($tenant->avatar)
+                                        <img src="{{ $tenant->avatar }}" alt="{{ $tenant->name }}" class="w-20 h-20 rounded-full object-cover">
+                                        @else
+                                        <div class="w-20 h-20 rounded-full bg-[#ff7700] flex items-center justify-center">
+                                            <span class="text-white text-2xl font-bold">{{ substr($tenant->name, 0, 1) }}</span>
+                                        </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold text-gray-900">{{ $tenant->name }}</h3>
+                                        <p class="text-gray-600">{{ $tenant->display_name }}</p>
+                                        @if($tenant->business_category)
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            <i class="fas fa-briefcase mr-1"></i>
+                                            {{ ucfirst($tenant->business_category) }}
+                                        </p>
+                                        @endif
+
+                                        <!-- Tenant Rating Display -->
+                                        <div class="flex items-center mt-2">
+                                            <div class="flex items-center">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <=floor($averageRating))
+                                                    <i class="fas fa-star text-[#ff7700] text-sm"></i>
+                                                    @elseif($i - $averageRating < 1 && $i - $averageRating> 0)
+                                                        <i class="fas fa-star-half-alt text-[#ff7700] text-sm"></i>
+                                                        @else
+                                                        <i class="far fa-star text-gray-300 text-sm"></i>
+                                                        @endif
+                                                        @endfor
+                                            </div>
+                                            <span class="ml-2 text-sm text-gray-600">
+                                                {{ $averageRating > 0 ? number_format($averageRating, 1) : 'No ratings' }}
+                                                @if($totalRatings > 0)
+                                                ({{ $totalRatings }} {{ $totalRatings === 1 ? 'rating' : 'ratings' }})
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Contact Details -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Email</h4>
+                                        <p class="text-gray-900 flex items-center">
+                                            <i class="fas fa-envelope text-[#ff7700] mr-2"></i>
+                                            {{ $tenant->email }}
+                                        </p>
+                                    </div>
+                                    @if($tenant->phone_number)
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Phone Number</h4>
+                                        <p class="text-gray-900 flex items-center">
+                                            <i class="fas fa-phone text-[#ff7700] mr-2"></i>
+                                            {{ formatPhoneNumber($tenant->phone_number) }}
+                                        </p>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Event Information -->
                         <div class="bg-white rounded-lg shadow-md p-6">
                             <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Information</h2>
                             <div class="space-y-4">
                                 <div>
-                                    <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $event->title }}</h3>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $event->title }}</h3>
                                     <div class="flex items-center mb-2">
                                         <i class="fas fa-map-marker-alt mr-3 text-[#ff7700]"></i>
                                         <span class="text-gray-700">{{ $event->venue ?? 'Venue not specified' }}</span>
@@ -155,9 +202,6 @@ if (strlen($rest) <= 3) {
                                         </div>
                                         @endif
                                     </div>
-                                    <p class="text-gray-600 leading-relaxed mt-4">
-                                        {{ $event->description ?? 'No description available' }}
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -175,11 +219,11 @@ if (strlen($rest) <= 3) {
                                     <p class="text-lg font-semibold text-gray-900">{{ $booth->size ?? 'Not specified' }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Category</h4>
-                                    <p class="text-lg font-semibold text-gray-900">{{ $event->category->name ?? 'General' }}</p>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Type</h4>
+                                    <p class="text-lg font-semibold text-gray-900">{{ ucfirst($booth->type ?? 'Standard') }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Notes</h4>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Booking Notes</h4>
                                     <p class="text-lg font-semibold text-gray-900">{{ $booking->notes ?? '-' }}</p>
                                 </div>
                             </div>
@@ -204,44 +248,47 @@ if (strlen($rest) <= 3) {
                             @endif
                         </div>
 
-                        <!-- Booth Layout -->
-                        <!-- <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Booth Layout</h2>
-                        <div class="bg-gray-100 rounded-lg p-8 text-center">
-                            <div class="bg-white border-2 border-[#ff7700] rounded-lg p-6 inline-block">
-                                <div class="text-[#ff7700] text-4xl mb-2">
-                                    <i class="fas fa-store"></i>
-                                </div>
-                                <div class="text-lg font-semibold text-gray-900">Booth A01</div>
-                                <div class="text-sm text-gray-600">3m × 3m</div>
-                            </div>
-                            <p class="text-sm text-gray-600 mt-4">Hall A - Ground Floor Layout</p>
-                        </div>
-                    </div> -->
-
-                        <!-- Contact Information -->
+                        <!-- Previous Ratings from Other Organizers -->
+                        @if($tenantRatings->count() > 0)
                         <div class="bg-white rounded-lg shadow-md p-6">
-                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Organizer Contact</h2>
-                            <div class="space-y-3">
-                                @if($event->user && $event->user->email)
-                                <div class="flex items-center">
-                                    <i class="fas fa-envelope text-[#ff7700] mr-3"></i>
-                                    <span class="text-gray-700">{{ $event->user->email }}</span>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                                Ratings from Other Organizers
+                                <span class="text-sm font-normal text-gray-500">({{ $totalRatings }} {{ $totalRatings === 1 ? 'review' : 'reviews' }})</span>
+                            </h2>
+
+                            <div class="space-y-4">
+                                @foreach($tenantRatings->take(5) as $rating)
+                                <div class="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <div class="flex">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <=$rating->rating)
+                                                    <i class="fas fa-star text-[#ff7700]"></i>
+                                                    @else
+                                                    <i class="far fa-star text-gray-300"></i>
+                                                    @endif
+                                                    @endfor
+                                            </div>
+                                            <span class="ml-2 text-sm font-medium text-gray-700">{{ $rating->rating }}/5</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ $rating->created_at->format('M d, Y') }}</span>
+                                    </div>
+                                    @if($rating->feedback)
+                                    <p class="text-sm text-gray-600 italic">"{{ $rating->feedback }}"</p>
+                                    @endif
+                                    <p class="text-xs text-gray-500 mt-1">Event: {{ $rating->event->title ?? 'N/A' }}</p>
                                 </div>
-                                @endif
-                                @if($event->user && $event->user->phone_number)
-                                <div class="flex items-center">
-                                    <i class="fas fa-phone text-[#ff7700] mr-3"></i>
-                                    <span class="text-gray-700">{{ formatPhoneNumber($event->user->phone_number) }}</span>
-                                </div>
-                                @endif
-                                @if(!$event->user || (!$event->user->email && !$event->user->phone_number))
-                                <div class="text-gray-600">
-                                    Contact information not available
-                                </div>
+                                @endforeach
+
+                                @if($tenantRatings->count() > 5)
+                                <p class="text-sm text-gray-500 text-center pt-2">
+                                    And {{ $tenantRatings->count() - 5 }} more reviews...
+                                </p>
                                 @endif
                             </div>
                         </div>
+                        @endif
                     </div>
 
                     <!-- Sidebar -->
@@ -260,12 +307,6 @@ if (strlen($rest) <= 3) {
                                     <span class="font-medium">{{ $eventDuration }} Day{{ $eventDuration > 1 ? 's' : '' }}</span>
                                 </div>
                                 @endif
-                                @if($booth->type)
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Booth Type</span>
-                                    <span class="font-medium">{{ ucfirst($booth->type) }}</span>
-                                </div>
-                                @endif
                                 <div class="border-t pt-4">
                                     <div class="flex justify-between text-lg font-semibold">
                                         <span>Total Amount</span>
@@ -275,10 +316,49 @@ if (strlen($rest) <= 3) {
                             </div>
                         </div>
 
+                        <!-- Payment Details -->
+                        @if($booking->payment)
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Details</h2>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Payment Method</span>
+                                    <span class="font-medium">{{ $booking->payment->formatted_payment_method ?? 'N/A' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Payment Status</span>
+                                    @if($booking->payment->payment_status === 'completed')
+                                    <span class="text-green-600 font-medium">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Paid
+                                    </span>
+                                    @else
+                                    <span class="text-yellow-600 font-medium">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        {{ ucfirst($booking->payment->payment_status) }}
+                                    </span>
+                                    @endif
+                                </div>
+                                @if($booking->payment->transaction_id)
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Transaction ID</span>
+                                    <span class="font-medium text-sm break-all">{{ $booking->payment->transaction_id }}</span>
+                                </div>
+                                @endif
+                                @if($booking->payment->payment_date)
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Payment Date</span>
+                                    <span class="font-medium">{{ $booking->payment->payment_date->format('d-m-Y') }}</span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Rating Section (only for completed bookings) -->
                         @if($booking->status === 'completed')
                         <div class="bg-white rounded-lg shadow-md p-6" id="rating-section">
-                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Rate Your Experience</h2>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Rate This Tenant</h2>
 
                             <div id="rating-form">
                                 <div class="space-y-4">
@@ -315,7 +395,7 @@ if (strlen($rest) <= 3) {
                                             id="feedback"
                                             rows="4"
                                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none"
-                                            placeholder="Share your experience with this event..."
+                                            placeholder="Share your experience with this tenant..."
                                             maxlength="1000"></textarea>
                                         <p class="text-xs text-gray-500 mt-1">Maximum 1000 characters</p>
                                     </div>
@@ -352,151 +432,6 @@ if (strlen($rest) <= 3) {
                             </div>
                         </div>
                         @endif
-
-                        <!-- Payment Details -->
-                        @if(in_array($booking->status, ['confirmed', 'cancelled', 'paid', 'ongoing', 'completed']))
-                        <div class="bg-white rounded-lg shadow-md p-6">
-                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Details</h2>
-                            <div class="space-y-4">
-                                @if($booking->payment)
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Payment Method</span>
-                                    <span class="font-medium">{{ $booking->payment->formatted_payment_method ?? 'N/A' }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Payment Status</span>
-                                    @if($booking->payment->payment_status === 'completed')
-                                    <span class="text-green-600 font-medium" id="payment-status-badge">
-                                        <i class="fas fa-check-circle mr-1"></i>
-                                        Paid
-                                    </span>
-                                    @else
-                                    <span class="text-yellow-600 font-medium" id="payment-status-badge">
-                                        <i class="fas fa-clock mr-1"></i>
-                                        {{ ucfirst($booking->payment->payment_status) }}
-                                    </span>
-                                    @endif
-                                </div>
-                                @if($booking->payment->transaction_id)
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Transaction ID</span>
-                                    <span class="font-medium text-sm">{{ $booking->payment->transaction_id }}</span>
-                                </div>
-                                @endif
-                                @if($booking->payment->payment_date)
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Payment Date</span>
-                                    <span class="font-medium">{{ $booking->payment->payment_date->format('d-m-Y') }}</span>
-                                </div>
-                                @endif
-
-                                @if($booking->payment->payment_status === 'pending')
-                                <!-- Check Payment Status Button -->
-                                <div class="pt-4 border-t">
-                                    <button id="check-payment-btn"
-                                        class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
-                                        <i class="fas fa-sync-alt mr-2"></i>
-                                        <span id="check-btn-text">Check Payment Status</span>
-                                    </button>
-                                    <p class="text-xs text-gray-500 text-center mt-2">
-                                        Click to verify your payment status with the payment gateway
-                                    </p>
-                                </div>
-                                @endif
-                                @else
-                                <div class="text-gray-600">
-                                    @if($booking->status === 'confirmed')
-                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                                        <i class="fas fa-exclamation-circle text-yellow-600 mb-2 text-2xl"></i>
-                                        <p class="text-yellow-800 font-medium">Payment Required</p>
-                                        <p class="text-yellow-700 text-sm mt-1">Please complete the payment to secure your booking</p>
-                                    </div>
-                                    @else
-                                    Payment information not available
-                                    @endif
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                        @endif
-
-                        <!-- Booking Timeline -->
-                        <!-- <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Booking Timeline</h2>
-                        <div class="space-y-4">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                                    <i class="fas fa-check text-green-600 text-sm"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-medium text-gray-900">Booking Confirmed</p>
-                                    <p class="text-xs text-gray-500">18-10-2025, 14:30</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                                    <i class="fas fa-credit-card text-green-600 text-sm"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-medium text-gray-900">Payment Completed</p>
-                                    <p class="text-xs text-gray-500">18-10-2025, 14:15</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                    <i class="fas fa-plus text-blue-600 text-sm"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-medium text-gray-900">Booking Created</p>
-                                    <p class="text-xs text-gray-500">18-10-2025, 14:00</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div> -->
-
-                        <!-- Action Buttons -->
-                        @if($booking->status === 'confirmed' || $booking->status === 'ongoing')
-                        <div class="space-y-3">
-                            @if(!$booking->payment || $booking->payment->payment_status !== 'completed')
-                            <a href="{{ route('payment.create', $booking->id) }}">
-                                <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                    <i class="fas fa-credit-card mr-2"></i>
-                                    Continue to Payment
-                                </button>
-                            </a>
-                            @else
-                            <a href="{{ route('booking.invoice', $booking->id) }}">
-                                <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                    <i class="fas fa-download mr-2"></i>
-                                    Download Invoice
-                                </button>
-                            </a>
-                            <a href="{{ route('request-refund') }}">
-                                <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                    <i class="fas fa-undo mr-2"></i>
-                                    Request Refund
-                                </button>
-                            </a>
-                            @endif
-                        </div>
-                        @elseif($booking->status === 'paid' || $booking->status === 'completed')
-                        <div class="space-y-3">
-                            <a href="{{ route('booking.invoice', $booking->id) }}">
-                                <button class="mb-2 w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                    <i class="fas fa-download mr-2"></i>
-                                    Download Invoice
-                                </button>
-                            </a>
-                            @if($booking->status !== 'completed')
-                            <a href="{{ route('request-refund') }}">
-                                <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                    <i class="fas fa-undo mr-2"></i>
-                                    Request Refund
-                                </button>
-                            </a>
-                            @endif
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -520,8 +455,8 @@ if (strlen($rest) <= 3) {
 
                 let selectedRating = 0;
 
-                // Check if user has already rated
-                fetch('{{ route("rating.check", $booking->id) }}', {
+                // Check if organizer has already rated this tenant
+                fetch('{{ route("attendant.rating.check", ["event" => $event->id, "booking" => $booking->id]) }}', {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
@@ -531,7 +466,7 @@ if (strlen($rest) <= 3) {
                     .then(response => response.json())
                     .then(data => {
                         if (data.has_rated && data.rating) {
-                            // User has already rated, show thank you message
+                            // Organizer has already rated, show thank you message
                             ratingForm.classList.add('hidden');
                             thankYouMessage.classList.remove('hidden');
 
@@ -613,7 +548,7 @@ if (strlen($rest) <= 3) {
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
 
                     // Submit the rating
-                    fetch('{{ route("rating.store", $booking->id) }}', {
+                    fetch('{{ route("attendant.rating.store", ["event" => $event->id, "booking" => $booking->id]) }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -664,62 +599,6 @@ if (strlen($rest) <= 3) {
                             submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Rating';
                         });
                 });
-            });
-        </script>
-        @endif
-
-        <!-- Check Payment Status Script -->
-        @if($booking->payment && $booking->payment->payment_status === 'pending')
-        <script>
-            document.getElementById('check-payment-btn').addEventListener('click', function() {
-                const button = this;
-                const buttonText = document.getElementById('check-btn-text');
-                const statusBadge = document.getElementById('payment-status-badge');
-
-                // Disable button and show loading
-                button.disabled = true;
-                buttonText.innerHTML = 'Checking...';
-                button.querySelector('i').classList.add('fa-spin');
-
-                // Get CSRF token
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-                // Call check status endpoint
-                fetch('{{ route("payment.check-status", $booking->id) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken || ''
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (data.payment_status === 'completed') {
-                                // Payment is completed - reload page to show updated status
-                                alert('✅ ' + data.message);
-                                window.location.reload();
-                            } else {
-                                // Still pending
-                                alert('⏳ ' + data.message);
-                                button.disabled = false;
-                                buttonText.innerHTML = 'Check Payment Status';
-                                button.querySelector('i').classList.remove('fa-spin');
-                            }
-                        } else {
-                            alert('❌ ' + (data.message || 'Failed to check payment status'));
-                            button.disabled = false;
-                            buttonText.innerHTML = 'Check Payment Status';
-                            button.querySelector('i').classList.remove('fa-spin');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('❌ An error occurred while checking payment status');
-                        button.disabled = false;
-                        buttonText.innerHTML = 'Check Payment Status';
-                        button.querySelector('i').classList.remove('fa-spin');
-                    });
             });
         </script>
         @endif

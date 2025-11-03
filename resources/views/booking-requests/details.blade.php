@@ -60,6 +60,12 @@ if (strlen($rest) <= 3) {
     ];
 
     $status = $statusDisplay[$booking->status] ?? ['label' => ucfirst($booking->status), 'class' => 'bg-gray-100 text-gray-800'];
+
+    // Calculate tenant's average rating
+    $tenant = $booking->user;
+    $tenantRatings = $tenant->ratingsReceived;
+    $averageRating = $tenantRatings->count() > 0 ? round($tenantRatings->avg('rating'), 1) : 0;
+    $totalRatings = $tenantRatings->count();
     @endphp
 
     <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
@@ -202,6 +208,27 @@ if (strlen($rest) <= 3) {
                                 <h3 class="text-lg font-semibold text-gray-900">{{ $booking->user->name ?? 'N/A' }}</h3>
                                 <p class="text-gray-600">Contact: {{ $booking->user->display_name ?? 'N/A' }}</p>
                                 <p class="text-gray-600">Phone: {{ $booking->user && $booking->user->phone_number ? formatPhoneNumber($booking->user->phone_number) : 'N/A' }}</p>
+
+                                <!-- Tenant Rating Display -->
+                                <div class="flex items-center mt-3">
+                                    <div class="flex items-center">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <=floor($averageRating))
+                                            <i class="fas fa-star text-[#ff7700] text-sm"></i>
+                                            @elseif($i - $averageRating < 1 && $i - $averageRating> 0)
+                                                <i class="fas fa-star-half-alt text-[#ff7700] text-sm"></i>
+                                                @else
+                                                <i class="far fa-star text-gray-300 text-sm"></i>
+                                                @endif
+                                                @endfor
+                                    </div>
+                                    <span class="ml-2 text-sm text-gray-600">
+                                        {{ $averageRating > 0 ? number_format($averageRating, 1) : 'No ratings' }}
+                                        @if($totalRatings > 0)
+                                        ({{ $totalRatings }} {{ $totalRatings === 1 ? 'rating' : 'ratings' }})
+                                        @endif
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -242,6 +269,47 @@ if (strlen($rest) <= 3) {
                             <p class="text-xs text-orange-700">
                                 <strong>Notes:</strong> {{ $booking->notes }}
                             </p>
+                        </div>
+                        @endif
+
+                        <!-- Tenant Ratings from Other Organizers -->
+                        @if($tenantRatings->count() > 0)
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                                Ratings from Other Organizers
+                            </h3>
+
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                @foreach($tenantRatings->take(5) as $rating)
+                                <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <div class="flex">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <=$rating->rating)
+                                                    <i class="fas fa-star text-[#ff7700] text-xs"></i>
+                                                    @else
+                                                    <i class="far fa-star text-gray-300 text-xs"></i>
+                                                    @endif
+                                                    @endfor
+                                            </div>
+                                            <span class="ml-2 text-xs font-medium text-gray-700">{{ $rating->rating }}/5</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ $rating->created_at->format('M d, Y') }}</span>
+                                    </div>
+                                    @if($rating->feedback)
+                                    <p class="text-xs text-gray-600 italic mb-1">"{{ Str::limit($rating->feedback, 100) }}"</p>
+                                    @endif
+                                    <p class="text-xs text-gray-500">Event: {{ $rating->event->title ?? 'N/A' }}</p>
+                                </div>
+                                @endforeach
+
+                                @if($tenantRatings->count() > 5)
+                                <p class="text-xs text-gray-500 text-center pt-2">
+                                    And {{ $tenantRatings->count() - 5 }} more reviews...
+                                </p>
+                                @endif
+                            </div>
                         </div>
                         @endif
                     </div>
