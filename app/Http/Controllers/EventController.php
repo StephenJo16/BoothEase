@@ -437,6 +437,16 @@ class EventController extends Controller
                 ->with('error', 'Only finalized events can be published.');
         }
 
+        // Validate that the number of booths matches the capacity
+        $boothCount = $event->booths()->count();
+        $capacity = $event->capacity;
+
+        if ($capacity && $boothCount !== $capacity) {
+            return redirect()
+                ->back()
+                ->with('error', "Cannot publish event. The number of booths ($boothCount) must match the event capacity ($capacity).");
+        }
+
         $event->status = Event::STATUS_PUBLISHED;
         $event->save();
 

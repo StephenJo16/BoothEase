@@ -262,9 +262,25 @@ $paidBookingRows[] = [
                                 <p class="text-xs text-blue-600 mt-1">Configure your booth layout and pricing before publishing.</p>
                             </div>
                             @elseif($event->status === 'finalized')
+                            @php
+                            $boothCount = $event->booths()->count();
+                            $capacity = $event->capacity;
+                            $boothsMismatch = $capacity && $boothCount !== $capacity;
+                            @endphp
+
+                            @if($boothsMismatch)
+                            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 mb-3">
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-exclamation-triangle text-red-500 mr-2"></i>
+                                    <p class="text-sm text-red-700 font-medium">Cannot publish: Booth count mismatch</p>
+                                </div>
+                                <p class="text-xs text-red-600 mt-1">You have {{ $boothCount }} booth(s) but capacity is set to {{ $capacity }}. Please adjust your booth layout or capacity.</p>
+                            </div>
+                            @endif
+
                             <form method="POST" action="{{ route('my-events.publish', $event) }}" onsubmit="return confirm('Publish this event? Once published, it will be visible to attendees.');">
                                 @csrf
-                                <button type="submit" class="hover:cursor-pointer flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">
+                                <button type="submit" class="hover:cursor-pointer flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 {{ $boothsMismatch ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $boothsMismatch ? 'disabled' : '' }}>
                                     <i class="fa-solid fa-rocket mr-2"></i>
                                     Publish Event
                                 </button>
