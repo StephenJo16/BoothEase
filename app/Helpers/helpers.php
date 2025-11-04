@@ -73,3 +73,39 @@ if (!function_exists('formatPaymentMethod')) {
         return $paymentTypeMap[$paymentType] ?? ucfirst(str_replace('_', ' ', $paymentType));
     }
 }
+
+// Helper function to format phone numbers with Indonesian country code and dashes every 4 digits
+if (!function_exists('formatPhoneNumber')) {
+    function formatPhoneNumber($number)
+    {
+        $digits = preg_replace('/\D+/', '', (string) $number);
+        if ($digits === '') {
+            return $number;
+        }
+
+        if (substr($digits, 0, 2) === '62') {
+            $country = '+62';
+            $rest = substr($digits, 2);
+        } elseif (substr($digits, 0, 1) === '0') {
+            $country = '+62';
+            $rest = ltrim($digits, '0');
+        } else {
+            return $number;
+        }
+
+        if ($rest === '') {
+            return $country;
+        }
+
+        if (strlen($rest) <= 3) {
+            $formattedRest = $rest;
+        } else {
+            $firstBlock = substr($rest, 0, 3);
+            $remaining = substr($rest, 3);
+            $chunks = str_split($remaining, 4);
+            $formattedRest = $firstBlock . ($chunks ? '-' . implode('-', $chunks) : '');
+        }
+
+        return trim($country . ' ' . $formattedRest);
+    }
+}

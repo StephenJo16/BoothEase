@@ -92,17 +92,13 @@ $userPhone = $digits;
                         <div>
                             <h1 class="text-3xl font-bold text-slate-800 mb-2">{{ $booth->number }}</h1>
                             <div class="flex flex-wrap gap-3 text-sm">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-medium">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-100 text-[#ff7700] font-medium">
                                     <i class="fas fa-tag mr-2"></i>
                                     {{ ucfirst($booth->type ?? 'Standard') }} Booth
                                 </span>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-800 font-medium">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 font-medium">
                                     <i class="fas fa-ruler-combined mr-2"></i>
                                     {{ $booth->size ?? 'Size not specified' }}
-                                </span>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 font-medium">
-                                    <i class="fas fa-check-circle mr-2"></i>
-                                    Available
                                 </span>
                             </div>
                         </div>
@@ -130,7 +126,7 @@ $userPhone = $digits;
                     </h2>
                     <div class="space-y-4">
                         <div class="flex items-start">
-                            <div class="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-calendar-alt text-xl"></i>
                             </div>
                             <div>
@@ -141,7 +137,7 @@ $userPhone = $digits;
 
                         @if($eventDates)
                         <div class="flex items-start">
-                            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mr-4 flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-clock text-xl"></i>
                             </div>
                             <div>
@@ -153,7 +149,7 @@ $userPhone = $digits;
 
                         @if($event->venue)
                         <div class="flex items-start">
-                            <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center text-green-600 mr-4 flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-map-marker-alt text-xl"></i>
                             </div>
                             <div>
@@ -165,7 +161,7 @@ $userPhone = $digits;
 
                         @if($event->category)
                         <div class="flex items-start">
-                            <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 mr-4 flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-layer-group text-xl"></i>
                             </div>
                             <div>
@@ -177,7 +173,7 @@ $userPhone = $digits;
 
                         @if($event->description)
                         <div class="flex items-start">
-                            <div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 mr-4 flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-info-circle text-xl"></i>
                             </div>
                             <div>

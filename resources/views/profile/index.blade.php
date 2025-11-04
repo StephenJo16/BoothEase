@@ -33,43 +33,9 @@ $roleBadgeClasses = match($user->role_id) {
 3 => 'bg-green-100 text-green-800',
 default => 'bg-gray-100 text-gray-800',
 };
+@endphp
 
-if (!function_exists('formatPhoneNumber')) {
-function formatPhoneNumber($number) {
-$digits = preg_replace('/\D+/', '', (string) $number);
-if ($digits === '') {
-return $number;
-}
-
-if (substr($digits, 0, 2) === '62') {
-$country = '+62';
-$rest = substr($digits, 2);
-} elseif (substr($digits, 0, 1) === '0') {
-$country = '+62';
-$rest = ltrim($digits, '0');
-} else {
-return $number;
-}
-
-if ($rest === '') {
-return $country;
-}
-
-if (strlen($rest) <= 3) {
-    $formattedRest=$rest;
-    } else {
-    $firstBlock=substr($rest, 0, 3);
-    $remaining=substr($rest, 3);
-    $chunks=str_split($remaining, 4);
-    $formattedRest=$firstBlock . ($chunks ? '-' . implode('-', $chunks) : '' );
-    }
-
-    return trim($country . ' ' . $formattedRest);
-    }
-    }
-    @endphp
-
-    <body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen">
 
     @if (session('success'))
     <div class="notification-popup success">
@@ -396,6 +362,6 @@ if (strlen($rest) <= 3) {
             }
         }
     </style>
-    </body>
+</body>
 
 </html>
