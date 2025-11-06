@@ -118,7 +118,7 @@ $colorSchemes = [
             </div>
             @else
             <div class="flex justify-center">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-fit">
+                <div class="flex flex-wrap justify-center gap-8">
                     @foreach($topEvents as $index => $event)
                     @php
                     $scheme = $colorSchemes[$index % count($colorSchemes)];

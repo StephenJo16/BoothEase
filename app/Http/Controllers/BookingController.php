@@ -23,8 +23,6 @@ class BookingController extends Controller
         // Update booking statuses before loading
         $this->updateBookingStatuses();
 
-        // Get all bookings with related booth and event data
-        // Only load bookings for the authenticated user
         $userId = Auth::id();
 
         // Get filter parameters
@@ -348,7 +346,14 @@ class BookingController extends Controller
         }
 
         DB::transaction(function () use ($booking, $targetStatus) {
-            $booking->update(['status' => $targetStatus]);
+            $updateData = ['status' => $targetStatus];
+
+            // Set confirmed_at timestamp when confirming a booking
+            if ($targetStatus === 'confirmed') {
+                $updateData['confirmed_at'] = now();
+            }
+
+            $booking->update($updateData);
 
             if ($targetStatus === 'rejected') {
                 $booking->booth?->update(['status' => 'available']);
@@ -391,6 +396,15 @@ class BookingController extends Controller
     private function updateBookingStatuses(): void
     {
         $now = now();
+
+        // Cancel unpaid bookings that have been confirmed for more than 24 hours
+        Booking::where('status', 'confirmed')
+            ->whereNotNull('confirmed_at')
+            ->where('confirmed_at', '<=', $now->copy()->subHours(24))
+            ->whereDoesntHave('payment', function ($query) {
+                $query->where('payment_status', 'completed');
+            })
+            ->update(['status' => 'cancelled']);
 
         // Update bookings to 'ongoing' status when event has started
         Booking::whereHas('booth.event', function ($query) use ($now) {

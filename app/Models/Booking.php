@@ -27,11 +27,13 @@ class Booking extends Model
         'booking_date',
         'total_price',
         'notes',
+        'confirmed_at',
     ];
 
     protected $casts = [
         'booking_date' => 'date',
         'total_price' => 'integer',
+        'confirmed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

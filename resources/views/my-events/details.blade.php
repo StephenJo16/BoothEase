@@ -94,15 +94,6 @@ $paidBookingHeaders = [
 // Transform paid bookings data into rows format
 $paidBookingRows = [];
 foreach($paidBookings as $booking) {
-// Check if organizer has rated this tenant
-$hasRated = \App\Models\Rating::where('event_id', $event->id)
-->where('rater_id', auth()->id())
-->where('ratee_id', $booking->user_id)
-->exists();
-
-$ratingBadge = $hasRated
-? '<span class="inline-flex items-center text-xs text-green-600"><i class="fas fa-check-circle mr-1"></i> Rated</span>'
-: '<span class="inline-flex items-center text-xs text-gray-400"><i class="far fa-star mr-1"></i> Not Rated</span>';
 
 $paidBookingRows[] = [
 'rowClass' => 'hover:bg-gray-50',
@@ -129,10 +120,9 @@ $paidBookingRows[] = [
 ],
 [
 'content' => '<div class="flex items-center justify-center gap-2">' .
-    '<a href="' . route('attendant.details', ['event' => $event->id, 'booking' => $booking->id]) . '" class="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-[#ff7700] rounded hover:bg-[#e66600] transition-colors">' .
-        '<i class="fas fa-eye mr-1"></i> View Details' .
+    '<a href="' . route('attendant.details', ['event' => $event->id, 'booking' => $booking->id]) . '" class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900">' .
+        ' <i class="fa-regular fa-eye mr-2"></i> View Details' .
         '</a>' .
-    ($booking->status === 'completed' ? $ratingBadge : '') .
     '</div>',
 'class' => 'text-center'
 ],
@@ -155,6 +145,13 @@ $paidBookingRows[] = [
                     <p class="mt-2 text-sm text-gray-500">Created {{ $event->created_at?->format('d M Y H:i') }} - Last updated {{ $event->updated_at?->format('d M Y H:i') }}</p>
                 </div>
                 <span class="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold {{ $badge['class'] }}">
+                    <i class="fas fa-{{ 
+                        $status === 'published' ? 'rocket' : 
+                        ($status === 'finalized' ? 'check-circle' : 
+                        ($status === 'draft' ? 'file-alt' : 
+                        ($status === 'ongoing' ? 'spinner fa-pulse' : 
+                        ($status === 'completed' ? 'check-double' : 'circle')))) 
+                    }} mr-2"></i>
                     {{ $badge['label'] }}
                 </span>
             </div>

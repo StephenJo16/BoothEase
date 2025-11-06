@@ -21,7 +21,7 @@ if (!function_exists('getBookingStatusDisplay')) {
             'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
             'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
             'rejected' => ['label' => 'Rejected', 'class' => 'bg-red-100 text-red-800'],
-            'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-gray-100 text-gray-800'],
+            'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-red-100 text-red-800'],
         ];
 
         return $statusMap[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];

@@ -61,7 +61,9 @@ $headers = [
 $rows = [];
 foreach($event->booths as $booth) {
 $isAvailable = $booth->status === 'available';
-$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+$isBooked = $booth->status === 'booked';
+$isPending = $booth->status === 'pending';
+$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : ($isBooked ? 'bg-red-100 text-red-800' : ($isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'));
 $statusText = ucfirst($booth->status);
 
 $rows[] = [
