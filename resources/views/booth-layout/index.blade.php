@@ -999,66 +999,6 @@
                 canvas.renderAll();
             }
         });
-        window.addEventListener('load', function() {
-            const sampleElements = [{
-                    type: 'entrance',
-                    x: 100,
-                    y: 50,
-                    label: 'Main Entrance'
-                },
-                {
-                    type: 'booth',
-                    x: 200,
-                    y: 150,
-                    label: 'Booth 1',
-                    props: {
-                        boothType: 'Premium',
-                        price: 5000,
-                        width: 150,
-                        height: 100
-                    }
-                },
-                {
-                    type: 'booth',
-                    x: 400,
-                    y: 150,
-                    label: 'Booth 2',
-                    props: {
-                        boothType: 'Standard',
-                        price: 3000,
-                        width: 120,
-                        height: 80
-                    }
-                },
-                {
-                    type: 'parking',
-                    x: 500,
-                    y: 350,
-                    label: 'Visitor Parking'
-                },
-                {
-                    type: 'toilet',
-                    x: 100,
-                    y: 350,
-                    label: 'Toilet 1'
-                }
-            ];
-
-            sampleElements.forEach(item => {
-                const element = createElement(item.type, item.x, item.y, item.label, item.props || {});
-                canvas.add(element);
-                // If the sample element label contains a trailing number, update that type's counter
-                const match = item.label && item.label.toString().match(/(\d+)\s*$/);
-                if (match) {
-                    const num = parseInt(match[1], 10);
-                    if (item.type && elementCounters[item.type] !== undefined) {
-                        elementCounters[item.type] = Math.max(elementCounters[item.type], num + 1);
-                    }
-                }
-            });
-
-            canvas.renderAll();
-        });
 
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'd') {

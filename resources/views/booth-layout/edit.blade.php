@@ -96,27 +96,10 @@
             </div>
         </div>
 
-        <!-- Instructions Card -->
-        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
-            <h4 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-                <i class="fas fa-info-circle mr-2 text-[#ff7700]"></i>
-                Instructions
-            </h4>
-            <ul class="list-disc pl-5 space-y-2 text-slate-600">
-                <li>Click any element button to add it to the canvas</li>
-                <li>Select a booth to edit its properties (size, price, type) in the right panel</li>
-                <li>Double-click any element to quickly edit its text label</li>
-                <li>Drag elements to position them, resize using corner handles (booths can only be resized via properties panel)</li>
-                <li>Use Zoom In/Out buttons or mouse wheel to zoom the canvas</li>
-                <li>Click and drag on empty canvas space to pan/move around the view</li>
-                <li>Keyboard shortcuts: Ctrl+D to duplicate, Delete to remove</li>
-            </ul>
-        </div>
-
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
 
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-                <div class="flex flex-col gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div class="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
                     <!-- Toolbar Card -->
                     <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -171,29 +154,51 @@
                     </div>
 
                     <!-- Canvas Card -->
-                    <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
-                        <canvas id="layoutCanvas" width="900" height="600"></canvas>
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
+                        <div class="w-full overflow-x-auto">
+                            <canvas id="layoutCanvas" width="900" height="600"></canvas>
+                        </div>
                     </div>
 
                 </div>
 
                 <!-- Sidebar -->
-                <div class="space-y-6">
-                    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sticky top-5">
-                        <h3 class="text-lg font-bold text-slate-800 mb-5 pb-3 border-b-2 border-slate-200 flex items-center">
-                            <i class="fas fa-cog mr-2 text-[#ff7700]"></i>
-                            Properties
-                        </h3>
-                        <div id="propertiesContent" class="text-slate-500 italic text-center py-10">
-                            Select a booth to edit its properties
+                <div class="lg:col-span-1 xl:col-span-1">
+                    <div class="sticky top-5 space-y-6">
+                        <!-- Properties Card -->
+                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b-2 border-slate-200 flex items-center">
+                                <i class="fas fa-cog mr-2 text-[#ff7700]"></i>
+                                Properties
+                            </h3>
+                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 overflow-hidden text-sm">
+                                Select a booth to edit its properties
+                            </div>
+
+                            <div class="mt-6 pt-4 border-t border-slate-200">
+                                <button type="button" id="saveLayoutBtn" class="w-full px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="saveLayout()">
+                                    <i class="fas fa-save"></i>
+                                    Save All Floors
+                                </button>
+                                <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center break-words"></div>
+                            </div>
                         </div>
 
-                        <div class="mt-8 pt-5 border-t border-slate-200">
-                            <button type="button" id="saveLayoutBtn" class="w-full px-6 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="saveLayout()">
-                                <i class="fas fa-save"></i>
-                                Save All Floors
-                            </button>
-                            <div id="saveStatus" class="mt-3 text-sm min-h-[18px] text-center"></div>
+                        <!-- Instructions Card -->
+                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-5">
+                            <h4 class="text-base font-semibold text-slate-800 mb-3 flex items-center">
+                                <i class="fas fa-info-circle mr-2 text-[#ff7700]"></i>
+                                Instructions
+                            </h4>
+                            <ul class="list-disc pl-5 space-y-1.5 text-slate-600 text-xs leading-relaxed">
+                                <li>Click any element button to add it to the canvas</li>
+                                <li>Select a booth to edit its properties in this panel</li>
+                                <li>Double-click any element to edit its label</li>
+                                <li>Drag elements to position them</li>
+                                <li>Use Zoom buttons or mouse wheel to zoom</li>
+                                <li>Click and drag empty space to pan</li>
+                                <li>Shortcuts: Ctrl+D (duplicate), Delete (remove)</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -461,24 +466,24 @@
             const label = obj.elementLabel || 'Booth';
 
             content.innerHTML = `
-                <div class="mb-5">
+                <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Name:</label>
                     <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                 </div>
 
-                <div class="mb-5">
+                <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
                     <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                         ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
                     </select>
                 </div>
 
-                <div class="mb-5">
+                <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
                     <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                 </div>
 
-                <div class="mb-5">
+                <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Size:</label>
                     <div class="grid grid-cols-2 gap-3">
                         <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">

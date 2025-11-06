@@ -172,9 +172,9 @@ $rows[] = [
 
         <!-- Main Content Grid -->
         @if($allFloors->count() > 0)
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6" id="mainContentGrid" data-floors='@json($allFloors)' data-booths='@json($booths)'>
+        <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="mainContentGrid" data-floors='@json($allFloors)' data-booths='@json($booths)'>
             <!-- Canvas Section -->
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+            <div class="lg:col-span-2 xl:col-span-3 bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <!-- Floor Pills -->
                 @if($allFloors->count() > 1)
                 <div id="floorPills" class="mb-4 flex flex-wrap gap-2">
@@ -189,37 +189,39 @@ $rows[] = [
                 @endif
 
                 <!-- Zoom Controls -->
-                <div class="mb-4 flex items-center justify-between">
+                <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h2 class="text-lg font-bold text-slate-800">Layout View</h2>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <button onclick="zoomIn()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
                             <i class="fas fa-search-plus"></i>
-                            Zoom In
+                            <span class="hidden sm:inline">Zoom In</span>
                         </button>
                         <button onclick="zoomOut()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
                             <i class="fas fa-search-minus"></i>
-                            Zoom Out
+                            <span class="hidden sm:inline">Zoom Out</span>
                         </button>
                         <button onclick="resetZoom()" class="px-3 py-2 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2">
                             <i class="fas fa-compress"></i>
-                            Reset
+                            <span class="hidden sm:inline">Reset</span>
                         </button>
                     </div>
                 </div>
-                <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4">
-                    <canvas id="layoutCanvas" width="900" height="600"></canvas>
+                <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
+                    <div class="w-full overflow-x-auto">
+                        <canvas id="layoutCanvas" width="900" height="600"></canvas>
+                    </div>
                 </div>
             </div>
 
             <!-- Sidebar -->
-            <div class="space-y-6">
+            <div class="lg:col-span-1 xl:col-span-1">
                 <!-- Booth Details Card -->
-                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sticky top-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
                         <i class="fa-solid fa-info-circle me-2 text-[#ff7700]"></i>
                         Booth Details
                     </h2>
-                    <div id="boothDetailsContent">
+                    <div id="boothDetailsContent" class="overflow-hidden">
                         <!-- Default state when no booth is selected/hovered -->
                         <div id="noBoothSelected" class="text-center py-12">
                             <i class="fas fa-mouse-pointer text-6xl text-slate-300 mb-4"></i>
@@ -231,31 +233,31 @@ $rows[] = [
                             <!-- Booth Number -->
                             <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200">
                                 <div class="text-xs text-slate-600 mb-1">Booth Number</div>
-                                <div id="boothNumber" class="text-2xl font-bold text-slate-900">—</div>
+                                <div id="boothNumber" class="text-2xl font-bold text-slate-900 break-words">—</div>
                             </div>
 
                             <!-- Floor -->
                             <div class="p-3 bg-slate-50 rounded-lg">
                                 <div class="text-xs text-slate-600 mb-1">Floor</div>
-                                <div id="boothFloor" class="font-semibold text-slate-900">—</div>
+                                <div id="boothFloor" class="font-semibold text-slate-900 break-words">—</div>
                             </div>
 
                             <!-- Type and Size -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="p-3 bg-slate-50 rounded-lg">
                                     <div class="text-xs text-slate-600 mb-1">Type</div>
-                                    <div id="boothType" class="font-semibold text-slate-900">—</div>
+                                    <div id="boothType" class="font-semibold text-slate-900 text-sm break-words">—</div>
                                 </div>
                                 <div class="p-3 bg-slate-50 rounded-lg">
                                     <div class="text-xs text-slate-600 mb-1">Size</div>
-                                    <div id="boothSize" class="font-semibold text-slate-900">—</div>
+                                    <div id="boothSize" class="font-semibold text-slate-900 text-sm break-words">—</div>
                                 </div>
                             </div>
 
                             <!-- Price -->
                             <div class="p-4 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
                                 <div class="text-xs text-slate-600 mb-1">Price per Event</div>
-                                <div id="boothPrice" class="text-2xl font-bold text-[#ff7700]">—</div>
+                                <div id="boothPrice" class="text-2xl font-bold text-[#ff7700] break-words">—</div>
                             </div>
 
                             <!-- Status -->
