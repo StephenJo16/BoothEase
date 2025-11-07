@@ -132,6 +132,10 @@
                                 <i class="fas fa-elevator"></i>
                                 Elevator
                             </button>
+                            <button class="px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('wall')">
+                                <i class="fas fa-grip-lines"></i>
+                                Wall
+                            </button>
 
                             <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700 mt-2">Actions:</div>
                             <button class="px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
@@ -219,6 +223,38 @@
             selection: true
         });
 
+
+        // Custom rotate icon - modern circular arrow design
+        const rotateImg = document.createElement('img');
+        rotateImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="15" fill="white" stroke="#ff7700" stroke-width="2"/>
+                <path d="M11 10.5 A8 8 0 1 0 16 8" 
+                      stroke="#ff7700" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M21 8 L17 6 L17 10 Z"
+                      fill="#ff7700" stroke="#ff7700" stroke-width="1" stroke-linejoin="round"/>
+            </svg>
+        `);
+
+
+        // Set custom rotation control icon
+        fabric.Object.prototype.controls.mtr = new fabric.Control({
+            x: 0,
+            y: -0.5,
+            offsetY: -40,
+            cursorStyle: 'grab',
+            actionHandler: fabric.controlsUtils.rotationWithSnapping,
+            actionName: 'rotate',
+            render: function(ctx, left, top, styleOverride, fabricObject) {
+                const size = 28;
+                ctx.save();
+                ctx.translate(left, top);
+                ctx.drawImage(rotateImg, -size / 2, -size / 2, size, size);
+                ctx.restore();
+            },
+            cornerSize: 32
+        });
+
         // Variables for panning
         let isPanning = false;
         let lastPosX = 0;
@@ -290,6 +326,14 @@
                 defaultLabel: 'Elevator',
                 width: 80,
                 height: 80
+            },
+            wall: {
+                color: '#000000',
+                strokeColor: '#000000',
+                textColor: '#000000',
+                defaultLabel: 'Wall',
+                width: 150, // Default wall length
+                height: 4 // Wall thickness
             }
         };
 
@@ -302,7 +346,8 @@
             exit: 1,
             toilet: 1,
             stairs: 1,
-            elevator: 1
+            elevator: 1,
+            wall: 1
         };
 
         let isLoadingLayout = false;
@@ -389,6 +434,46 @@
                 originY: 'center',
                 fontWeight: 'bold'
             });
+
+            if (type === 'wall') {
+                const width = customProps.width || config.width;
+                const height = customProps.height || config.height;
+
+                const line = new fabric.Rect({
+                    left: left,
+                    top: top,
+                    width: width,
+                    height: height,
+                    fill: '#000000',
+                    stroke: '#000000',
+                    strokeWidth: 0,
+                    rx: 0,
+                    ry: 0,
+                    lockScalingY: true, // Lock vertical scaling, only allow horizontal
+                    lockUniScaling: true // Prevent uniform scaling
+                });
+
+                line.set({
+                    elementType: 'wall',
+                    elementLabel: customLabel || `${config.defaultLabel} ${elementCounters[type]++}`,
+                    originalWidth: width,
+                    originalHeight: height
+                });
+
+                line.setControlsVisibility({
+                    mt: false, // Hide middle top
+                    mb: false, // Hide middle bottom
+                    ml: true, // Show middle left for horizontal scaling
+                    mr: true, // Show middle right for horizontal scaling
+                    tl: false, // Hide top left corner
+                    tr: false, // Hide top right corner
+                    bl: false, // Hide bottom left corner
+                    br: false, // Hide bottom right corner
+                    mtr: true // Keep rotation control
+                });
+
+                return line;
+            }
 
             const groupItems = [rect, text];
 

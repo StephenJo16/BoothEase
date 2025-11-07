@@ -36,9 +36,7 @@ $headers = [
 // Transform booths data into rows format
 $rows = [];
 foreach($booths as $booth) {
-$isAvailable = strtolower($booth->status) === 'available';
-$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-$statusText = ucfirst($booth->status);
+$boothStatus = getBoothStatusDisplay($booth->status);
 
 // Get floor name
 $floorName = 'Floor ' . ($booth->floor_number ?? 1);
@@ -71,7 +69,7 @@ $rows[] = [
 'class' => 'text-slate-600'
 ],
 [
-'content' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ' . $statusColor . '">' . $statusText . '</span>',
+'content' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ' . $boothStatus['class'] . '">' . $boothStatus['label'] . '</span>',
 'class' => ''
 ],
 ]

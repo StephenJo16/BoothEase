@@ -16,14 +16,7 @@
 $location = is_array($event->location) ? $event->location : [];
 $booths = $event->booth_configuration;
 $status = $event->status;
-$statusStyles = [
-'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
-'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
-'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
-];
-$badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+$badge = getEventStatusDisplay($status);
 $start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
 $end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
 $deadlineFormatted = $event->registration_deadline ? $event->registration_deadline->format('d M Y') : null;
@@ -40,11 +33,7 @@ $headers = [
 // Transform booths data into rows format
 $rows = [];
 foreach($event->booths as $booth) {
-$isAvailable = $booth->status === 'available';
-$isBooked = $booth->status === 'booked';
-$isPending = $booth->status === 'pending';
-$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : ($isBooked ? 'bg-red-100 text-red-800' : ($isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'));
-$statusText = ucfirst($booth->status ?? 'Available');
+$boothStatus = getBoothStatusDisplay($booth->status);
 
 $rows[] = [
 'rowClass' => 'hover:bg-gray-50',
@@ -66,7 +55,7 @@ $rows[] = [
 'class' => 'text-gray-700'
 ],
 [
-'content' => '<span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ' . $statusColor . '">' . $statusText . '</span>',
+'content' => '<span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ' . $boothStatus['class'] . '">' . $boothStatus['label'] . '</span>',
 'class' => ''
 ],
 ]

@@ -60,11 +60,7 @@ $headers = [
 // Transform booths data into rows format
 $rows = [];
 foreach($event->booths as $booth) {
-$isAvailable = $booth->status === 'available';
-$isBooked = $booth->status === 'booked';
-$isPending = $booth->status === 'pending';
-$statusColor = $isAvailable ? 'bg-green-100 text-green-800' : ($isBooked ? 'bg-red-100 text-red-800' : ($isPending ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'));
-$statusText = ucfirst($booth->status);
+$boothStatus = getBoothStatusDisplay($booth->status);
 
 $rows[] = [
 'rowClass' => 'h-20',
@@ -86,7 +82,7 @@ $rows[] = [
 'class' => 'text-gray-900 font-medium'
 ],
 [
-'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $statusColor . '">' . $statusText . '</span>',
+'content' => '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $boothStatus['class'] . '">' . $boothStatus['label'] . '</span>',
 'class' => ''
 ],
 ]
