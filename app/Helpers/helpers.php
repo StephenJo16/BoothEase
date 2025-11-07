@@ -28,6 +28,36 @@ if (!function_exists('getBookingStatusDisplay')) {
     }
 }
 
+// Helper function to get event status display properties
+if (!function_exists('getEventStatusDisplay')) {
+    function getEventStatusDisplay($status)
+    {
+        $statusMap = [
+            'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
+            'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
+            'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
+            'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
+            'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
+        ];
+
+        return $statusMap[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+    }
+}
+
+// Helper function to get booth status display properties
+if (!function_exists('getBoothStatusDisplay')) {
+    function getBoothStatusDisplay($status)
+    {
+        $statusMap = [
+            'available' => ['label' => 'Available', 'class' => 'bg-green-100 text-green-800'],
+            'pending' => ['label' => 'Pending', 'class' => 'bg-yellow-100 text-yellow-800'],
+            'booked' => ['label' => 'Booked', 'class' => 'bg-red-100 text-red-800'],
+        ];
+
+        return $statusMap[strtolower($status)] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+    }
+}
+
 // Helper function to format payment method display name
 if (!function_exists('formatPaymentMethod')) {
     function formatPaymentMethod($paymentMethod, $paymentType = null, $paymentChannel = null)

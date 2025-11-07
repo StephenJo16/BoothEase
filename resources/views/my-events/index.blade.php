@@ -113,20 +113,11 @@
                 <p class="mt-2 text-sm">Start by creating your first event to manage booths and bookings.</p>
             </div>
             @else
-            @php
-            $statusStyles = [
-            'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-            'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
-            'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-            'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
-            'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
-            ];
-            @endphp
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 @foreach($events as $event)
                 @php
                 $status = $event->status;
-                $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+                $badge = getEventStatusDisplay($status);
                 $boothTypes = $event->booths->pluck('type')->unique()->count();
                 $boothTotal = $event->booths_count ?? 0;
                 $bookedBooths = $event->booked_booths_count ?? 0;

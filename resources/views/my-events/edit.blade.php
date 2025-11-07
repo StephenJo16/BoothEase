@@ -18,12 +18,7 @@
     $location = is_array($event->location) ? $event->location : [];
     $booths = $location['booths'] ?? [];
     $status = $event->status;
-    $statusStyles = [
-    'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
-    'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
-    'draft' => ['label' => 'Draft', 'class' => 'bg-yellow-100 text-yellow-800'],
-    ];
-    $badge = $statusStyles[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
+    $badge = getEventStatusDisplay($status);
     @endphp
 
     <div class="min-h-screen py-10">
