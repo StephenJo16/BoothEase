@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RefundRequest;
+use App\Models\Event;
 use App\Http\Requests\StoreRefundRequestRequest;
 use App\Http\Requests\UpdateRefundRequestRequest;
 use Illuminate\Http\Request;
@@ -12,8 +13,13 @@ class RefundRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, Event $event)
     {
+        // Verify the event belongs to the current user
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event.');
+        }
+
         // Get filter parameters
         $search = $request->input('search');
         $statuses = $request->input('statuses', []);
@@ -21,17 +27,15 @@ class RefundRequestController extends Controller
         $endDate = $request->input('end_date');
 
         // Build query for refund requests with relationships
-        // Only show refund requests for events owned by the current user
+        // Only show refund requests for this specific event
         $query = RefundRequest::with([
             'user',
-            'booking.booth.event' => function ($query) use ($request) {
-                $query->where('user_id', $request->user()->id);
-            },
+            'booking.booth.event',
             'booking.booth',
             'booking.payment'
         ])
-            ->whereHas('booking.booth.event', function ($query) use ($request) {
-                $query->where('user_id', $request->user()->id);
+            ->whereHas('booking.booth.event', function ($q) use ($event) {
+                $q->where('id', $event->id);
             });
 
         // Search filter
@@ -65,24 +69,25 @@ class RefundRequestController extends Controller
         // Get refund requests ordered by latest first
         $refundRequests = $query->latest()->paginate(10);
 
-        // Calculate statistics
-        $totalRequests = RefundRequest::whereHas('booking.booth.event', function ($query) use ($request) {
-            $query->where('user_id', $request->user()->id);
+        // Calculate statistics for this event
+        $totalRequests = RefundRequest::whereHas('booking.booth.event', function ($q) use ($event) {
+            $q->where('id', $event->id);
         })->count();
 
-        $pendingCount = RefundRequest::whereHas('booking.booth.event', function ($query) use ($request) {
-            $query->where('user_id', $request->user()->id);
+        $pendingCount = RefundRequest::whereHas('booking.booth.event', function ($q) use ($event) {
+            $q->where('id', $event->id);
         })->where('status', RefundRequest::STATUS_PENDING)->count();
 
-        $approvedCount = RefundRequest::whereHas('booking.booth.event', function ($query) use ($request) {
-            $query->where('user_id', $request->user()->id);
+        $approvedCount = RefundRequest::whereHas('booking.booth.event', function ($q) use ($event) {
+            $q->where('id', $event->id);
         })->where('status', RefundRequest::STATUS_APPROVED)->count();
 
-        $rejectedCount = RefundRequest::whereHas('booking.booth.event', function ($query) use ($request) {
-            $query->where('user_id', $request->user()->id);
+        $rejectedCount = RefundRequest::whereHas('booking.booth.event', function ($q) use ($event) {
+            $q->where('id', $event->id);
         })->where('status', RefundRequest::STATUS_REJECTED)->count();
 
         return view('refund-requests.index', [
+            'event' => $event,
             'refundRequests' => $refundRequests,
             'totalRequests' => $totalRequests,
             'pendingCount' => $pendingCount,
@@ -191,7 +196,7 @@ class RefundRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, RefundRequest $refundRequest)
+    public function show(Request $request, Event $event, RefundRequest $refundRequest)
     {
         // Load relationships
         $refundRequest->load([
@@ -200,9 +205,14 @@ class RefundRequestController extends Controller
             'booking.payment'
         ]);
 
-        // Verify the refund request belongs to an event owned by the current user
-        if ($refundRequest->booking->booth->event->user_id !== $request->user()->id) {
-            abort(403, 'Unauthorized access to this refund request.');
+        // Verify the refund request belongs to the specified event
+        if ($refundRequest->booking->booth->event->id !== $event->id) {
+            abort(403, 'This refund request does not belong to this event.');
+        }
+
+        // Verify the event belongs to the current user
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event.');
         }
 
         $booking = $refundRequest->booking;
@@ -255,36 +265,56 @@ class RefundRequestController extends Controller
     /**
      * Approve a refund request.
      */
-    public function approve(Request $request, RefundRequest $refundRequest)
+    public function approve(Request $request, Event $event, RefundRequest $refundRequest)
     {
         // Load relationships
         $refundRequest->load('booking.booth.event');
 
-        // Verify the refund request belongs to an event owned by the current user
-        if ($refundRequest->booking->booth->event->user_id !== $request->user()->id) {
-            abort(403, 'Unauthorized access to this refund request.');
+        // Verify the refund request belongs to the specified event
+        if ($refundRequest->booking->booth->event->id !== $event->id) {
+            abort(403, 'This refund request does not belong to this event.');
         }
 
-        // Update status to approved
+        // Verify the event belongs to the current user
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event.');
+        }
+
+        // Update refund request status to approved
         $refundRequest->update([
             'status' => RefundRequest::STATUS_APPROVED,
         ]);
 
-        return redirect()->route('refund-requests.show', $refundRequest->id)
-            ->with('success', 'Refund request has been approved successfully!');
+        // Update booking status to cancelled
+        $refundRequest->booking->update([
+            'status' => \App\Models\Booking::STATUS_CANCELLED,
+        ]);
+
+        // Change booth status back to available
+        $refundRequest->booking->booth->update([
+            'status' => 'available',
+        ]);
+
+        return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
+            ->with('success', 'Refund request has been approved successfully! The booking has been cancelled and the booth is now available.');
     }
 
     /**
      * Reject a refund request.
      */
-    public function reject(Request $request, RefundRequest $refundRequest)
+    public function reject(Request $request, Event $event, RefundRequest $refundRequest)
     {
         // Load relationships
         $refundRequest->load('booking.booth.event');
 
-        // Verify the refund request belongs to an event owned by the current user
-        if ($refundRequest->booking->booth->event->user_id !== $request->user()->id) {
-            abort(403, 'Unauthorized access to this refund request.');
+        // Verify the refund request belongs to the specified event
+        if ($refundRequest->booking->booth->event->id !== $event->id) {
+            abort(403, 'This refund request does not belong to this event.');
+        }
+
+        // Verify the event belongs to the current user
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event.');
         }
 
         // Validate the rejection reason
@@ -299,7 +329,7 @@ class RefundRequestController extends Controller
             'rejected_at' => now(),
         ]);
 
-        return redirect()->route('refund-requests.show', $refundRequest->id)
+        return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
             ->with('success', 'Refund request has been rejected.');
     }
 }

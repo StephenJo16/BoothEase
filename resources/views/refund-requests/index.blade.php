@@ -50,7 +50,7 @@ $event = $booth->event ?? null;
 $user = $refundRequest->user;
 
 // Action button
-$actionButtons = '<a href="' . route('refund-requests.show', $refundRequest->id) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-[#e66600] text-white text-sm">View</a>';
+$actionButtons = '<a href="' . route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id]) . '" class="inline-flex items-center px-3 py-1.5 rounded bg-[#ff7700] hover:bg-[#e66600] text-white text-sm">View</a>';
 
 $rows[] = [
 'rowClass' => 'h-16 hover:bg-gray-50',
@@ -171,7 +171,7 @@ $rows[] = [
 
             <!-- Filters and Search -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <form method="GET" action="{{ route('refund-requests') }}" class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <form method="GET" action="{{ route('refund-requests', ['event' => $event->id]) }}" class="flex flex-col lg:flex-row gap-4 items-center justify-between">
                     <div class="flex flex-wrap gap-4 items-center">
                         <!-- Search -->
                         <div class="relative">
@@ -213,7 +213,7 @@ $rows[] = [
 
                         <!-- Clear Filters -->
                         @if(!empty($filters['search']) || !empty($filters['statuses']) || !empty($filters['start_date']) || !empty($filters['end_date']))
-                        <a href="{{ route('refund-requests') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        <a href="{{ route('refund-requests', ['event' => $event->id]) }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
                             <i class="fas fa-times mr-2"></i>Clear
                         </a>
                         @endif
@@ -255,7 +255,7 @@ $rows[] = [
                             @endif
                         </p>
                         @if(!empty($filters['search']) || !empty($filters['statuses']) || !empty($filters['start_date']) || !empty($filters['end_date']))
-                        <a href="{{ route('refund-requests') }}" class="inline-block bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
+                        <a href="{{ route('refund-requests', ['event' => $event->id]) }}" class="inline-block bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
                             Clear Filters
                         </a>
                         @endif

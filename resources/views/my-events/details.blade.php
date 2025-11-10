@@ -300,7 +300,7 @@ $paidBookingRows[] = [
                                 <i class="fa-solid fa-clipboard-list mr-2"></i>
                                 View Booking Requests
                             </a>
-                            <a href="{{ route('refund-requests') }}" class="flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
+                            <a href="{{ route('refund-requests', ['event' => $event->id]) }}" class="flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
                                 <i class="fa-solid fa-undo mr-2"></i>
                                 View Refund Requests
                             </a>

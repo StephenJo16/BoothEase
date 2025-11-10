@@ -113,10 +113,10 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('refund-requests', [\App\Http\Controllers\RefundRequestController::class, 'index'])->name('refund-requests');
-    Route::get('/refund-requests/{refundRequest}', [\App\Http\Controllers\RefundRequestController::class, 'show'])->name('refund-requests.show');
-    Route::patch('/refund-requests/{refundRequest}/approve', [\App\Http\Controllers\RefundRequestController::class, 'approve'])->name('refund-requests.approve');
-    Route::patch('/refund-requests/{refundRequest}/reject', [\App\Http\Controllers\RefundRequestController::class, 'reject'])->name('refund-requests.reject');
+    Route::get('/events/{event}/refund-requests', [\App\Http\Controllers\RefundRequestController::class, 'index'])->name('refund-requests');
+    Route::get('/events/{event}/refund-requests/{refundRequest}', [\App\Http\Controllers\RefundRequestController::class, 'show'])->name('refund-requests.show');
+    Route::patch('/events/{event}/refund-requests/{refundRequest}/approve', [\App\Http\Controllers\RefundRequestController::class, 'approve'])->name('refund-requests.approve');
+    Route::patch('/events/{event}/refund-requests/{refundRequest}/reject', [\App\Http\Controllers\RefundRequestController::class, 'reject'])->name('refund-requests.reject');
 });
 
 Route::get('/refund-requests/details', function () {

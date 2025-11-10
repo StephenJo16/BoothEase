@@ -23,7 +23,7 @@
     <!-- Main Content -->
     <div class="min-h-screen py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            @include('components.back-button', ['url' => url('/refund-requests'), 'text' => 'Back to Refund Requests'])
+            @include('components.back-button', ['url' => route('refund-requests', ['event' => $event->id]), 'text' => 'Back to Refund Requests'])
 
             <!-- Header -->
             <div class="mb-8">
@@ -163,7 +163,7 @@
                     @if($refundRequest->isPending())
                     <!-- Buttons View -->
                     <div id="actionButtons" class="grid grid-cols-2 gap-3">
-                        <form method="POST" action="{{ route('refund-requests.approve', $refundRequest->id) }}">
+                        <form method="POST" action="{{ route('refund-requests.approve', ['event' => $event->id, 'refundRequest' => $refundRequest->id]) }}">
                             @csrf
                             @method('PATCH')
                             <button type="submit" onclick="return confirm('Are you sure you want to approve this refund request? The refund amount will be processed to the tenant\'s bank account.')" class="hover:cursor-pointer w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
@@ -179,7 +179,7 @@
 
                     <!-- Rejection Form (Hidden by default) -->
                     <div id="rejectForm" class="hidden">
-                        <form method="POST" action="{{ route('refund-requests.reject', $refundRequest->id) }}">
+                        <form method="POST" action="{{ route('refund-requests.reject', ['event' => $event->id, 'refundRequest' => $refundRequest->id]) }}">
                             @csrf
                             @method('PATCH')
 
