@@ -191,9 +191,41 @@ class RefundRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(RefundRequest $refundRequest)
+    public function show(Request $request, RefundRequest $refundRequest)
     {
-        //
+        // Load relationships
+        $refundRequest->load([
+            'user',
+            'booking.booth.event',
+            'booking.payment'
+        ]);
+
+        // Verify the refund request belongs to an event owned by the current user
+        if ($refundRequest->booking->booth->event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this refund request.');
+        }
+
+        $booking = $refundRequest->booking;
+        $event = $booking->booth->event;
+
+        // Format event dates
+        $dateDisplay = 'Schedule to be announced';
+        if ($event->start_time && $event->end_time) {
+            $startDate = $event->start_time->format('d M Y');
+            $endDate = $event->end_time->format('d M Y');
+            $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
+        } elseif ($event->start_time) {
+            $dateDisplay = $event->start_time->format('d M Y');
+        } elseif ($event->end_time) {
+            $dateDisplay = $event->end_time->format('d M Y');
+        }
+
+        return view('refund-requests.details', [
+            'refundRequest' => $refundRequest,
+            'booking' => $booking,
+            'event' => $event,
+            'dateDisplay' => $dateDisplay,
+        ]);
     }
 
     /**
@@ -218,5 +250,56 @@ class RefundRequestController extends Controller
     public function destroy(RefundRequest $refundRequest)
     {
         //
+    }
+
+    /**
+     * Approve a refund request.
+     */
+    public function approve(Request $request, RefundRequest $refundRequest)
+    {
+        // Load relationships
+        $refundRequest->load('booking.booth.event');
+
+        // Verify the refund request belongs to an event owned by the current user
+        if ($refundRequest->booking->booth->event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this refund request.');
+        }
+
+        // Update status to approved
+        $refundRequest->update([
+            'status' => RefundRequest::STATUS_APPROVED,
+        ]);
+
+        return redirect()->route('refund-requests.show', $refundRequest->id)
+            ->with('success', 'Refund request has been approved successfully!');
+    }
+
+    /**
+     * Reject a refund request.
+     */
+    public function reject(Request $request, RefundRequest $refundRequest)
+    {
+        // Load relationships
+        $refundRequest->load('booking.booth.event');
+
+        // Verify the refund request belongs to an event owned by the current user
+        if ($refundRequest->booking->booth->event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this refund request.');
+        }
+
+        // Validate the rejection reason
+        $validated = $request->validate([
+            'rejection_reason' => ['required', 'string', 'min:10', 'max:1000'],
+        ]);
+
+        // Update status to rejected with reason
+        $refundRequest->update([
+            'status' => RefundRequest::STATUS_REJECTED,
+            'rejection_reason' => $validated['rejection_reason'],
+            'rejected_at' => now(),
+        ]);
+
+        return redirect()->route('refund-requests.show', $refundRequest->id)
+            ->with('success', 'Refund request has been rejected.');
     }
 }

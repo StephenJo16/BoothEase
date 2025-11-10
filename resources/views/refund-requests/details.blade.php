@@ -17,30 +17,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-@php
-
-// Mocked refund request data for REQ-0001 (Pegasus Peripherals)
-$refund = [
-'id' => 1,
-'user_id' => 42,
-'booking_id' => 'BKG-1001',
-'tenant' => 'Pegasus Peripherals',
-'reason' => 'Event rescheduled, cannot attend',
-'amount' => 500000,
-'status' => 'pending',
-'created_at' => '2025-10-15 09:12:00',
-'updated_at' => null,
-];
-
-// Mock booking details (could be joined in real app)
-$booking = [
-'id' => $refund['booking_id'],
-'event' => 'Tech Innovation Expo 2025',
-'venue' => 'Jakarta Convention Center',
-'dates' => '20 - 28 October 2025'
-];
-@endphp
-
 <body class="bg-gray-50 min-h-screen font-['Instrument_Sans']">
     @include('components.navbar')
 
@@ -52,148 +28,325 @@ $booking = [
             <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Refund Request Details</h1>
-                <p class="text-gray-600">Request ID: REQ-{{ str_pad($refund['id'], 4, '0', STR_PAD_LEFT) }}</p>
+                <p class="text-gray-600">Request ID: REQ-{{ str_pad($refundRequest->id, 4, '0', STR_PAD_LEFT) }}</p>
             </div>
+
+            <!-- Success/Error Messages -->
+            @if (session('success'))
+            <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg" role="alert">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+            </div>
+            @endif
+
+            @if (session('error'))
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+            </div>
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Refund Request Details -->
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Request Information</h2>
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Request Information</h2>
                         <!-- Status -->
                         <div>
+                            @if($refundRequest->status === 'pending')
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock mr-1"></i> Pending
+                            </span>
+                            @elseif($refundRequest->status === 'approved')
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check mr-1"></i> Approved
+                            </span>
+                            @else
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-times mr-1"></i> {{ ucfirst($refundRequest->status) }}
+                            </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Tenant and Booking Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tenant Name</label>
+                            <p class="text-sm text-gray-900 font-medium">{{ $refundRequest->user->name }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Booking ID</label>
+                            <p class="text-sm text-gray-900 font-medium">ID-{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Bank Account Details Section -->
+                    <div class="mb-6 pb-6 border-b border-gray-200">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Bank Account Details</h3>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Holder Name</label>
+                                    <p class="text-sm text-gray-900">{{ $refundRequest->account_holder_name }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                                    <p class="text-sm text-gray-900">{{ $refundRequest->bank_name }}</p>
+                                </div>
+                            </div>
                             <div>
-                                @if($refund['status'] === 'pending')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">Pending</span>
-                                @elseif($refund['status'] === 'approved')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Approved</span>
-                                @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">{{ ucfirst($refund['status']) }}</span>
-                                @endif
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
+                                <p class="text-sm text-gray-900 font-mono">{{ $refundRequest->account_number }}</p>
                             </div>
                         </div>
                     </div>
 
-
-
-                    <div class="space-y-6">
-
-
-                        <!-- Tenant and Booking ID -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Tenant</label>
-                                {{ $refund['tenant'] }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Booking ID</label>
-                                {{ $refund['booking_id'] }}
-                            </div>
+                    <!-- Request Details Section -->
+                    <div class="mb-6">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Submitted At</label>
+                            <p class="text-sm text-gray-900">
+                                <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                                {{ $refundRequest->created_at->format('d M Y, H:i') }}
+                            </p>
                         </div>
 
-                        <!-- Submitted At -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Submitted At</label>
-                            {{ $refund['created_at'] }}
-                        </div>
-
-                        <!-- Refund Reason -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason</label>
-                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[100px]">
-                                {{ $refund['reason'] }}
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[100px] text-sm text-gray-700">
+                                {{ $refundRequest->reason }}
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Requested Amount -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Requested Amount</label>
-                            <span class="text-2xl font-semibold text-[#ff7700]">{{ formatRupiah($refund['amount']) }}</span>
-                        </div>
+                    @if($refundRequest->document)
+                    <div class="mb-6 pb-6 border-b border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supporting Document</label>
+                        <a href="{{ asset('storage/' . $refundRequest->document) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-[#ff7700] hover:bg-gray-100 hover:text-[#e66600] transition-colors">
+                            <i class="fas fa-file-pdf mr-2"></i>
+                            View Uploaded Document
+                        </a>
+                    </div>
+                    @endif
 
-                        <!-- Action Buttons -->
-                        <div class="flex gap-3">
-                            <button type="button" class="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                                Approve Request
-                            </button>
-                            <button type="button" class="bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                                Reject Request
-                            </button>
+                    <!-- Refund Calculation -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Refund Calculation</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Original Booking Amount:</span>
+                                <span class="font-medium text-gray-900">{{ formatRupiah($booking->total_price) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Processing Fee (30%):</span>
+                                <span class="font-medium text-red-600">- {{ formatRupiah($refundRequest->processing_fee) }}</span>
+                            </div>
+                            <div class="pt-2 mt-2 border-t border-gray-300">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-semibold text-gray-900">Refund Amount:</span>
+                                    <span class="text-2xl font-bold text-[#ff7700]">{{ formatRupiah($refundRequest->refund_amount) }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Action Buttons -->
+                    @if($refundRequest->isPending())
+                    <!-- Buttons View -->
+                    <div id="actionButtons" class="grid grid-cols-2 gap-3">
+                        <form method="POST" action="{{ route('refund-requests.approve', $refundRequest->id) }}">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" onclick="return confirm('Are you sure you want to approve this refund request? The refund amount will be processed to the tenant\'s bank account.')" class="hover:cursor-pointer w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-check mr-2"></i>
+                                Approve
+                            </button>
+                        </form>
+                        <button type="button" onclick="showRejectForm()" class="hover:cursor-pointer w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                            <i class="fas fa-times mr-2"></i>
+                            Reject
+                        </button>
+                    </div>
+
+                    <!-- Rejection Form (Hidden by default) -->
+                    <div id="rejectForm" class="hidden">
+                        <form method="POST" action="{{ route('refund-requests.reject', $refundRequest->id) }}">
+                            @csrf
+                            @method('PATCH')
+
+                            <div class="mb-4">
+                                <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Rejection Reason <span class="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    name="rejection_reason"
+                                    id="rejection_reason"
+                                    rows="5"
+                                    required
+                                    minlength="10"
+                                    maxlength="1000"
+                                    placeholder="Please provide a clear reason for rejecting this refund request (minimum 10 characters)..."
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"></textarea>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    <span id="charCount">0</span>/1000 characters (minimum 10 required)
+                                </p>
+                                @error('rejection_reason')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                <p class="text-sm text-yellow-800">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    This action cannot be undone. The tenant will be notified of the rejection and your reason.
+                                </p>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button
+                                    type="button"
+                                    onclick="hideRejectForm()"
+                                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-arrow-left mr-2"></i>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    class="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Confirm Rejection
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    @else
+                    <div class="p-4 bg-{{ $refundRequest->status === 'approved' ? 'green' : 'red' }}-50 border border-{{ $refundRequest->status === 'approved' ? 'green' : 'red' }}-200 rounded-lg">
+                        <p class="text-sm text-{{ $refundRequest->status === 'approved' ? 'green' : 'red' }}-700 text-center font-medium">
+                            <i class="fas fa-{{ $refundRequest->status === 'approved' ? 'check-circle' : 'times-circle' }} mr-2"></i>
+                            This refund request has been {{ $refundRequest->status }}.
+                        </p>
+                    </div>
+                    @endif
+                    @if($refundRequest->isRejected() && $refundRequest->rejection_reason)
+                    <!-- Rejection Details -->
+                    <div class="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <h3 class="text-sm font-semibold text-red-900 mb-2">
+                            <i class="fas fa-exclamation-circle mr-2"></i>Rejection Reason
+                        </h3>
+                        <p class="text-sm text-red-800 mb-2">{{ $refundRequest->rejection_reason }}</p>
+                        @if($refundRequest->rejected_at)
+                        <p class="text-xs text-red-600 mt-2">
+                            <i class="fas fa-clock mr-1"></i>
+                            Rejected on {{ $refundRequest->rejected_at->format('d M Y, H:i') }}
+                        </p>
+                        @endif
+                    </div>
+                    @endif
                 </div>
+
 
                 <!-- Booking Summary -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">Booking Summary</h2>
 
-                    <div class="space-y-4 mb-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ $booking['event'] }}</h3>
-                            <p class="text-gray-600">{{ $booking['venue'] }}</p>
-                            <p class="text-gray-600">{{ $booking['dates'] }}</p>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Booking ID</span>
-                            <span class="font-medium">{{ $booking['id'] }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Event</span>
-                            <span class="font-medium">{{ $booking['event'] }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Venue</span>
-                            <span class="font-medium">{{ $booking['venue'] }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Dates</span>
-                            <span class="font-medium">{{ $booking['dates'] }}</span>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="space-y-3">
-                        <div class="border-t pt-3">
-                            <div class="flex justify-between text-lg font-semibold">
-                                <span>Original Paid Amount</span>
-                                <span class="text-[#ff7700]">{{ formatRupiah($refund['amount']) }}</span>
+                    <div class="space-y-4">
+                        <!-- Event Details -->
+                        <div class="border-b border-gray-200 pb-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">Event Details</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Event:</span>
+                                    <span class="font-medium text-gray-900">{{ $event->title }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Venue:</span>
+                                    <span class="font-medium text-gray-900">{{ $event->venue ?? 'Venue not specified' }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Date:</span>
+                                    <span class="font-medium text-gray-900">{{ $dateDisplay }}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="mt-6 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <p class="text-xs text-orange-700">
-                            * Refund amount subject to processing fees and refund policy terms
-                        </p>
+                        <!-- Booth Details -->
+                        <div class="border-b border-gray-200 pb-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Booth Number:</span>
+                                    <span class="font-medium text-gray-900">{{ $booking->booth->number }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Type:</span>
+                                    <span class="font-medium text-gray-900">{{ ucfirst($booking->booth->type) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Details -->
+                        <div class="border-b border-gray-200 pb-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">Payment Details</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Booking Amount:</span>
+                                    <span class="font-medium text-gray-900">{{ formatRupiah($booking->total_price) }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Processing Fee (30%):</span>
+                                    <span class="font-medium text-red-600">- {{ formatRupiah($refundRequest->processing_fee) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Refund Amount -->
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-semibold text-gray-900">Estimated Refund Amount:</span>
+                                <span class="text-lg font-bold text-[#ff7700]">{{ formatRupiah($refundRequest->refund_amount) }}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-2">
+                                Processing fee is non-refundable as per the refund policy.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    @include('components.footer')
-
     <script>
-        // Action button functionality
-        document.querySelector('.bg-green-500').addEventListener('click', function() {
-            if (confirm('Are you sure you want to approve this refund request?')) {
-                alert('Refund request approved successfully!');
-            }
-        });
+        function showRejectForm() {
+            document.getElementById('actionButtons').classList.add('hidden');
+            document.getElementById('rejectForm').classList.remove('hidden');
+            // Focus on textarea
+            document.getElementById('rejection_reason').focus();
+        }
 
-        document.querySelector('.bg-red-500').addEventListener('click', function() {
-            if (confirm('Are you sure you want to reject this refund request?')) {
-                alert('Refund request rejected successfully!');
-            }
+        function hideRejectForm() {
+            document.getElementById('rejectForm').classList.add('hidden');
+            document.getElementById('actionButtons').classList.remove('hidden');
+            // Clear textarea
+            document.getElementById('rejection_reason').value = '';
+            document.getElementById('charCount').textContent = '0';
+        }
+
+        // Character counter
+        document.getElementById('rejection_reason')?.addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
         });
     </script>
+
+    @include('components.footer')
 </body>
 
 </html>

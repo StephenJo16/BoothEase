@@ -103,7 +103,7 @@ $dateDisplay = $event->end_time->format('d M Y');
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Account Holder Name</label>
                                 <input type="text" name="account_holder_name" value="{{ old('account_holder_name') }}" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_holder_name') border-red-500 @enderror"
+                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_holder_name') border-red-500 @enderror"
                                     placeholder="Enter account holder name">
                                 @error('account_holder_name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -112,7 +112,7 @@ $dateDisplay = $event->end_time->format('d M Y');
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
                                 <input type="text" name="bank_name" value="{{ old('bank_name') }}" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('bank_name') border-red-500 @enderror"
+                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('bank_name') border-red-500 @enderror"
                                     placeholder="Enter bank name">
                                 @error('bank_name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -125,7 +125,7 @@ $dateDisplay = $event->end_time->format('d M Y');
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
                                 <input type="text" name="account_number" value="{{ old('account_number') }}" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_number') border-red-500 @enderror"
+                                    class="w-full px-3 py-2 borderrounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_number') border-red-500 @enderror"
                                     placeholder="Enter account number">
                                 @error('account_number')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -176,7 +176,7 @@ $dateDisplay = $event->end_time->format('d M Y');
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason</label>
                             <textarea rows="4" name="reason" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none @error('reason') border-red-500 @enderror"
+                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none @error('reason') border-red-500 @enderror"
                                 placeholder="Please explain why you need a refund...">{{ old('reason') }}</textarea>
                             @error('reason')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

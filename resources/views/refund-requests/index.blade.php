@@ -22,14 +22,13 @@
 // Table headers
 $headers = [
 ['title' => 'Request ID', 'class' => 'w-30'],
-['title' => 'Event', 'class' => 'w-40'],
-['title' => 'Tenant Name', 'class' => 'w-32'],
-['title' => 'Booth Number', 'class' => 'w-28'],
-['title' => 'Reason', 'class' => ''],
+['title' => 'Tenant Name', 'class' => 'w-40'],
+['title' => 'Contact Person', 'class' => 'w-32'],
+['title' => 'Booth', 'class' => 'w-20'],
 ['title' => 'Amount', 'class' => 'w-28'],
-['title' => 'Request Date', 'class' => 'w-32'],
+['title' => 'Request Date', 'class' => 'w-28'],
 ['title' => 'Status', 'class' => 'w-24'],
-['title' => 'Action', 'class' => 'w-36']
+['title' => 'Actions', 'class' => 'w-32'],
 ];
 
 // Build rows for components.table
@@ -61,13 +60,13 @@ $rows[] = [
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => $event ? htmlspecialchars($event->title) : 'N/A',
-'class' => 'text-sm text-gray-900'
+'content' => $user->name ?? 'N/A',
+'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
 'content' => '<div>
-    <div class="text-sm text-gray-900">' . htmlspecialchars($user->name ?? 'Unknown') . '</div>
-    <div class="text-xs text-gray-500">' . htmlspecialchars($user->phone_number ?? 'N/A') . '</div>
+    <div class="text-sm text-gray-900">' . ($user->display_name ?? 'N/A') . '</div>
+    <div class="text-xs text-gray-500">' . ($user && $user->phone_number ? formatPhoneNumber($user->phone_number) : 'N/A') . '</div>
 </div>',
 'class' => ''
 ],
@@ -76,11 +75,7 @@ $rows[] = [
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
-'content' => htmlspecialchars($refundRequest->reason),
-'class' => 'text-sm text-gray-600'
-],
-[
-'content' => formatRupiah($booking->total_price ?? 0),
+'content' => formatRupiah($refundRequest->refund_amount ?? 0),
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
@@ -109,7 +104,7 @@ $rows[] = [
     <div class="min-h-screen py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
-            @include('components.back-button', ['url' => route('my-events.index'), 'text' => 'Back to My Events'])
+            @include('components.back-button', ['url' => route('my-events.show', ['event' => $event->id]), 'text' => 'Back to Event Details'])
 
             <!-- Header -->
             <div class="mb-8">
@@ -176,72 +171,54 @@ $rows[] = [
 
             <!-- Filters and Search -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <form method="GET" action="{{ route('refund-requests') }}" id="filter-form">
-                    <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
-                        <div class="flex flex-wrap gap-4 items-center">
-                            <!-- Search -->
-                            <div class="relative">
-                                @include('components.search-bar', [
-                                'placeholder' => 'Search refund requests...',
-                                'value' => $filters['search'] ?? ''
-                                ])
-                            </div>
-
-                            <!-- Status Filter -->
-                            <div class="relative">
-                                <x-filter-button
-                                    type="status"
-                                    label="Status"
-                                    :selectedStatuses="$filters['statuses'] ?? []" />
-                            </div>
-
-                            <!-- Date Filter -->
-                            <div class="flex items-center gap-2">
-                                <input type="date" name="start_date" id="startDate" value="{{ $filters['start_date'] ?? '' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
-                                <span class="text-gray-500">to</span>
-                                <input type="date" name="end_date" id="endDate" value="{{ $filters['end_date'] ?? '' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
-                            </div>
+                <form method="GET" action="{{ route('refund-requests') }}" class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <!-- Search -->
+                        <div class="relative">
+                            <input type="text"
+                                name="search"
+                                value="{{ $filters['search'] ?? '' }}"
+                                placeholder="Search refund requests..."
+                                class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
+
+                        <!-- Status Filter -->
+                        <div class="relative">
+                            <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                <option value="">All Status</option>
+                                <option value="pending" {{ in_array('pending', $filters['statuses'] ?? []) ? 'selected' : '' }}>Pending</option>
+                                <option value="approved" {{ in_array('approved', $filters['statuses'] ?? []) ? 'selected' : '' }}>Approved</option>
+                                <option value="rejected" {{ in_array('rejected', $filters['statuses'] ?? []) ? 'selected' : '' }}>Rejected</option>
+                            </select>
+                        </div>
+
+                        <!-- Date Filter -->
+                        <div class="flex items-center gap-2">
+                            <input type="date"
+                                name="start_date"
+                                value="{{ $filters['start_date'] ?? '' }}"
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <span class="text-gray-500">to</span>
+                            <input type="date"
+                                name="end_date"
+                                value="{{ $filters['end_date'] ?? '' }}"
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                        </div>
+
+                        <!-- Filter Button -->
+                        <button type="submit" class="px-4 py-2 bg-[#ff7700] text-white rounded-lg hover:bg-[#e66600] transition-colors">
+                            Apply
+                        </button>
+
+                        <!-- Clear Filters -->
+                        @if(!empty($filters['search']) || !empty($filters['statuses']) || !empty($filters['start_date']) || !empty($filters['end_date']))
+                        <a href="{{ route('refund-requests') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Clear
+                        </a>
+                        @endif
                     </div>
                 </form>
-
-                <!-- Active Filters Display -->
-                @if(!empty($filters['statuses'] ?? []) || ($filters['start_date'] ?? '') || ($filters['end_date'] ?? ''))
-                <div class="mt-4 flex flex-wrap items-center gap-2">
-                    <span class="text-sm text-gray-600">Active filters:</span>
-
-                    @foreach($filters['statuses'] ?? [] as $status)
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                        {{ ucfirst($status) }}
-                        <button type="button" data-remove-status="{{ $status }}" class="hover:cursor-pointer ml-2 hover:text-blue-600">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </span>
-                    @endforeach
-
-                    @if($filters['start_date'] ?? '')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        From: {{ \Carbon\Carbon::parse($filters['start_date'])->format('M d, Y') }}
-                        <button type="button" data-remove-filter="start_date" class="hover:cursor-pointer ml-2 hover:text-green-600">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </span>
-                    @endif
-
-                    @if($filters['end_date'] ?? '')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        To: {{ \Carbon\Carbon::parse($filters['end_date'])->format('M d, Y') }}
-                        <button type="button" data-remove-filter="end_date" class="hover:cursor-pointer ml-2 hover:text-green-600">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </span>
-                    @endif
-
-                    <a href="{{ route('refund-requests') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
-                        Clear all filters
-                    </a>
-                </div>
-                @endif
             </div>
 
             <!-- Refund Requests Table -->
@@ -249,7 +226,6 @@ $rows[] = [
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-semibold text-gray-900">All Refund Requests</h2>
-                        <span class="text-sm text-gray-500">{{ $refundRequests->total() }} total</span>
                     </div>
                 </div>
 
@@ -262,10 +238,8 @@ $rows[] = [
                 'containerClass' => 'overflow-x-auto'
                 ])
 
-                <!-- Pagination -->
-                <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $refundRequests->links() }}
-                </div>
+                <!-- Table Footer with Pagination -->
+                <x-pagination :paginator="$refundRequests" />
                 @else
                 <div class="px-6 py-12 text-center">
                     <div class="max-w-md mx-auto">

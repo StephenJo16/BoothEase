@@ -27,6 +27,8 @@ class RefundRequest extends Model
         'document',
         'refund_amount',
         'processing_fee',
+        'rejection_reason',
+        'rejected_at',
     ];
 
     protected $casts = [
@@ -34,6 +36,7 @@ class RefundRequest extends Model
         'updated_at' => 'datetime',
         'refund_amount' => 'integer',
         'processing_fee' => 'integer',
+        'rejected_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

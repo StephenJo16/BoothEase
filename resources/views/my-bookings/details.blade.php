@@ -430,11 +430,30 @@ $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
                             </button>
                         </a>
                         @endif
-                        @if($booking->refundRequest && $booking->refundRequest->isPending())
+                        @if($booking->refundRequest)
+                        @if($booking->refundRequest->isPending())
                         <div class="w-full bg-yellow-50 text-yellow-600 font-medium py-3 px-4 rounded-lg border border-yellow-200 text-center">
                             <i class="fas fa-clock mr-2"></i>
                             Refund Request Pending
                         </div>
+                        @elseif($booking->refundRequest->isApproved())
+                        <div class="w-full bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg border border-green-200 text-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Refund Approved
+                        </div>
+                        @elseif($booking->refundRequest->isRejected())
+                        <div class="w-full bg-red-50 border border-red-200 rounded-lg py-3 px-4">
+                            <div class="text-red-600 font-medium text-center">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                Refund Rejected
+                            </div>
+                            @if($booking->refundRequest->rejection_reason)
+                            <p class="text-xs text-red-700 text-center mt-2 break-words">
+                                {{ $booking->refundRequest->rejection_reason }}
+                            </p>
+                            @endif
+                        </div>
+                        @endif
                         @endif
                         @endif
                     </div>
@@ -454,11 +473,30 @@ $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
                             </button>
                         </a>
                         @endif
-                        @if($booking->refundRequest && $booking->refundRequest->isPending())
+                        @if($booking->refundRequest)
+                        @if($booking->refundRequest->isPending())
                         <div class="w-full bg-yellow-50 text-yellow-600 font-medium py-3 px-4 rounded-lg border border-yellow-200 text-center">
                             <i class="fas fa-clock mr-2"></i>
                             Refund Request Pending
                         </div>
+                        @elseif($booking->refundRequest->isApproved())
+                        <div class="w-full bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg border border-green-200 text-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Refund Approved
+                        </div>
+                        @elseif($booking->refundRequest->isRejected())
+                        <div class="w-full bg-red-50 border border-red-200 rounded-lg py-3 px-4">
+                            <div class="text-red-600 font-medium text-center">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                Refund Rejected
+                            </div>
+                            @if($booking->refundRequest->rejection_reason)
+                            <p class="text-xs text-red-700 text-center mt-2 break-words">
+                                {{ $booking->refundRequest->rejection_reason }}
+                            </p>
+                            @endif
+                        </div>
+                        @endif
                         @endif
                     </div>
                     @endif

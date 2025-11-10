@@ -199,7 +199,7 @@ $paidBookingRows[] = [
                         $pendingBookings = $event->booths->flatMap->bookings->where('status', 'pending')->count();
                         $confirmedBookings = $event->booths->flatMap->bookings->where('status', 'confirmed')->count();
                         $paidBookings = $event->booths->flatMap->bookings->whereIn('status', ['paid', 'ongoing', 'completed'])->count();
-                        $cancelledBookings = $event->booths->flatMap->bookings->where('status', 'cancelled')->count();
+                        $cancelledOrRejectedBookings = $event->booths->flatMap->bookings->whereIn('status', ['cancelled', 'rejected'])->count();
                         @endphp
 
                         <!-- Total Revenue -->
@@ -229,10 +229,9 @@ $paidBookingRows[] = [
                                 <p class="text-xs text-blue-600 mt-1">Paid</p>
                             </div>
                             <div class="rounded-lg border border-red-100 bg-red-50 px-3 py-3 text-center">
-                                <p class="text-2xl font-bold text-red-600">{{ $cancelledBookings }}</p>
-                                <p class="text-xs text-red-600 mt-1">Cancelled</p>
+                                <p class="text-2xl font-bold text-red-600">{{ $cancelledOrRejectedBookings }}</p>
+                                <p class="text-xs text-red-600 mt-1">Cancelled/Rejected</p>
                             </div>
-                        </div>
                     </section>
                     @endif
 

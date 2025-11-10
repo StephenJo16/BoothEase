@@ -238,11 +238,23 @@
                             </a>
                             @endif
 
-                            @if($booking->refundRequest && $booking->refundRequest->isPending())
+                            @if($booking->refundRequest)
+                            @if($booking->refundRequest->isPending())
                             <span class="bg-yellow-50 text-yellow-600 font-medium py-2 px-4 rounded-lg border border-yellow-200">
                                 <i class="fas fa-clock mr-2"></i>
                                 Refund Pending
                             </span>
+                            @elseif($booking->refundRequest->isApproved())
+                            <span class="bg-green-50 text-green-600 font-medium py-2 px-4 rounded-lg border border-green-200">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Refund Approved
+                            </span>
+                            @elseif($booking->refundRequest->isRejected())
+                            <span class="bg-red-50 text-red-600 font-medium py-2 px-4 rounded-lg border border-red-200">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                Refund Rejected
+                            </span>
+                            @endif
                             @endif
 
                             <a href="{{ route('my-booking-details', $booking->id) }}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">
