@@ -483,6 +483,7 @@ class EventController extends Controller
             'end_date' => [$requiresFullValidation ? 'required' : 'nullable', 'date', 'after_or_equal:start_date'],
             'end_time' => [$requiresFullValidation ? 'required' : 'nullable', 'date_format:H:i'],
             'registration_deadline' => ['nullable', 'date'],
+            'refundable' => ['nullable', 'boolean'],
             'booth_standard_size' => ['nullable', 'string', 'max:50'],
             'booth_standard_price' => ['nullable', 'integer', 'min:0'],
             'booth_standard_qty' => ['nullable', 'integer', 'min:0'],
@@ -510,6 +511,7 @@ class EventController extends Controller
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
             'registration_deadline' => $data['registration_deadline'] ?? null,
+            'refundable' => $data['refundable'] ?? false,
         ]);
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);

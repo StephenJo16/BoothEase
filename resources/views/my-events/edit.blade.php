@@ -130,6 +130,20 @@
                         </div>
                     </section>
 
+                    <section class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">Refund Policy</h2>
+                            <p class="text-sm text-gray-500">Set whether paid bookings can be refunded.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('refundable', $event->refundable))>
+                            <div class="flex-1">
+                                <label for="refundable" class="block text-sm font-medium text-gray-700">Allow refunds for paid bookings</label>
+                                <p class="mt-1 text-xs text-gray-500">When enabled, tenants can request refunds for their paid bookings. You'll need to review and approve each refund request.</p>
+                            </div>
+                        </div>
+                    </section>
+
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
                         <div class="text-xs text-gray-500">Fields marked with * are required to publish.</div>
                         <div class="flex flex-wrap gap-3">

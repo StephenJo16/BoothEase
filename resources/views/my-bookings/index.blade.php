@@ -231,11 +231,18 @@
 
                         <!-- Action Buttons -->
                         <div class="flex gap-3">
-                            @if($booking->status === 'paid')
-                            <button class="hover:cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                            @if($booking->status === 'paid' && $event->refundable && !$booking->refundRequest)
+                            <a href="{{ route('request-refund', ['booking' => $booking->id]) }}" class="hover:cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-undo mr-2"></i>
                                 Request Refund
-                            </button>
+                            </a>
+                            @endif
+
+                            @if($booking->refundRequest && $booking->refundRequest->isPending())
+                            <span class="bg-yellow-50 text-yellow-600 font-medium py-2 px-4 rounded-lg border border-yellow-200">
+                                <i class="fas fa-clock mr-2"></i>
+                                Refund Pending
+                            </span>
                             @endif
 
                             <a href="{{ route('my-booking-details', $booking->id) }}" class="hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-block text-center">

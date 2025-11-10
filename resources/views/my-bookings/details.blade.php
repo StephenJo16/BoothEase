@@ -422,12 +422,20 @@ $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
                                 Download Invoice
                             </button>
                         </a>
-                        <a href="{{ route('request-refund') }}">
+                        @if($event->refundable && !$booking->refundRequest)
+                        <a href="{{ route('request-refund', ['booking' => $booking->id]) }}">
                             <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-undo mr-2"></i>
                                 Request Refund
                             </button>
                         </a>
+                        @endif
+                        @if($booking->refundRequest && $booking->refundRequest->isPending())
+                        <div class="w-full bg-yellow-50 text-yellow-600 font-medium py-3 px-4 rounded-lg border border-yellow-200 text-center">
+                            <i class="fas fa-clock mr-2"></i>
+                            Refund Request Pending
+                        </div>
+                        @endif
                         @endif
                     </div>
                     @elseif($booking->status === 'paid' || $booking->status === 'completed')
@@ -438,13 +446,19 @@ $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
                                 Download Invoice
                             </button>
                         </a>
-                        @if($booking->status !== 'completed')
-                        <a href="{{ route('request-refund') }}">
+                        @if($booking->status !== 'completed' && $event->refundable && !$booking->refundRequest)
+                        <a href="{{ route('request-refund', ['booking' => $booking->id]) }}">
                             <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-undo mr-2"></i>
                                 Request Refund
                             </button>
                         </a>
+                        @endif
+                        @if($booking->refundRequest && $booking->refundRequest->isPending())
+                        <div class="w-full bg-yellow-50 text-yellow-600 font-medium py-3 px-4 rounded-lg border border-yellow-200 text-center">
+                            <i class="fas fa-clock mr-2"></i>
+                            Refund Request Pending
+                        </div>
                         @endif
                     </div>
                     @endif

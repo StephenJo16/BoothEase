@@ -47,7 +47,7 @@ $booking = [
     <!-- Main Content -->
     <div class="min-h-screen py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            @include('components.back-button', ['url' => url('/refund-request'), 'text' => 'Back to Refund Requests'])
+            @include('components.back-button', ['url' => url('/refund-requests'), 'text' => 'Back to Refund Requests'])
 
             <!-- Header -->
             <div class="mb-8">

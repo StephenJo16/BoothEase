@@ -107,17 +107,19 @@ Route::middleware('auth')->prefix('my-events')->name('my-events.')->group(functi
     Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
 });
 
-Route::get('/request-refund', function () {
-    return view('request-refund.index');
-})->name('request-refund');
+Route::middleware('auth')->group(function () {
+    Route::get('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'create'])->name('request-refund');
+    Route::post('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'store'])->name('refund-request.store');
+});
 
-Route::get('refund-request', function () {
-    return view('refund-request.index');
-})->name('refund-request');
+Route::middleware('auth')->group(function () {
+    Route::get('refund-requests', [\App\Http\Controllers\RefundRequestController::class, 'index'])->name('refund-requests');
+    Route::get('/refund-requests/{refundRequest}', [\App\Http\Controllers\RefundRequestController::class, 'show'])->name('refund-requests.show');
+});
 
-Route::get('/refund-request/details', function () {
-    return view('refund-request.details');
-})->name('refund-request-details');
+Route::get('/refund-requests/details', function () {
+    return view('refund-requests.details');
+})->name('refund-requests-details');
 
 // Booking requests routes (for event organizers)
 Route::middleware('auth')->group(function () {

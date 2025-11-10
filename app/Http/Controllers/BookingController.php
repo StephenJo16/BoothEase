@@ -32,7 +32,7 @@ class BookingController extends Controller
         $maxPrice = $request->input('max_price');
 
         // Build query with filters
-        $query = Booking::with(['booth.event.category', 'user'])
+        $query = Booking::with(['booth.event.category', 'user', 'refundRequest'])
             ->where('user_id', $userId);
 
         // Search filter - search in event title, venue, booth number, booking ID
@@ -193,7 +193,8 @@ class BookingController extends Controller
             'booth.event.category',
             'booth.event.user',
             'user',
-            'payment'
+            'payment',
+            'refundRequest'
         ]);
 
         return view('my-bookings.details', compact('booking'));
