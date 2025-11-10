@@ -157,18 +157,6 @@ $rows[] = [
                         </div>
                     </div>
                 </div>
-
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600 mb-1">Paid</p>
-                            <p class="text-2xl font-bold text-blue-600">{{ $stats['paid'] }}</p>
-                        </div>
-                        <div class="bg-blue-100 w-12 h-12 flex items-center justify-center rounded-full">
-                            <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Filters and Search -->

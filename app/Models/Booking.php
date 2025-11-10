@@ -51,6 +51,11 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function refundRequest(): HasOne
+    {
+        return $this->hasOne(RefundRequest::class);
+    }
+
     // Status helper methods
     public function isPending(): bool
     {

@@ -422,12 +422,39 @@ $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
                                 Download Invoice
                             </button>
                         </a>
-                        <a href="{{ route('request-refund') }}">
+                        @if($event->refundable && !$booking->refundRequest)
+                        <a href="{{ route('request-refund', ['booking' => $booking->id]) }}">
                             <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-undo mr-2"></i>
                                 Request Refund
                             </button>
                         </a>
+                        @endif
+                        @if($booking->refundRequest)
+                        @if($booking->refundRequest->isPending())
+                        <div class="w-full bg-yellow-50 text-yellow-600 font-medium py-3 px-4 rounded-lg border border-yellow-200 text-center">
+                            <i class="fas fa-clock mr-2"></i>
+                            Refund Request Pending
+                        </div>
+                        @elseif($booking->refundRequest->isApproved())
+                        <div class="w-full bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg border border-green-200 text-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Refund Approved
+                        </div>
+                        @elseif($booking->refundRequest->isRejected())
+                        <div class="w-full bg-red-50 border border-red-200 rounded-lg py-3 px-4">
+                            <div class="text-red-600 font-medium text-center">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                Refund Rejected
+                            </div>
+                            @if($booking->refundRequest->rejection_reason)
+                            <p class="text-xs text-red-700 text-center mt-2 break-words">
+                                {{ $booking->refundRequest->rejection_reason }}
+                            </p>
+                            @endif
+                        </div>
+                        @endif
+                        @endif
                         @endif
                     </div>
                     @elseif($booking->status === 'paid' || $booking->status === 'completed')
@@ -438,13 +465,38 @@ $eventDuration = floor($event->start_time->diffInDays($event->end_time)) + 1;
                                 Download Invoice
                             </button>
                         </a>
-                        @if($booking->status !== 'completed')
-                        <a href="{{ route('request-refund') }}">
+                        @if($booking->status !== 'completed' && $event->refundable && !$booking->refundRequest)
+                        <a href="{{ route('request-refund', ['booking' => $booking->id]) }}">
                             <button class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-undo mr-2"></i>
                                 Request Refund
                             </button>
                         </a>
+                        @endif
+                        @if($booking->refundRequest)
+                        @if($booking->refundRequest->isPending())
+                        <div class="w-full bg-yellow-50 text-yellow-600 font-medium py-3 px-4 rounded-lg border border-yellow-200 text-center">
+                            <i class="fas fa-clock mr-2"></i>
+                            Refund Request Pending
+                        </div>
+                        @elseif($booking->refundRequest->isApproved())
+                        <div class="w-full bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg border border-green-200 text-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Refund Approved
+                        </div>
+                        @elseif($booking->refundRequest->isRejected())
+                        <div class="w-full bg-red-50 border border-red-200 rounded-lg py-3 px-4">
+                            <div class="text-red-600 font-medium text-center">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                Refund Rejected
+                            </div>
+                            @if($booking->refundRequest->rejection_reason)
+                            <p class="text-xs text-red-700 text-center mt-2 break-words">
+                                {{ $booking->refundRequest->rejection_reason }}
+                            </p>
+                            @endif
+                        </div>
+                        @endif
                         @endif
                     </div>
                     @endif

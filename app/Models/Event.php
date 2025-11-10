@@ -24,6 +24,7 @@ class Event extends Model
         'image_path',
         'capacity',
         'status',
+        'refundable',
     ];
 
     // Status constants
@@ -38,6 +39,7 @@ class Event extends Model
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'registration_deadline' => 'date',
+        'refundable' => 'boolean',
     ];
 
     public function category(): BelongsTo
@@ -145,6 +147,11 @@ class Event extends Model
     public function isCompleted(): bool
     {
         return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function isRefundable(): bool
+    {
+        return $this->refundable === true;
     }
 
     // Method to get the current status based on dates
