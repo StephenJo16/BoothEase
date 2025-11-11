@@ -27,14 +27,14 @@
     - paginator: Laravel paginator instance (from $query->paginate())
     
     Optional Props:
-    - perPageOptions: array of integers (default: [10, 25, 50, 100])
+    - perPageOptions: array of integers (default: [5, 10, 25, 50, 100])
     - showPerPageSelector: boolean (default: true)
     - showInfo: boolean (default: true)
 --}}
 
 @props([
 'paginator', // Required: Laravel paginator instance
-'perPageOptions' => [10, 25, 50, 100], // Optional: per page options
+'perPageOptions' => [5, 10, 25, 50, 100], // Optional: per page options
 'showPerPageSelector' => true, // Optional: show/hide per page selector
 'showInfo' => true, // Optional: show/hide "Showing X to Y of Z entries"
 ])

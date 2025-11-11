@@ -92,53 +92,44 @@ $dateDisplay = formatEventDate($event);
                         <!-- Account Holder Name -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Account Holder Name</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Account Holder Name <span class="text-red-500">*</span></label>
                                 <input type="text" name="account_holder_name" value="{{ old('account_holder_name') }}" required
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_holder_name') border-red-500 @enderror"
                                     placeholder="Enter account holder name">
-                                @error('account_holder_name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name <span class="text-red-500">*</span></label>
                                 <input type="text" name="bank_name" value="{{ old('bank_name') }}" required
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('bank_name') border-red-500 @enderror"
                                     placeholder="Enter bank name">
-                                @error('bank_name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
 
                         <!-- Account Number -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Account Number <span class="text-red-500">*</span></label>
                                 <input type="text" name="account_number" value="{{ old('account_number') }}" required
-                                    class="w-full px-3 py-2 borderrounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_number') border-red-500 @enderror"
+                                    class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_number') border-red-500 @enderror"
                                     placeholder="Enter account number">
-                                @error('account_number')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Booking Invoice
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Booking Invoice <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
-                                    <button type="button" id="uploadButton" onclick="document.getElementById('fileUpload').click()"
+                                    <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    <button type="button" id="uploadButton"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                                         Choose File
                                     </button>
 
                                     <!-- File Preview -->
-                                    <div id="filePreview" class="hidden mt-2 p-3 border border-gray-300 rounded-lg bg-gray-50">
+                                    <div id="filePreview" class="hidden mt-2 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
                                         <div class="flex items-center justify-between">
-                                            <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2 flex-1 min-w-0">
                                                 <!-- File Icon -->
                                                 <div class="flex-shrink-0">
-                                                    <svg class="w-8 h-8 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-6 h-6 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
                                                     </svg>
                                                 </div>
@@ -149,23 +140,20 @@ $dateDisplay = formatEventDate($event);
                                                 </div>
                                             </div>
                                             <!-- Delete Button -->
-                                            <button type="button" id="removeFile" class="flex-shrink-0 ml-3 text-red-500 hover:text-red-700 transition-colors">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <button type="button" id="removeFile" class="flex-shrink-0 ml-2 text-red-500 hover:text-red-700 transition-colors">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                                @error('document')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
 
                         <!-- Refund Reason -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason <span class="text-red-500">*</span></label>
                             <textarea rows="4" name="reason" required
                                 class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none @error('reason') border-red-500 @enderror"
                                 placeholder="Please explain why you need a refund...">{{ old('reason') }}</textarea>
@@ -290,6 +278,11 @@ $dateDisplay = formatEventDate($event);
         const fileSize = document.getElementById('fileSize');
         const removeFileBtn = document.getElementById('removeFile');
 
+        // Handle upload button click
+        uploadButton.addEventListener('click', function() {
+            fileInput.click();
+        });
+
         // Format file size
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -328,10 +321,27 @@ $dateDisplay = formatEventDate($event);
             fileSize.textContent = '';
         });
 
-        // Form submission (remove the alert for actual submission)
+        // Form submission validation
         document.querySelector('form').addEventListener('submit', function(e) {
-            // Remove the preventDefault to allow actual form submission
-            // The form will submit normally to the controller
+            // Check if file is uploaded
+            if (fileInput.files.length === 0) {
+                e.preventDefault();
+
+                // Show error message
+                alert('Please upload the booking invoice before submitting the refund request.');
+
+                // Add red border to upload button
+                uploadButton.classList.add('border-red-500');
+                uploadButton.classList.remove('border-gray-300');
+
+                // Scroll to the upload section
+                uploadButton.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
+                return false;
+            }
         });
     </script>
 </body>

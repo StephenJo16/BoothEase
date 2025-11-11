@@ -64,7 +64,7 @@ class BookingController extends Controller
         }
 
         // Get per page value from request, default to 10
-        $perPage = request('perPage', 5);
+        $perPage = request('perPage', 10);
         $bookings = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         // Calculate statistics (all bookings, not filtered)
