@@ -40,12 +40,15 @@ return $schemes[$index];
 
 $colorScheme = getCategoryColors($event->category_id);
 
+// Format event dates and times using helper functions
+$dateDisplay = formatEventDate($event);
+$timeDisplay = formatEventTime($event);
+
 // Tabs Data
 $tabs = [
 ['name' => 'Booths', 'active' => true],
 ['name' => 'Details', 'active' => false],
-['name' => 'Organizer', 'active' => false],
-['name' => 'Reviews', 'active' => false]
+['name' => 'Organizer', 'active' => false]
 ];
 
 // Define table headers
@@ -142,25 +145,23 @@ $rows[] = [
                                     </div>
                                     @endif
 
-                                    <!-- Date Selection -->
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                            <div class="relative">
-                                                <input type="text" value="{{ $event->start_time ? $event->start_time->format('d F Y') : 'TBA' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
-                                                <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
-                                            </div>
-                                            <div class="text-xs text-gray-500 mt-1">{{ $event->start_time ? $event->start_time->format('H:i') : '' }}</div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                            <div class="relative">
-                                                <input type="text" value="{{ $event->end_time ? $event->end_time->format('d F Y') : 'TBA' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
-                                                <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
-                                            </div>
-                                            <div class="text-xs text-gray-500 mt-1">{{ $event->end_time ? $event->end_time->format('H:i') : '' }}</div>
+                                    <!-- Date and Time -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                        <div class="relative">
+                                            <input type="text" value="{{ $dateDisplay }}" class="w-full py-2 text-sm" readonly>
+                                            <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
                                         </div>
                                     </div>
+
+                                    @if($timeDisplay)
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                        <div class="relative">
+                                            <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 text-sm" readonly>
+                                        </div>
+                                    </div>
+                                    @endif
 
                                     <!-- Location -->
                                     <div>
@@ -229,17 +230,19 @@ $rows[] = [
                                             <div class="flex items-center">
                                                 <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
                                                 <div>
-                                                    <p class="text-sm text-gray-600">Start Date</p>
-                                                    <p class="font-medium">{{ $event->start_time ? $event->start_time->format('d F Y, H:i') : 'TBA' }}</p>
+                                                    <p class="text-sm text-gray-600">Date</p>
+                                                    <p class="font-medium">{{ $dateDisplay }}</p>
                                                 </div>
                                             </div>
+                                            @if($timeDisplay)
                                             <div class="flex items-center">
-                                                <i class="fas fa-calendar-alt mr-3 text-[#ff7700]"></i>
+                                                <i class="fas fa-clock mr-3 text-[#ff7700]"></i>
                                                 <div>
-                                                    <p class="text-sm text-gray-600">End Date</p>
-                                                    <p class="font-medium">{{ $event->end_time ? $event->end_time->format('d F Y, H:i') : 'TBA' }}</p>
+                                                    <p class="text-sm text-gray-600">Time</p>
+                                                    <p class="font-medium">{{ $timeDisplay }}</p>
                                                 </div>
                                             </div>
+                                            @endif
                                             <div class="flex items-center">
                                                 <i class="fas fa-map-marker-alt mr-3 text-[#ff7700]"></i>
                                                 <div>
@@ -284,7 +287,26 @@ $rows[] = [
                                             {{ strtoupper(substr($event->user->name ?? 'O', 0, 1)) }}
                                         </div>
                                         <div class="flex-1">
-                                            <h4 class="text-xl font-semibold text-gray-900">{{ $event->user->name ?? 'Anonymous Organizer' }}</h4>
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <h4 class="text-xl font-semibold text-gray-900">{{ $event->user->name ?? 'Anonymous Organizer' }}</h4>
+                                                @if($averageRating > 0)
+                                                <div class="flex items-center">
+                                                    <div class="flex text-[#ff7700] mr-1">
+                                                        @for($i = 0; $i < 5; $i++)
+                                                            @if($i < floor($averageRating))
+                                                            <i class="fas fa-star text-sm"></i>
+                                                            @elseif($i < $averageRating)
+                                                                <i class="fas fa-star-half-alt text-sm"></i>
+                                                                @else
+                                                                <i class="far fa-star text-sm"></i>
+                                                                @endif
+                                                                @endfor
+                                                    </div>
+                                                    <span class="text-sm font-medium text-gray-700">{{ $averageRating }}</span>
+                                                    <span class="text-sm text-gray-500 ml-1">({{ number_format($totalReviews) }})</span>
+                                                </div>
+                                                @endif
+                                            </div>
                                             @if($event->user->email)
                                             <p class="text-gray-600 mt-2">
                                                 <i class="fas fa-envelope mr-2 text-[#ff7700]"></i>
@@ -310,69 +332,46 @@ $rows[] = [
                                             This event is organized by {{ $event->user->name ?? 'the event organizer' }}.
                                             For any inquiries or questions about this event, please use the contact button below.
                                         </p>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- Reviews Tab -->
-                            <div id="reviews" class="tab-content p-6 hidden">
-                                <div class="flex items-center justify-between mb-6">
-                                    <h3 class="text-lg font-semibold text-gray-900">Organizer Reviews ({{ number_format($totalReviews) }})</h3>
-                                    @if($averageRating > 0)
-                                    <div class="flex items-center">
-                                        <div class="flex text-[#ff7700] mr-2">
-                                            @for($i = 0; $i < 5; $i++)
-                                                @if($i < floor($averageRating))
-                                                <i class="fas fa-star"></i>
-                                                @elseif($i < $averageRating)
-                                                    <i class="fas fa-star-half-alt"></i>
-                                                    @else
-                                                    <i class="far fa-star"></i>
-                                                    @endif
-                                                    @endfor
-                                        </div>
-                                        <span class="text-sm font-medium">{{ $averageRating }}</span>
-                                    </div>
-                                    @endif
-                                </div>
-                                <p class="text-sm text-gray-600 mb-4">Reviews from tenants across all events organized by {{ $event->user->name ?? 'this organizer' }}</p>
-                                <div class="space-y-4">
-                                    @forelse($organizerRatings as $rating)
-                                    <div class="border-b border-gray-200 pb-4 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
-                                            <div class="bg-[#ff7700] text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold">
-                                                {{ strtoupper(substr($rating->rater->name ?? 'A', 0, 1)) }}{{ strtoupper(substr(explode(' ', $rating->rater->name ?? 'N')[1] ?? '', 0, 1)) }}
-                                            </div>
-                                            <div class="flex-1">
-                                                <div class="flex items-center justify-between mb-1">
-                                                    <div>
-                                                        <h4 class="font-medium text-gray-900">{{ $rating->rater->name ?? 'Anonymous' }}</h4>
-                                                        @if($rating->event_id !== $event->id && $rating->event)
-                                                        <p class="text-xs text-gray-500">from event: {{ $rating->event->title }}</p>
-                                                        @endif
+                                        @if($organizerRatings->count() > 0)
+                                        <div class="mt-6">
+                                            <h5 class="font-semibold text-gray-900 mb-3">Reviews ({{ number_format($totalReviews) }})</h5>
+                                            <div class="space-y-4">
+                                                @foreach($organizerRatings as $rating)
+                                                <div class="border-b border-gray-200 pb-4 last:border-b-0">
+                                                    <div class="flex items-start space-x-3">
+                                                        <div class="bg-[#ff7700] text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold">
+                                                            {{ strtoupper(substr($rating->rater->name ?? 'A', 0, 1)) }}{{ strtoupper(substr(explode(' ', $rating->rater->name ?? 'N')[1] ?? '', 0, 1)) }}
+                                                        </div>
+                                                        <div class="flex-1">
+                                                            <div class="flex items-center justify-between mb-1">
+                                                                <div>
+                                                                    <h4 class="font-medium text-gray-900">{{ $rating->rater->name ?? 'Anonymous' }}</h4>
+                                                                    @if($rating->event_id !== $event->id && $rating->event)
+                                                                    <p class="text-xs text-gray-500">from event: {{ $rating->event->title }}</p>
+                                                                    @endif
+                                                                </div>
+                                                                <span class="text-sm text-gray-500">{{ $rating->created_at->diffForHumans() }}</span>
+                                                            </div>
+                                                            <div class="flex text-[#ff7700] mb-2">
+                                                                @for($i = 0; $i < $rating->rating; $i++)
+                                                                    <i class="fas fa-star text-xs"></i>
+                                                                    @endfor
+                                                                    @for($i = $rating->rating; $i < 5; $i++)
+                                                                        <i class="far fa-star text-xs"></i>
+                                                                        @endfor
+                                                            </div>
+                                                            @if($rating->feedback)
+                                                            <p class="text-sm text-gray-700">{{ $rating->feedback }}</p>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    <span class="text-sm text-gray-500">{{ $rating->created_at->diffForHumans() }}</span>
                                                 </div>
-                                                <div class="flex text-[#ff7700] mb-2">
-                                                    @for($i = 0; $i < $rating->rating; $i++)
-                                                        <i class="fas fa-star text-xs"></i>
-                                                        @endfor
-                                                        @for($i = $rating->rating; $i < 5; $i++)
-                                                            <i class="far fa-star text-xs"></i>
-                                                            @endfor
-                                                </div>
-                                                @if($rating->feedback)
-                                                <p class="text-sm text-gray-700">{{ $rating->feedback }}</p>
-                                                @endif
+                                                @endforeach
                                             </div>
                                         </div>
+                                        @endif
                                     </div>
-                                    @empty
-                                    <div class="text-center py-8 text-gray-500">
-                                        <i class="far fa-star text-4xl mb-2"></i>
-                                        <p>No reviews yet for this organizer.</p>
-                                    </div>
-                                    @endforelse
                                 </div>
                             </div>
                         </div>
@@ -396,25 +395,22 @@ $rows[] = [
                                 </div>
                                 @endif
 
-                                <!-- Date Selection -->
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                        <div class="relative">
-                                            <input type="text" value="{{ $event->start_time ? $event->start_time->format('d F Y') : 'TBA' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
-                                            <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-1">{{ $event->start_time ? $event->start_time->format('H:i') : '' }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                        <div class="relative">
-                                            <input type="text" value="{{ $event->end_time ? $event->end_time->format('d F Y') : 'TBA' }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" readonly>
-                                            <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-1">{{ $event->end_time ? $event->end_time->format('H:i') : '' }}</div>
+                                <!-- Date and Time -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <div class="relative">
+                                        <input type="text" value="{{ $dateDisplay }}" class="w-full py-2 rounded-lg text-sm" readonly>
                                     </div>
                                 </div>
+
+                                @if($timeDisplay)
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                    <div class="relative">
+                                        <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 rounded-lg text-sm" readonly>
+                                    </div>
+                                </div>
+                                @endif
 
                                 <!-- Location -->
                                 <div>

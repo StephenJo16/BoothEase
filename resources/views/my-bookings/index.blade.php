@@ -141,22 +141,9 @@
                 $event = $booking->booth->event;
                 $statusDisplay = getBookingStatusDisplay($booking->status);
 
-                // Format event dates and times
-                $dateDisplay = 'Schedule to be announced';
-                $timeDisplay = null;
-
-                if ($event->start_time && $event->end_time) {
-                $startDate = $event->start_time->format('d M Y');
-                $endDate = $event->end_time->format('d M Y');
-                $dateDisplay = $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
-                $timeDisplay = $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
-                } elseif ($event->start_time) {
-                $dateDisplay = $event->start_time->format('d M Y');
-                $timeDisplay = $event->start_time->format('H:i');
-                } elseif ($event->end_time) {
-                $dateDisplay = $event->end_time->format('d M Y');
-                $timeDisplay = $event->end_time->format('H:i');
-                }
+                // Format event dates and times using helper functions
+                $dateDisplay = formatEventDate($event);
+                $timeDisplay = formatEventTime($event);
                 @endphp
 
                 <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 m-6">
@@ -278,6 +265,11 @@
                 </div>
                 @endforelse
             </div>
+
+            <!-- Pagination -->
+            @if($bookings->hasPages() || $bookings->total() > 10)
+            <x-pagination :paginator="$bookings" />
+            @endif
 
         </div>
     </div>

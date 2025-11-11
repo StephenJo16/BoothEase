@@ -17,8 +17,10 @@ $location = is_array($event->location) ? $event->location : [];
 $booths = $event->booth_configuration;
 $status = $event->status;
 $badge = getEventStatusDisplay($status);
-$start = $event->start_time ? $event->start_time->format('d M Y, H:i') : null;
-$end = $event->end_time ? $event->end_time->format('d M Y, H:i') : null;
+
+// Format event dates and times using helper functions
+$dateDisplay = formatEventDate($event);
+$timeDisplay = formatEventTime($event);
 $deadlineFormatted = $event->registration_deadline ? $event->registration_deadline->format('d M Y') : null;
 
 // Define table headers
@@ -161,12 +163,12 @@ $paidBookingRows[] = [
                             <p class="mt-1 font-semibold text-gray-900">{{ $event->capacity ?: 'Not specified' }}</p>
                         </div>
                         <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">Starts</p>
-                            <p class="mt-1 font-semibold text-gray-900">{{ $start ?: 'Schedule to be announced' }}</p>
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Date</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $dateDisplay }}</p>
                         </div>
                         <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">Ends</p>
-                            <p class="mt-1 font-semibold text-gray-900">{{ $end ?: 'Schedule to be announced' }}</p>
+                            <p class="text-xs uppercase tracking-wide text-gray-500">Time</p>
+                            <p class="mt-1 font-semibold text-gray-900">{{ $timeDisplay ?: 'TBA' }}</p>
                         </div>
                         <div class="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
                             <p class="text-xs uppercase tracking-wide text-gray-500">Registration deadline</p>
@@ -195,11 +197,11 @@ $paidBookingRows[] = [
                         <h2 class="text-lg font-semibold text-gray-900">Booking Statistics</h2>
 
                         @php
-                        $totalBookings = $event->booths->flatMap->bookings->count();
+                        $totalBookings = $event->booths->flatMap->bookings->where('status', '!=', 'rejected')->count();
                         $pendingBookings = $event->booths->flatMap->bookings->where('status', 'pending')->count();
                         $confirmedBookings = $event->booths->flatMap->bookings->where('status', 'confirmed')->count();
                         $paidBookings = $event->booths->flatMap->bookings->whereIn('status', ['paid', 'ongoing', 'completed'])->count();
-                        $cancelledOrRejectedBookings = $event->booths->flatMap->bookings->whereIn('status', ['cancelled', 'rejected'])->count();
+                        $cancelledBookings = $event->booths->flatMap->bookings->whereIn('status', 'cancelled')->count();
                         @endphp
 
                         <!-- Total Revenue -->
@@ -229,8 +231,8 @@ $paidBookingRows[] = [
                                 <p class="text-xs text-blue-600 mt-1">Paid</p>
                             </div>
                             <div class="rounded-lg border border-red-100 bg-red-50 px-3 py-3 text-center">
-                                <p class="text-2xl font-bold text-red-600">{{ $cancelledOrRejectedBookings }}</p>
-                                <p class="text-xs text-red-600 mt-1">Cancelled/Rejected</p>
+                                <p class="text-2xl font-bold text-red-600">{{ $cancelledBookings }}</p>
+                                <p class="text-xs text-red-600 mt-1">Cancelled</p>
                             </div>
                     </section>
                     @endif
