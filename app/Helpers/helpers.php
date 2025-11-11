@@ -139,3 +139,57 @@ if (!function_exists('formatPhoneNumber')) {
         return trim($country . ' ' . $formattedRest);
     }
 }
+
+// Helper function to format event date display
+if (!function_exists('formatEventDate')) {
+    function formatEventDate($event)
+    {
+        if (!$event) {
+            return 'Schedule to be announced';
+        }
+
+        if ($event->start_time && $event->end_time) {
+            $startDate = $event->start_time->format('d M Y');
+            $endDate = $event->end_time->format('d M Y');
+            return $event->start_time->isSameDay($event->end_time) ? $startDate : "{$startDate} - {$endDate}";
+        } elseif ($event->start_time) {
+            return $event->start_time->format('d M Y');
+        } elseif ($event->end_time) {
+            return $event->end_time->format('d M Y');
+        }
+
+        return 'Schedule to be announced';
+    }
+}
+
+// Helper function to format event time display
+if (!function_exists('formatEventTime')) {
+    function formatEventTime($event)
+    {
+        if (!$event) {
+            return null;
+        }
+
+        if ($event->start_time && $event->end_time) {
+            return $event->start_time->format('H:i') . ' - ' . $event->end_time->format('H:i');
+        } elseif ($event->start_time) {
+            return $event->start_time->format('H:i');
+        } elseif ($event->end_time) {
+            return $event->end_time->format('H:i');
+        }
+
+        return null;
+    }
+}
+
+// Helper function to calculate event duration in days
+if (!function_exists('getEventDuration')) {
+    function getEventDuration($event)
+    {
+        if (!$event || !$event->start_time || !$event->end_time) {
+            return 0;
+        }
+
+        return floor($event->start_time->diffInDays($event->end_time)) + 1;
+    }
+}
