@@ -19,7 +19,7 @@ if (!function_exists('getBookingStatusDisplay')) {
             'confirmed' => ['label' => 'Confirmed', 'class' => 'bg-green-100 text-green-800'],
             'paid' => ['label' => 'Paid', 'class' => 'bg-blue-100 text-blue-800'],
             'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
-            'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
+            'completed' => ['label' => 'Completed', 'class' => 'bg-green-800 text-green-100'],
             'rejected' => ['label' => 'Rejected', 'class' => 'bg-red-100 text-red-800'],
             'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-red-100 text-red-800'],
         ];
@@ -37,7 +37,7 @@ if (!function_exists('getEventStatusDisplay')) {
             'finalized' => ['label' => 'Finalized', 'class' => 'bg-blue-100 text-blue-800'],
             'published' => ['label' => 'Published', 'class' => 'bg-green-100 text-green-800'],
             'ongoing' => ['label' => 'Ongoing', 'class' => 'bg-purple-100 text-purple-800'],
-            'completed' => ['label' => 'Completed', 'class' => 'bg-gray-100 text-gray-800'],
+            'completed' => ['label' => 'Completed', 'class' => 'bg-green-800 text-green-100'],
         ];
 
         return $statusMap[$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-800'];
