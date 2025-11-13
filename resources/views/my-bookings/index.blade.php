@@ -267,7 +267,7 @@
             </div>
 
             <!-- Pagination -->
-            @if($bookings->hasPages() || $bookings->total() > 10)
+            @if($bookings->hasPages() || $bookings->total() > 5)
             <x-pagination :paginator="$bookings" />
             @endif
 

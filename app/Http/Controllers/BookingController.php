@@ -63,8 +63,8 @@ class BookingController extends Controller
             $query->where('total_price', '<=', $maxPrice);
         }
 
-        // Get per page value from request, default to 10
-        $perPage = request('perPage', 10);
+        // Get per page value from request, default to 5
+        $perPage = request('perPage', 5);
         $bookings = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         // Calculate statistics (all bookings, not filtered)
@@ -277,8 +277,8 @@ class BookingController extends Controller
         // Order by created_at descending
         $query->orderBy('created_at', 'desc');
 
-        // Get per page value from request, default to 10
-        $perPage = $request->integer('perPage', 10);
+        // Get per page value from request, default to 5
+        $perPage = $request->integer('perPage', 5);
 
         // Paginate results
         $bookings = $query->paginate($perPage)->withQueryString();
