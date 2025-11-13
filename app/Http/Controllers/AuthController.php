@@ -17,7 +17,8 @@ class AuthController extends Controller
     // --- SIGN UP ---
     public function showSignupForm()
     {
-        return view('signup.index');
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('signup.index', compact('categories'));
     }
 
     private function normalizeIndoPhone(?string $input): ?string
@@ -145,7 +146,8 @@ class AuthController extends Controller
     public function showOnboarding()
     {
         $user = Auth::user();
-        return view('onboarding.index', compact('user'));
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('onboarding.index', compact('user', 'categories'));
     }
 
     public function saveOnboarding(Request $request)
