@@ -143,7 +143,7 @@ default => 'bg-gray-100 text-gray-800',
                         </div>
                     </form>
 
-                    {{-- Password Form --}}
+                    @if(!$user->provider)
                     <div class="border-t border-gray-200 pt-6 mt-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-4">Security</h3>
                         <div class="flex justify-center">
@@ -185,6 +185,7 @@ default => 'bg-gray-100 text-gray-800',
                             </form>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
 

@@ -33,7 +33,7 @@
                         <a href="{{ route('google.redirect') }}"
                             class="w-full flex gap-x-4 items-center justify-center px-4 py-3 border border-gray-200 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200 h-12">
                             <i class="fa-brands fa-google"></i>
-                            <span class="font-medium">Continue with Google</span>
+                            <span class="font-medium">Log In with Google</span>
                         </a>
                     </div>
 
