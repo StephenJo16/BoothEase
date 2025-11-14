@@ -196,7 +196,7 @@ $rows[] = [
                                         <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
                                     </div>
                                     @if($isRegistrationOpen)
-                                    <a href="/events/{{ $event->id }}/booths" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
+                                    <a href="{{ auth()->check() ? '/events/' . $event->id . '/booths' : '/login' }}" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
                                         View Booths
                                     </a>
                                     @else

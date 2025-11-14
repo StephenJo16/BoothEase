@@ -112,6 +112,12 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            // Check if OAuth user needs to complete profile
+            if ($user->provider && (!$user->phone_number || !$user->business_category)) {
+                return redirect()->route('onboarding.show')->with('info', 'Please complete your profile to continue.');
+            }
+
             $welcomeMessage = 'Login successful. Welcome back, ' . $user->display_name . '!';
 
             if ($user->role->name === 'tenant') {
