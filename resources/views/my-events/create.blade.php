@@ -78,17 +78,53 @@
                         <div class="grid grid-cols-1 gap-6">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
+                                    <label for="province_id" class="mb-2 block text-sm font-medium text-gray-700">Province</label>
+                                    <select id="province_id" name="province_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                        <option value="">Select province</option>
+                                        @foreach($provinces as $province)
+                                        <option value="{{ $province->id }}" @selected(old('province_id')==$province->id)>{{ $province->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="city_id" class="mb-2 block text-sm font-medium text-gray-700">City / Regency</label>
+                                    <select id="city_id" name="city_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $cities->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select city</option>
+                                        @foreach($cities as $city)
+                                        <option value="{{ $city->id }}" @selected(old('city_id')==$city->id)>{{ $city->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label for="district_id" class="mb-2 block text-sm font-medium text-gray-700">District</label>
+                                    <select id="district_id" name="district_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $districts->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select district</option>
+                                        @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" @selected(old('district_id')==$district->id)>{{ $district->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="subdistrict_id" class="mb-2 block text-sm font-medium text-gray-700">Subdistrict</label>
+                                    <select id="subdistrict_id" name="subdistrict_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $subdistricts->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select subdistrict</option>
+                                        @foreach($subdistricts as $subdistrict)
+                                        <option value="{{ $subdistrict->id }}" @selected(old('subdistrict_id')==$subdistrict->id)>{{ $subdistrict->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
                                     <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue</label>
                                     <input id="venue" name="venue" type="text" value="{{ old('venue') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Venue or building name">
                                 </div>
                                 <div>
-                                    <label for="city" class="mb-2 block text-sm font-medium text-gray-700">City</label>
-                                    <input id="city" name="city" type="text" value="{{ old('city') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="City or region">
+                                    <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address</label>
+                                    <input id="address" name="address" type="text" value="{{ old('address') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
                                 </div>
-                            </div>
-                            <div>
-                                <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address</label>
-                                <input id="address" name="address" type="text" value="{{ old('address') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
@@ -157,6 +193,103 @@
         </div>
     </div>
 </body>
+
+<script>
+    // Cascading location dropdowns
+    const provinceSelect = document.getElementById('province_id');
+    const citySelect = document.getElementById('city_id');
+    const districtSelect = document.getElementById('district_id');
+    const subdistrictSelect = document.getElementById('subdistrict_id');
+
+    provinceSelect.addEventListener('change', async function() {
+        const provinceId = this.value;
+
+        // Reset dependent dropdowns
+        citySelect.innerHTML = '<option value="">Select city</option>';
+        districtSelect.innerHTML = '<option value="">Select district</option>';
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+
+        citySelect.disabled = true;
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+
+        if (!provinceId) return;
+
+        // Fetch cities for selected province
+        try {
+            const response = await fetch(`/api/cities?province_id=${provinceId}`);
+            const cities = await response.json();
+
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.id;
+                option.textContent = city.name;
+                citySelect.appendChild(option);
+            });
+
+            citySelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+        }
+    });
+
+    citySelect.addEventListener('change', async function() {
+        const cityId = this.value;
+
+        // Reset dependent dropdowns
+        districtSelect.innerHTML = '<option value="">Select district</option>';
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+
+        if (!cityId) return;
+
+        // Fetch districts for selected city
+        try {
+            const response = await fetch(`/api/districts?city_id=${cityId}`);
+            const districts = await response.json();
+
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.id;
+                option.textContent = district.name;
+                districtSelect.appendChild(option);
+            });
+
+            districtSelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching districts:', error);
+        }
+    });
+
+    districtSelect.addEventListener('change', async function() {
+        const districtId = this.value;
+
+        // Reset dependent dropdown
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+        subdistrictSelect.disabled = true;
+
+        if (!districtId) return;
+
+        // Fetch subdistricts for selected district
+        try {
+            const response = await fetch(`/api/subdistricts?district_id=${districtId}`);
+            const subdistricts = await response.json();
+
+            subdistricts.forEach(subdistrict => {
+                const option = document.createElement('option');
+                option.value = subdistrict.id;
+                option.textContent = subdistrict.name;
+                subdistrictSelect.appendChild(option);
+            });
+
+            subdistrictSelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching subdistricts:', error);
+        }
+    });
+</script>
 
 @include('components.footer')
 

@@ -153,7 +153,7 @@
                                 <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="flex items-center mb-1">
                                     <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <p class="text-sm text-gray-600">{{ $event->venue ?? 'Venue not specified' }}</p>
+                                    <p class="text-sm text-gray-600">{{ $event->display_location ?? $event->venue ?? 'Location not specified' }}</p>
                                 </div>
                                 <div class="text-sm text-gray-600">
                                     <div class="flex items-center">

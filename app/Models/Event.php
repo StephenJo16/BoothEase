@@ -16,13 +16,19 @@ class Event extends Model
         'category_id',
         'title',
         'description',
-        'location',
+        'province_id',
+        'city_id',
+        'district_id',
+        'subdistrict_id',
+        'venue',
+        'address',
         'start_time',
         'end_time',
         'registration_deadline',
         'user_id',
         'image_path',
         'capacity',
+        'booth_configuration',
         'status',
         'refundable',
     ];
@@ -35,7 +41,7 @@ class Event extends Model
     const STATUS_COMPLETED = 'completed';
 
     protected $casts = [
-        'location' => 'array',
+        'booth_configuration' => 'array',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'registration_deadline' => 'date',
@@ -50,6 +56,26 @@ class Event extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function district(): BelongsTo
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function subdistrict(): BelongsTo
+    {
+        return $this->belongsTo(Subdistrict::class);
     }
 
     public function booths(): HasMany
@@ -91,36 +117,15 @@ class Event extends Model
         return $query->where('start_time', '>', now());
     }
 
-    public function getVenueAttribute(): ?string
-    {
-        return $this->location['venue'] ?? null;
-    }
-
-    public function getCityAttribute(): ?string
-    {
-        return $this->location['city'] ?? null;
-    }
-
-    public function getAddressAttribute(): ?string
-    {
-        return $this->location['address'] ?? null;
-    }
-
-    public function getBoothConfigurationAttribute(): array
-    {
-        return $this->location['booths'] ?? [];
-    }
-
     public function getDisplayLocationAttribute(): ?string
     {
-        $venue = $this->venue;
-        $city = $this->city;
+        $parts = array_filter([
+            $this->venue,
+            $this->city?->name,
+            $this->province?->name,
+        ]);
 
-        if ($venue && $city) {
-            return $venue . ', ' . $city;
-        }
-
-        return $venue ?: $city;
+        return !empty($parts) ? implode(', ', $parts) : null;
     }
 
     // Status helper methods

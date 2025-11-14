@@ -249,7 +249,7 @@ $rows[] = [
                                                     <p class="text-sm text-gray-600">Location</p>
                                                     <p class="font-medium">{{ $event->venue ?? 'Venue TBA' }}</p>
                                                     @if($event->city)
-                                                    <p class="text-sm text-gray-500">{{ $event->city }}</p>
+                                                    <p class="text-sm text-gray-500">{{ $event->city->name }}, {{ $event->province->name ?? '' }}</p>
                                                     @endif
                                                     @if($event->address)
                                                     <p class="text-xs text-gray-500">{{ $event->address }}</p>

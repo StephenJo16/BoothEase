@@ -73,8 +73,8 @@ $eventDuration = getEventDuration($event);
                             <div>
                                 <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="flex items-center mb-2">
-                                    <i class="fas fa-map-marker-alt mr-3 text-[#ff7700]"></i>
-                                    <span class="text-gray-700">{{ $event->venue ?? 'Venue not specified' }}</span>
+                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
+                                    <p class="text-gray-600">{{ $event->display_location ?? $event->venue ?? 'Location not specified' }}</p>
                                 </div>
                                 <div class="text-gray-700">
                                     <div class="flex items-center">
