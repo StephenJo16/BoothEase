@@ -170,6 +170,9 @@ $rows[] = [
                                             <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
                                             <span>{{ $event->venue ?? 'Venue TBA' }}</span>
                                         </div>
+                                        @if($event->city)
+                                        <p class="text-sm text-gray-500">{{ $event->city->name }}, {{ $event->province->name ?? '' }}</p>
+                                        @endif
                                         @if($event->address)
                                         <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                         @endif
@@ -419,6 +422,9 @@ $rows[] = [
                                         <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
                                         <span>{{ $event->venue ?? 'Venue TBA' }}</span>
                                     </div>
+                                    @if($event->city)
+                                    <p class="text-sm text-gray-500">{{ $event->city->name }}, {{ $event->province->name ?? '' }}</p>
+                                    @endif
                                     @if($event->address)
                                     <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                     @endif

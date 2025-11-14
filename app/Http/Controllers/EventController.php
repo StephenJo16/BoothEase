@@ -541,7 +541,7 @@ class EventController extends Controller
         ];
 
         $messages = [
-            'confirm_terms.accepted' => 'Please confirm that all event details are accurate before creating the event.',
+            'confirm_terms.accepted' => 'You must check the confirmation box at the bottom of the form before proceeding to set up booths.',
         ];
 
         return $request->validate($rules, $messages);
