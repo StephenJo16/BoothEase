@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->boolean('refundable')->default(false)->after('status');
+        Schema::create('subdistricts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('district_id')->constrained('districts')->onDelete('cascade');
+            $table->string('code', 10)->unique();
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->dropColumn('refundable');
-        });
+        Schema::dropIfExists('subdistricts');
     }
 };

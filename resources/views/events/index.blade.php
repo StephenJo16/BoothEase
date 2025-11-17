@@ -23,7 +23,7 @@
 if (!function_exists('getMinBoothPrice')) {
 function getMinBoothPrice($event) {
 $prices = [];
-$boothConfig = $event->location['booths'] ?? [];
+$boothConfig = $event->booth_configuration ?? [];
 
 foreach ($boothConfig as $type => $config) {
 if (isset($config['price'])) {

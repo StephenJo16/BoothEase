@@ -17,6 +17,12 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeeder::class);
         $this->call(CategorySeeder::class);
 
+        // Seed location hierarchy
+        $this->call(ProvinceSeeder::class);
+        $this->call(CitySeeder::class);
+        $this->call(DistrictSeeder::class);
+        $this->call(SubdistrictSeeder::class);
+
         // User::factory(10)->create();
 
         // User::factory()->create([

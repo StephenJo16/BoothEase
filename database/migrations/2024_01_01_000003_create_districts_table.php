@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->date('registration_deadline')->nullable()->after('end_time');
+        Schema::create('districts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('city_id')->constrained('cities')->onDelete('cascade');
+            $table->string('code', 10)->unique();
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->dropColumn('registration_deadline');
-        });
+        Schema::dropIfExists('districts');
     }
 };

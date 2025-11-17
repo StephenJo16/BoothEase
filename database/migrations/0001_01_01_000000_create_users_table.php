@@ -17,11 +17,14 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('display_name')->unique();
             $table->string('email')->unique();
-            $table->string('phone_number')->unique();
-            $table->string('business_category');
+            $table->string('phone_number')->nullable()->unique();
+            $table->string('business_category')->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('provider')->nullable();
+            $table->string('provider_id')->nullable()->index();
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

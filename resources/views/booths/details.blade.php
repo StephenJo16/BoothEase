@@ -88,7 +88,7 @@ $userPhone = $digits;
             <div class="lg:col-span-2 space-y-6">
                 <!-- Booth Information Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                    <div class="flex items-start justify-between mb-6">
+                    <div class="flex items-start justify-between">
                         <div>
                             <h1 class="text-3xl font-bold text-slate-800 mb-2">{{ $booth->number }}</h1>
                             <div class="flex flex-wrap gap-3 text-sm">
@@ -109,12 +109,6 @@ $userPhone = $digits;
                             <div class="text-xs text-slate-500 mt-1">for {{ $eventDuration }} days</div>
                             @endif
                         </div>
-                    </div>
-
-                    <div class="prose max-w-none">
-                        <p class="text-slate-700 leading-relaxed">
-                            Secure your spot at {{ $event->title }} with this premium booth location. This booth offers excellent visibility and foot traffic, perfect for showcasing your products and engaging with potential customers throughout the event.
-                        </p>
                     </div>
                 </div>
 
@@ -147,14 +141,17 @@ $userPhone = $digits;
                         </div>
                         @endif
 
-                        @if($event->venue)
+                        @if($event->venue || $event->display_location)
                         <div class="flex items-start">
                             <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-map-marker-alt text-xl"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-slate-600 mb-1">Venue</div>
-                                <div class="font-semibold text-slate-900">{{ $event->venue }}</div>
+                                <div class="text-xs text-slate-600 mb-1">Location</div>
+                                <div class="font-semibold text-slate-900">{{ $event->display_location ?? $event->venue }}</div>
+                                @if($event->address)
+                                <div class="text-xs text-slate-600 mt-1">{{ $event->address }}</div>
+                                @endif
                             </div>
                         </div>
                         @endif
@@ -182,6 +179,21 @@ $userPhone = $digits;
                             </div>
                         </div>
                         @endif
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
+                                <i class="fas fa-{{ $event->refundable ? 'check-circle' : 'times-circle' }} text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-600 mb-1">Refund Policy</div>
+                                <div class="font-semibold {{ $event->refundable ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $event->refundable ? 'Refundable' : 'Non-Refundable' }}
+                                </div>
+                                <div class="text-xs text-slate-600 mt-1">
+                                    {{ $event->refundable ? 'This booking can be refunded if cancelled' : 'This booking cannot be refunded once confirmed' }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -350,10 +362,13 @@ $userPhone = $digits;
                                         <div class="font-semibold text-slate-900">{{ $eventDuration }} days</div>
                                     </div>
                                     @endif
-                                    @if($event->venue)
+                                    @if($event->venue || $event->display_location)
                                     <div class="text-sm">
-                                        <div class="text-slate-700 mb-1">Venue</div>
-                                        <div class="font-semibold text-slate-900">{{ $event->venue }}</div>
+                                        <div class="text-slate-700 mb-1">Location</div>
+                                        <div class="font-semibold text-slate-900">{{ $event->display_location ?? $event->venue }}</div>
+                                        @if($event->address)
+                                        <div class="text-xs text-slate-600 mt-1">{{ $event->address }}</div>
+                                        @endif
                                     </div>
                                     @endif
                                 </div>

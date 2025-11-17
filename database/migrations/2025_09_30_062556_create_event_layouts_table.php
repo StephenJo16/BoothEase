@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('event_layouts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->unsignedInteger('floor_number')->default(1);
+            $table->string('floor_name', 100)->default('Floor 1');
             $table->longText('layout_json');
             $table->unsignedInteger('booth_count')->default(0);
             $table->timestamps();
 
-            $table->unique('event_id');
+            $table->unique(['event_id', 'floor_number'], 'event_layouts_event_floor_unique');
         });
     }
 

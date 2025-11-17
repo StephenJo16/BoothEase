@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->enum('status', ['draft', 'finalized', 'published', 'ongoing', 'completed'])->default('draft')->after('capacity');
+        Schema::create('cities', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('province_id')->constrained('provinces')->onDelete('cascade');
+            $table->string('code', 10)->unique();
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        Schema::dropIfExists('cities');
     }
 };
