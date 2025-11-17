@@ -24,11 +24,11 @@ class EventController extends Controller
         // Get filter parameters
         $search = $request->input('search');
         $categories = $request->input('categories', []);
-        $minPrice = $request->input('min_price');
-        $maxPrice = $request->input('max_price');
+        $provinceId = $request->input('province_id');
+        $cityId = $request->input('city_id');
 
         // Base query with filters
-        $baseQuery = function ($query) use ($search, $categories, $minPrice, $maxPrice) {
+        $baseQuery = function ($query) use ($search, $categories, $provinceId, $cityId) {
             // Search filter
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -50,22 +50,14 @@ class EventController extends Controller
                 $query->whereIn('category_id', $categories);
             }
 
-            // Price filter - check booth configuration JSON
-            if ($minPrice !== null || $maxPrice !== null) {
-                $query->where(function ($q) use ($minPrice, $maxPrice) {
-                    $boothTypes = ['standard', 'premium', 'vip'];
+            // Province filter
+            if ($provinceId) {
+                $query->where('province_id', $provinceId);
+            }
 
-                    foreach ($boothTypes as $type) {
-                        $q->orWhere(function ($subQ) use ($type, $minPrice, $maxPrice) {
-                            if ($minPrice !== null) {
-                                $subQ->where('booth_configuration->' . $type . '->price', '>=', $minPrice);
-                            }
-                            if ($maxPrice !== null) {
-                                $subQ->where('booth_configuration->' . $type . '->price', '<=', $maxPrice);
-                            }
-                        });
-                    }
-                });
+            // City filter
+            if ($cityId) {
+                $query->where('city_id', $cityId);
             }
         };
 
@@ -141,17 +133,25 @@ class EventController extends Controller
         // Get all categories for filter dropdown
         $allCategories = Category::orderBy('name')->get();
 
+        // Get all provinces for filter dropdown
+        $allProvinces = Province::orderBy('name')->get();
+
+        // Get cities based on selected province
+        $allCities = $provinceId ? City::where('province_id', $provinceId)->orderBy('name')->get() : collect();
+
         return view('events.index', [
             'openForRegistration' => $openForRegistration,
             'registrationClosed' => $registrationClosed,
             'ongoingEvents' => $ongoingEvents,
             'completedEvents' => $completedEvents,
             'allCategories' => $allCategories,
+            'allProvinces' => $allProvinces,
+            'allCities' => $allCities,
             'filters' => [
                 'search' => $search,
                 'categories' => $categories,
-                'min_price' => $minPrice,
-                'max_price' => $maxPrice,
+                'province_id' => $provinceId,
+                'city_id' => $cityId,
             ],
         ]);
     }
@@ -348,9 +348,13 @@ class EventController extends Controller
         // Get all categories for filter dropdown
         $allCategories = Category::orderBy('name')->get();
 
+        // Get all provinces for filter dropdown
+        $allProvinces = Province::orderBy('name')->get();
+
         return view('my-events.index', [
             'events' => $events,
             'allCategories' => $allCategories,
+            'allProvinces' => $allProvinces,
             'filters' => [
                 'search' => $search,
                 'categories' => $categories,
@@ -512,6 +516,7 @@ class EventController extends Controller
         $requiresFullValidation = in_array($action, ['publish', 'create_layout']);
 
         $rules = [
+            'image' => [$requiresFullValidation ? 'required' : 'nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => [$requiresFullValidation ? 'required' : 'nullable', 'integer', 'exists:categories,id'],
@@ -566,6 +571,14 @@ class EventController extends Controller
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);
         $event->end_time = $this->combineDateAndTime($data['end_date'] ?? null, $data['end_time'] ?? null);
+
+        // Handle image upload
+        if (request()->hasFile('image')) {
+            $image = request()->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('events', $imageName, 'public');
+            $event->image_path = $imagePath;
+        }
 
         // Store booth configuration
         $boothConfig = $this->extractBoothConfig($data);

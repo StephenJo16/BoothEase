@@ -35,7 +35,7 @@
             @endif
 
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <form method="POST" action="{{ route('my-events.store') }}" class="space-y-10 px-6 py-8">
+                <form method="POST" action="{{ route('my-events.store') }}" enctype="multipart/form-data" class="space-y-10 px-6 py-8">
                     @csrf
 
                     <section class="space-y-6">
@@ -44,6 +44,11 @@
                             <p class="text-sm text-gray-500">Provide the core information for your event.</p>
                         </div>
                         <div class="grid grid-cols-1 gap-6">
+                            <x-image-upload
+                                name="image"
+                                label="Event image"
+                                :required="true"
+                                :error="$errors->first('image')" />
                             <div>
                                 <label for="title" class="mb-2 block text-sm font-medium text-gray-700">Event title<span class="text-red-500"> *</span></label>
                                 <input id="title" name="title" type="text" value="{{ old('title') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
@@ -289,6 +294,8 @@
         }
     });
 </script>
+
+@stack('scripts')
 
 @include('components.footer')
 

@@ -1,4 +1,4 @@
-@props(['label' => 'Filter', 'type' => 'category', 'categories' => [], 'selectedCategories' => [], 'selectedStatuses' => [], 'minPrice' => '', 'maxPrice' => ''])
+@props(['label' => 'Filter', 'type' => 'category', 'categories' => [], 'selectedCategories' => [], 'selectedStatuses' => [], 'provinces' => [], 'cities' => [], 'selectedProvinceId' => '', 'selectedCityId' => ''])
 
 <div class="relative inline-block">
     <button
@@ -10,24 +10,66 @@
     </button>
 
     <!-- Dropdown Menu -->
-    <div class="filter-dropdown hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+    <div class="filter-dropdown hidden absolute right-0 mt-2 w-[480px] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
         <div class="py-2">
-            @if($type === 'category')
+            @if($type === 'category' || $type === 'combined')
             <!-- Category Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
                 Filter by Category
             </div>
-            @foreach($categories as $category)
-            <label class="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                <input
-                    type="checkbox"
-                    name="categories[]"
-                    value="{{ $category->id }}"
-                    {{ in_array($category->id, $selectedCategories) ? 'checked' : '' }}
-                    class="filter-checkbox mr-3 accent-[#ff7700] focus:ring-[#ff7700] border-gray-300 rounded">
-                <span class="text-sm text-gray-700">{{ $category->name }}</span>
-            </label>
-            @endforeach
+            <div class="grid grid-cols-2 gap-1 px-2 py-2">
+                @foreach($categories as $category)
+                <label class="flex items-center px-2 py-2 hover:bg-gray-50 cursor-pointer rounded">
+                    <input
+                        type="checkbox"
+                        name="categories[]"
+                        value="{{ $category->id }}"
+                        {{ in_array($category->id, $selectedCategories) ? 'checked' : '' }}
+                        class="filter-checkbox mr-2 accent-[#ff7700] focus:ring-[#ff7700] border-gray-300 rounded flex-shrink-0">
+                    <span class="text-sm text-gray-700">{{ $category->name }}</span>
+                </label>
+                @endforeach
+            </div>
+
+            @if(!empty($provinces) || !empty($cities))
+            <!-- Location Filter Section -->
+            <div class="px-4 py-2 mt-2 text-sm font-semibold text-gray-900 border-t border-gray-200">
+                Filter by Location
+            </div>
+            <div class="grid grid-cols-2 gap-3 px-4 py-2">
+                @if(!empty($provinces))
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Province</label>
+                    <select
+                        name="province_id"
+                        class="location-select w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]">
+                        <option value="">All Provinces</option>
+                        @foreach($provinces as $province)
+                        <option value="{{ $province->id }}" {{ $selectedProvinceId == $province->id ? 'selected' : '' }}>
+                            {{ $province->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                @if(!empty($cities))
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">City</label>
+                    <select
+                        name="city_id"
+                        class="location-select w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]">
+                        <option value="">All Cities</option>
+                        @foreach($cities as $city)
+                        <option value="{{ $city->id }}" {{ $selectedCityId == $city->id ? 'selected' : '' }}>
+                            {{ $city->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+            </div>
+            @endif
             @elseif($type === 'status')
             <!-- Status Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
@@ -55,7 +97,7 @@
                 <span class="text-sm text-gray-700">{{ $statusLabel }}</span>
             </label>
             @endforeach
-            @elseif($type === 'event-status')
+            @elseif($type === 'event-status' || $type === 'combined')
             <!-- Event Status Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
                 Filter by Status
@@ -80,33 +122,6 @@
                 <span class="text-sm text-gray-700">{{ $statusLabel }}</span>
             </label>
             @endforeach
-            @endif
-
-            @if($type === 'category')
-            <!-- Price Filter Section (only for category type) -->
-            <div class="px-4 py-2 mt-2 text-sm font-semibold text-gray-900 border-t border-gray-200">
-                Filter by Price
-            </div>
-            <div class="px-4 py-2 space-y-3">
-                <div>
-                    <label class="block text-xs text-gray-600 mb-1">Minimum Price (Rp)</label>
-                    <input
-                        type="number"
-                        name="min_price"
-                        value="{{ $minPrice }}"
-                        placeholder="0"
-                        class="price-input w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-600 mb-1">Maximum Price (Rp)</label>
-                    <input
-                        type="number"
-                        name="max_price"
-                        value="{{ $maxPrice }}"
-                        placeholder="10000000"
-                        class="price-input w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]">
-                </div>
-            </div>
             @endif
 
             <!-- Action Buttons -->
@@ -154,9 +169,9 @@
             checkbox.checked = false;
         });
 
-        // Clear all price inputs
-        document.querySelectorAll('.price-input').forEach(input => {
-            input.value = '';
+        // Clear all location selects
+        document.querySelectorAll('.location-select').forEach(select => {
+            select.value = '';
         });
 
         // Clear search input
