@@ -209,8 +209,8 @@ $dateDisplay = formatEventDate($event);
                             <h3 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h3>
                             <div class="space-y-2">
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Booth Number:</span>
-                                    <span class="font-medium text-gray-900">{{ $booking->booth->number }}</span>
+                                    <span class="text-gray-600">Booth Name:</span>
+                                    <span class="font-medium text-gray-900">{{ $booking->booth->name }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Type:</span>

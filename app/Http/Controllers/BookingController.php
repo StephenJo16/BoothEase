@@ -35,7 +35,7 @@ class BookingController extends Controller
         $query = Booking::with(['booth.event.category', 'user', 'refundRequest'])
             ->where('user_id', $userId);
 
-        // Search filter - search in event title, venue, booth number, booking ID
+        // Search filter - search in event title, venue, booth name, booking ID
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('booth.event', function ($eventQuery) use ($search) {
@@ -44,7 +44,7 @@ class BookingController extends Controller
                         ->orWhereJsonContains('location->city', $search);
                 })
                     ->orWhereHas('booth', function ($boothQuery) use ($search) {
-                        $boothQuery->where('number', 'like', '%' . $search . '%');
+                        $boothQuery->where('name', 'like', '%' . $search . '%');
                     })
                     ->orWhere('id', 'like', '%' . $search . '%');
             });
@@ -256,7 +256,7 @@ class BookingController extends Controller
                         ->orWhere('phone_number', 'like', "%{$search}%");
                 })
                     ->orWhereHas('booth', function ($boothQuery) use ($search) {
-                        $boothQuery->where('number', 'like', "%{$search}%");
+                        $boothQuery->where('name', 'like', "%{$search}%");
                     })
                     ->orWhere('id', 'like', "%{$search}%");
             });

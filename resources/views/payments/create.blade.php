@@ -60,8 +60,8 @@ $booth = $booking->booth;
                                     <span class="font-medium text-right">{{ $event->title }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">Booth Number</span>
-                                    <span class="font-medium">{{ $booth->number }}</span>
+                                    <span class="text-gray-600">Booth Name</span>
+                                    <span class="font-medium">{{ $booth->name }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Booth Size</span>

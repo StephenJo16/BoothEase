@@ -91,7 +91,7 @@ class PaymentController extends Controller
                         'id' => 'booth-' . $booking->booth->id,
                         'price' => (int) $booking->total_price,
                         'quantity' => 1,
-                        'name' => 'Booth ' . $booking->booth->number . ' - ' . $booking->booth->event->title,
+                        'name' => 'Booth ' . $booking->booth->name . ' - ' . $booking->booth->event->title,
                     ],
                 ],
             ];

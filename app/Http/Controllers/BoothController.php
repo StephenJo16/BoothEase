@@ -76,7 +76,7 @@ class BoothController extends Controller
                 $payload[] = [
                     'event_id' => $eventId,
                     'floor_number' => $floorNumber,
-                    'number' => $label,
+                    'name' => $label,
                     'size' => $size,
                     'type' => $object['boothType'] ?? 'Standard',
                     'price' => (int) round($object['boothPrice'] ?? 0),
@@ -131,8 +131,8 @@ class BoothController extends Controller
         $event = Event::find($eventId);
         $booths = Booth::where('event_id', $eventId)
             ->where('floor_number', $floorNumber)
-            ->orderBy('number')
-            ->get(['id', 'event_id', 'floor_number', 'number', 'size', 'type', 'price', 'status']);
+            ->orderBy('name')
+            ->get(['id', 'event_id', 'floor_number', 'name', 'size', 'type', 'price', 'status']);
 
         // Get all floors for this event
         $allFloors = EventLayout::where('event_id', $eventId)

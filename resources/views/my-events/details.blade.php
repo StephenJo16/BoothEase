@@ -25,7 +25,7 @@ $deadlineFormatted = $event->registration_deadline ? $event->registration_deadli
 
 // Define table headers
 $headers = [
-['title' => 'Booth Number', 'class' => 'text-left'],
+['title' => 'Booth Name', 'class' => 'text-left'],
 ['title' => 'Type', 'class' => 'text-left'],
 ['title' => 'Price', 'class' => 'text-left'],
 ['title' => 'Size', 'class' => 'text-left'],
@@ -41,7 +41,7 @@ $rows[] = [
 'rowClass' => 'hover:bg-gray-50',
 'cells' => [
 [
-'content' => $booth->number ?? '—',
+'content' => $booth->name ?? '—',
 'class' => 'font-medium text-gray-900'
 ],
 [
@@ -76,7 +76,7 @@ $totalRevenue = $paidBookings->sum('total_price');
 $paidBookingHeaders = [
 ['title' => 'Booking ID', 'class' => 'text-left'],
 ['title' => 'Tenant', 'class' => 'text-left'],
-['title' => 'Booth Number', 'class' => 'text-left'],
+['title' => 'Booth Name', 'class' => 'text-left'],
 ['title' => 'Booking Date', 'class' => 'text-left'],
 ['title' => 'Payment Method', 'class' => 'text-left'],
 ['title' => 'Actions', 'class' => 'text-center'],
@@ -98,7 +98,7 @@ $paidBookingRows[] = [
 'class' => 'text-gray-700'
 ],
 [
-'content' => $booking->booth->number ?? '—',
+'content' => $booking->booth->name ?? '—',
 'class' => 'text-gray-700'
 ],
 [
@@ -337,9 +337,15 @@ $paidBookingRows[] = [
                         <h2 class="text-lg font-semibold text-gray-900">Booth Layout</h2>
                         <p class="text-sm text-gray-500">Details for each booth in the event layout.</p>
                     </div>
+                    @if($boothCount > 0)
                     <a href="{{ route('booth-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
                         View Booths
                     </a>
+                    @elseif($boothCount === 0)
+                    <a href="{{ route('booth-layout', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
+                        Add Booths
+                    </a>
+                    @endif
                 </div>
                 <div class="mt-6">
                     @if($boothCount > 0)

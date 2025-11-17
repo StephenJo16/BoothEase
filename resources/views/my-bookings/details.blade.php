@@ -100,8 +100,8 @@ $eventDuration = getEventDuration($event);
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Booth Details</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Number</h4>
-                                <p class="text-lg font-semibold text-gray-900">{{ $booth->number }}</p>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Name</h4>
+                                <p class="text-lg font-semibold text-gray-900">{{ $booth->name }}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Size</h4>

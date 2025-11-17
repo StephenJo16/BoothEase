@@ -23,8 +23,7 @@ class StoreBookingRequest extends FormRequest
     {
         return [
             'booth_id' => 'required|exists:booths,id',
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
@@ -40,8 +39,7 @@ class StoreBookingRequest extends FormRequest
         return [
             'booth_id.required' => 'Please select a booth.',
             'booth_id.exists' => 'The selected booth is not available.',
-            'first_name.required' => 'First name is required.',
-            'last_name.required' => 'Last name is required.',
+            'full_name.required' => 'Full name is required.',
             'business_name.required' => 'Business/Company name is required.',
             'email.required' => 'Email address is required.',
             'email.email' => 'Please provide a valid email address.',

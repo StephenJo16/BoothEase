@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
             $table->unsignedInteger('floor_number')->default(1);
-            $table->string('number');
+            $table->string('name');
             $table->string('size');
             $table->string('type');
             $table->integer('price');
