@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('booths', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
+            $table->unsignedInteger('floor_number')->default(1);
             $table->string('number');
             $table->string('size');
             $table->string('type');
