@@ -65,7 +65,7 @@ $totalRatings = $tenantRatings->count();
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Booth</label>
-                                <div class="text-gray-900 font-medium">{{ $booking->booth->number ?? 'N/A' }}</div>
+                                <div class="text-gray-900 font-medium">{{ $booking->booth->name ?? 'N/A' }}</div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Booth Type</label>
@@ -123,13 +123,13 @@ $totalRatings = $tenantRatings->count();
                         <div class="flex gap-3">
                             <form method="POST" action="{{ route('booking-requests.confirm', ['event' => $event->id, 'booking' => $booking->id]) }}" onsubmit="return confirm('Confirm this booking request?');">
                                 @csrf
-                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                <button type="submit" class="hover:cursor-pointer bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
                                     Confirm Request
                                 </button>
                             </form>
                             <form method="POST" action="{{ route('booking-requests.reject', ['event' => $event->id, 'booking' => $booking->id]) }}" onsubmit="return confirm('Reject this booking request?');">
                                 @csrf
-                                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                <button type="submit" class="hover:cursor-pointer bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
                                     Reject Request
                                 </button>
                             </form>
@@ -176,7 +176,7 @@ $totalRatings = $tenantRatings->count();
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Booth</span>
-                            <span class="font-medium">{{ $booking->booth->number ?? 'N/A' }}</span>
+                            <span class="font-medium">{{ $booking->booth->name ?? 'N/A' }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Booth Type</span>

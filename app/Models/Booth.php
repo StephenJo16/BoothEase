@@ -14,7 +14,7 @@ class Booth extends Model
     protected $fillable = [
         'event_id',
         'floor_number',
-        'number',
+        'name',
         'size',
         'type',
         'price',

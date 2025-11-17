@@ -69,7 +69,7 @@ $rows[] = [
 'rowClass' => 'h-20',
 'cells' => [
 [
-'content' => $booth->number ?? 'N/A',
+'content' => $booth->name ?? 'N/A',
 'class' => 'font-medium text-gray-900'
 ],
 [

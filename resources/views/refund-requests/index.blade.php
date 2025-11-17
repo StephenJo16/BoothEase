@@ -71,7 +71,7 @@ $rows[] = [
 'class' => ''
 ],
 [
-'content' => $booth ? htmlspecialchars($booth->number) : 'N/A',
+'content' => $booth ? htmlspecialchars($booth->name) : 'N/A',
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [

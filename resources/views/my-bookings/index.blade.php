@@ -37,7 +37,7 @@
                     <!-- Search Bar -->
                     <div class="flex-1">
                         @include('components.search-bar', [
-                        'placeholder' => 'Search by event title, venue, booth number, or booking ID...',
+                        'placeholder' => 'Search by event title, venue, booth name, or booking ID...',
                         'value' => $filters['search'] ?? ''
                         ])
                     </div>
@@ -177,7 +177,7 @@
                             <!-- Booth Details -->
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h4>
-                                <p class="text-sm text-gray-900 font-medium">{{ $booking->booth->number }}</p>
+                                <p class="text-sm text-gray-900 font-medium">{{ $booking->booth->name }}</p>
                                 @if($booking->booth->type)
                                 <p class="text-xs text-gray-600">{{ ucfirst($booking->booth->type) }} Type</p>
                                 @endif

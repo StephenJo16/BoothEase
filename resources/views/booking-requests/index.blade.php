@@ -24,7 +24,7 @@
 // Define table headers
 $headers=[
 ['title'=> 'Request ID', 'class' => 'w-30'],
-['title' => 'Tenant Name', 'class' => 'w-40'],
+['title' => 'Tenant', 'class' => 'w-40'],
 ['title' => 'Contact Person', 'class' => 'w-32'],
 ['title' => 'Booth', 'class' => 'w-20'],
 ['title' => 'Price', 'class' => 'w-28'],
@@ -61,7 +61,7 @@ $rows[] = [
 'class' => ''
 ],
 [
-'content' => $booking->booth->number ?? 'N/A',
+'content' => $booking->booth->name ?? 'N/A',
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [

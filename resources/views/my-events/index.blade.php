@@ -107,10 +107,10 @@
             </div>
 
             @if($events->isEmpty())
-            <div class="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center text-gray-500">
-                <i class="fa-solid fa-calendar-plus mb-4 text-4xl text-[#ff7700]"></i>
-                <p class="text-lg font-semibold text-gray-700">You have not created any events yet.</p>
-                <p class="mt-2 text-sm">Start by creating your first event to manage booths and bookings.</p>
+            <div class="text-center py-12">
+                <i class="fa-solid fa-calendar-plus text-6xl text-gray-300 mb-4"></i>
+                <p class="text-xl font-semibold text-gray-700 mb-2">You have not created any events yet.</p>
+                <p class="text-gray-500">Start by creating your first event to manage booths and bookings.</p>
             </div>
             @else
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

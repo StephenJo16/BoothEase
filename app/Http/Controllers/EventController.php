@@ -167,7 +167,7 @@ class EventController extends Controller
             'category',
             'user',
             'booths' => function ($query) {
-                $query->orderBy('number');
+                $query->orderBy('name');
             }
         ]);
 
@@ -242,7 +242,7 @@ class EventController extends Controller
             'category',
             'user',
             'booths' => function ($query) {
-                $query->orderBy('number');
+                $query->orderBy('name');
             }
         ]);
 
@@ -420,7 +420,7 @@ class EventController extends Controller
             'category',
             'booths' => function ($query) {
                 $query->with('bookings.user')
-                    ->orderBy('number');
+                    ->orderBy('name');
             }
         ]);
 
