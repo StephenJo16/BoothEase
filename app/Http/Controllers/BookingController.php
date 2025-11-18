@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use App\Mail\BookingConfirmedMail;
 
 class BookingController extends Controller
 {
@@ -137,7 +139,7 @@ class BookingController extends Controller
             }
 
             // Get or create user based on email
-            $fullName = $validated['first_name'] . ' ' . $validated['last_name'];
+            $fullName = $validated['full_name'];
             $user = \App\Models\User::where('email', $validated['email'])->first();
 
             if (!$user) {
@@ -152,7 +154,7 @@ class BookingController extends Controller
                     'name' => $validated['business_name'],
                     'display_name' => $fullName,
                     'email' => $validated['email'],
-                    'phone_number' => $validated['phone'],
+                    'phone_number' => '+62' . $validated['phone'],
                     'business_category' => 'General', // Default category
                     'password' => Hash::make(Str::random(16)), // Generate random password
                 ]);
@@ -363,6 +365,16 @@ class BookingController extends Controller
             } elseif ($targetStatus === 'confirmed') {
                 // Keep booth as 'pending' until payment is completed
                 $booking->booth?->update(['status' => 'pending']);
+
+                // Send email notification to tenant
+                try {
+                    // Load relationships needed for the email
+                    $booking->load(['user', 'booth.event.user']);
+                    Mail::to($booking->user->email)->send(new BookingConfirmedMail($booking));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
+                    // Don't fail the transaction, just log the error
+                }
             }
         });
 
@@ -400,10 +412,10 @@ class BookingController extends Controller
     {
         $now = now();
 
-        // Cancel unpaid bookings that have been confirmed for more than 24 hours
+        // Cancel unpaid bookings that have been confirmed for more than 3 hours
         Booking::where('status', 'confirmed')
             ->whereNotNull('confirmed_at')
-            ->where('confirmed_at', '<=', $now->copy()->subHours(24))
+            ->where('confirmed_at', '<=', $now->copy()->subHours(3))
             ->whereDoesntHave('payment', function ($query) {
                 $query->where('payment_status', 'completed');
             })

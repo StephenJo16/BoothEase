@@ -13,12 +13,6 @@
 
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
-
-    @php
-    $status = $event->status;
-    $badge = getEventStatusDisplay($status);
-    @endphp
-
     <div class="min-h-screen py-10">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             @include('components.back-button', ['text' => 'Back to Event Details', 'url' => route('my-events.show', $event)])
@@ -28,9 +22,6 @@
                     <h1 class="text-3xl font-bold text-gray-900">Edit event</h1>
                     <p class="mt-1 text-gray-600">Update the details and republish when you are ready.</p>
                 </div>
-                <span class="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold {{ $badge['class'] }}">
-                    {{ $badge['label'] }}
-                </span>
             </div>
 
             @if($errors->any())
@@ -45,7 +36,7 @@
             @endif
 
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <form method="POST" action="{{ route('my-events.update', $event) }}" class="space-y-10 px-6 py-8">
+                <form method="POST" action="{{ route('my-events.update', $event) }}" enctype="multipart/form-data" class="space-y-10 px-6 py-8">
                     @csrf
                     @method('PUT')
 
@@ -55,6 +46,13 @@
                             <p class="text-sm text-gray-500">Adjust the information attendees will see.</p>
                         </div>
                         <div class="grid grid-cols-1 gap-6">
+                            <x-image-upload
+                                name="image"
+                                label="Event image"
+                                :required="false"
+                                :currentImage="$event->image_path"
+                                helpText="Leave empty to keep current image"
+                                :error="$errors->first('image')" />
                             <div>
                                 <label for="title" class="mb-2 block text-sm font-medium text-gray-700">Event title<span class="text-red-500"> *</span></label>
                                 <input id="title" name="title" type="text" value="{{ old('title', $event->title) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
@@ -170,8 +168,8 @@
                             <p class="text-sm text-gray-500">Set whether paid bookings can be refunded.</p>
                         </div>
                         <div class="flex items-start gap-3">
-                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('refundable', $event->refundable))>
-                            <div class="flex-1">
+                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded accent-[#ff7700] focus:ring-[#ff7700] border-gray-300" @checked(old('refundable', $event->refundable))>
+                            <div class=" flex-1">
                                 <label for="refundable" class="block text-sm font-medium text-gray-700">Allow refunds for paid bookings</label>
                                 <p class="mt-1 text-xs text-gray-500">When enabled, tenants can request refunds for their paid bookings. You'll need to review and approve each refund request.</p>
                             </div>
@@ -291,5 +289,7 @@
         }
     });
 </script>
+
+@stack('scripts')
 
 </html>
