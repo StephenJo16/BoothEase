@@ -228,16 +228,18 @@ $rows[] = [
 
                         <!-- Booth details will be populated here -->
                         <div id="boothInfo" class="space-y-4 hidden">
-                            <!-- Booth Name -->
+                            <!-- Booth Name and Floor -->
                             <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200">
-                                <div class="text-xs text-slate-600 mb-1">Booth Name</div>
-                                <div id="boothNumber" class="text-2xl font-bold text-slate-900 break-words">—</div>
-                            </div>
-
-                            <!-- Floor -->
-                            <div class="p-3 bg-slate-50 rounded-lg">
-                                <div class="text-xs text-slate-600 mb-1">Floor</div>
-                                <div id="boothFloor" class="font-semibold text-slate-900 break-words">—</div>
+                                <div class="flex items-end justify-between">
+                                    <div>
+                                        <div class="text-xs text-slate-600 mb-1">Booth Name</div>
+                                        <div id="boothName" class="text-2xl font-bold text-slate-900">—</div>
+                                    </div>
+                                    <div class="text-right" id="boothFloorContainer">
+                                        <div class="text-xs text-slate-600 mb-1">Floor</div>
+                                        <div id="boothFloor" class="text-sm font-semibold text-slate-700">—</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Type and Size -->
@@ -384,7 +386,7 @@ $rows[] = [
             }
 
             // Populate booth details
-            document.getElementById('boothNumber').textContent = booth.name ?? 'N/A';
+            document.getElementById('boothName').textContent = booth.name ?? 'N/A';
             document.getElementById('boothFloor').textContent = floorName;
             document.getElementById('boothType').textContent = booth.type ?? 'Standard';
             document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
