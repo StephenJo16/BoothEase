@@ -29,14 +29,27 @@ class UpdateBookingStatuses extends Command
     {
         $now = now();
 
-        // Cancel unpaid bookings that have been confirmed for more than 3 hours
-        $cancelledCount = Booking::where('status', 'confirmed')
+        $bookingsToCancel = Booking::where('status', 'confirmed')
             ->whereNotNull('confirmed_at')
             ->where('confirmed_at', '<=', $now->copy()->subHours(3))
             ->whereDoesntHave('payment', function ($query) {
                 $query->where('payment_status', 'completed');
             })
-            ->update(['status' => 'cancelled']);
+            ->get();
+
+        // Cancel unpaid bookings that have been confirmed for more than 3 hours
+        $cancelledCount = 0;
+        foreach ($bookingsToCancel as $booking) {
+            $booking->status = 'cancelled';
+            $booking->save();
+
+            if ($booking->booth) {
+                $booking->booth->status = 'available';
+                $booking->booth->save();
+            }
+
+            $cancelledCount++;
+        }
 
         // Update bookings to 'ongoing' status when event has started
         $ongoingCount = Booking::whereHas('booth.event', function ($query) use ($now) {

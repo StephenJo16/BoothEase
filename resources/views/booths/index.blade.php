@@ -83,11 +83,11 @@
         </div>
 
         <!-- Main Content Grid -->
-        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <!-- Canvas Section -->
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+            <div class="lg:col-span-2 xl:col-span-3 bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <!-- Floor Pills -->
-                <div id="floorPills" class="mb-4 flex-wrap gap-2 hidden">
+                <div id="floorPills" class="mb-4 flex flex-wrap gap-2">
                     <!-- Floor buttons will be populated here -->
                 </div>
 
@@ -121,14 +121,14 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="space-y-6">
+            <div class="lg:col-span-1 xl:col-span-1">
                 <!-- Booth Details Card -->
-                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sticky top-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
                         <i class="fa-solid fa-info-circle me-2 text-[#ff7700]"></i>
                         Booth Details
                     </h2>
-                    <div id="boothDetailsContent">
+                    <div id="boothDetailsContent" class="overflow-hidden">
                         <!-- Default state when no booth is selected/hovered -->
                         <div id="noBoothSelected" class="text-center py-12">
                             <i class="fas fa-mouse-pointer text-6xl text-slate-300 mb-4"></i>
