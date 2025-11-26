@@ -205,7 +205,7 @@ $rows[] = [
                     </div>
                 </div>
                 <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
-                    <div class="w-full overflow-x-auto">
+                    <div class="w-full overflow-hidden">
                         <canvas id="layoutCanvas" width="900" height="600"></canvas>
                     </div>
                 </div>

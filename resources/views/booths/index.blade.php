@@ -115,7 +115,7 @@
                     </div>
                 </div>
                 <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-x-auto relative">
-                    <canvas id="layoutCanvas" width="800" height="600"></canvas>
+                    <canvas id="layoutCanvas" width="845" height="600"></canvas>
                 </div>
                 <div id="canvasMessage" class="mt-4 text-sm text-slate-600 text-center min-h-[20px]"></div>
             </div>
