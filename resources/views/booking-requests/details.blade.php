@@ -120,19 +120,83 @@ $totalRatings = $tenantRatings->count();
 
                         <!-- Action Buttons -->
                         @if($booking->status === 'pending')
-                        <div class="flex gap-3">
+                        <!-- Buttons View -->
+                        <div id="actionButtons" class="flex gap-3">
                             <form method="POST" action="{{ route('booking-requests.confirm', ['event' => $event->id, 'booking' => $booking->id]) }}" onsubmit="return confirm('Confirm this booking request?');">
                                 @csrf
                                 <button type="submit" class="hover:cursor-pointer bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
                                     Confirm Request
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('booking-requests.reject', ['event' => $event->id, 'booking' => $booking->id]) }}" onsubmit="return confirm('Reject this booking request?');">
+                            <button type="button" onclick="showRejectForm()" class="hover:cursor-pointer bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                Reject Request
+                            </button>
+                        </div>
+
+                        <!-- Rejection Form (Hidden by default) -->
+                        <div id="rejectForm" class="hidden">
+                            <form method="POST" action="{{ route('booking-requests.reject', ['event' => $event->id, 'booking' => $booking->id]) }}">
                                 @csrf
-                                <button type="submit" class="hover:cursor-pointer bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
-                                    Reject Request
-                                </button>
+
+                                <div class="mb-4">
+                                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Rejection Reason <span class="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        name="rejection_reason"
+                                        id="rejection_reason"
+                                        rows="5"
+                                        required
+                                        minlength="10"
+                                        maxlength="1000"
+                                        placeholder="Please provide a clear reason for rejecting this booking request (minimum 10 characters)..."
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"></textarea>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <span id="charCount">0</span>/1000 characters (minimum 10 required)
+                                    </p>
+                                    @error('rejection_reason')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                    <p class="text-sm text-yellow-800">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        This action cannot be undone. The tenant will be notified of the rejection and your reason.
+                                    </p>
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onclick="hideRejectForm()"
+                                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-arrow-left mr-2"></i>
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="hover:cursor-pointer flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-times mr-2"></i>
+                                        Confirm Rejection
+                                    </button>
+                                </div>
                             </form>
+                        </div>
+                        @endif
+                        @if($booking->status === 'rejected' && $booking->rejection_reason)
+                        <!-- Rejection Details -->
+                        <div class="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                            <h3 class="text-sm font-semibold text-red-900 mb-2">
+                                <i class="fas fa-exclamation-circle mr-2"></i>Rejection Reason
+                            </h3>
+                            <p class="text-sm text-red-800 mb-2">{{ $booking->rejection_reason }}</p>
+                            @if($booking->rejected_at)
+                            <p class="text-xs text-red-600 mt-2">
+                                <i class="fas fa-clock mr-1"></i>
+                                Rejected on {{ $booking->rejected_at->format('d M Y, H:i') }}
+                            </p>
+                            @endif
                         </div>
                         @endif
                     </div>
@@ -256,6 +320,28 @@ $totalRatings = $tenantRatings->count();
 
         </div>
     </div>
+
+    <script>
+        function showRejectForm() {
+            document.getElementById('actionButtons').classList.add('hidden');
+            document.getElementById('rejectForm').classList.remove('hidden');
+            // Focus on textarea
+            document.getElementById('rejection_reason').focus();
+        }
+
+        function hideRejectForm() {
+            document.getElementById('rejectForm').classList.add('hidden');
+            document.getElementById('actionButtons').classList.remove('hidden');
+            // Clear textarea
+            document.getElementById('rejection_reason').value = '';
+            document.getElementById('charCount').textContent = '0';
+        }
+
+        // Character counter
+        document.getElementById('rejection_reason')?.addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+    </script>
 
     @include('components.footer')
 </body>

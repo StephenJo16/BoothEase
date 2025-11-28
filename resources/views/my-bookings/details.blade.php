@@ -388,7 +388,21 @@ $eventDuration = getEventDuration($event);
                     </div> -->
 
                     <!-- Action Buttons -->
-                    @if($booking->status === 'confirmed' || $booking->status === 'ongoing')
+                    @if($booking->status === 'rejected' && $booking->rejection_reason)
+                    <!-- Rejection Details -->
+                    <div class="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <h3 class="text-sm font-semibold text-red-900 mb-2">
+                            <i class="fas fa-exclamation-circle mr-2"></i>Booking Rejection Reason
+                        </h3>
+                        <p class="text-sm text-red-800 mb-2">{{ $booking->rejection_reason }}</p>
+                        @if($booking->rejected_at)
+                        <p class="text-xs text-red-600 mt-2">
+                            <i class="fas fa-clock mr-1"></i>
+                            Rejected on {{ $booking->rejected_at->format('d M Y, H:i') }}
+                        </p>
+                        @endif
+                    </div>
+                    @elseif($booking->status === 'confirmed' || $booking->status === 'ongoing')
                     <div class="space-y-3">
                         @if(!$booking->payment || $booking->payment->payment_status !== 'completed')
                         <a href="{{ route('payment.create', $booking->id) }}">
@@ -467,14 +481,15 @@ $eventDuration = getEventDuration($event);
                             Refund Approved
                         </div>
                         @elseif($booking->refundRequest->isRejected())
-                        <div class="w-full bg-red-50 border border-red-200 rounded-lg py-3 px-4">
-                            <div class="text-red-600 font-medium text-center">
-                                <i class="fas fa-times-circle mr-2"></i>
-                                Refund Rejected
-                            </div>
-                            @if($booking->refundRequest->rejection_reason)
-                            <p class="text-xs text-red-700 text-center mt-2 break-words">
-                                {{ $booking->refundRequest->rejection_reason }}
+                        <div class="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                            <h3 class="text-sm font-semibold text-red-900 mb-2">
+                                <i class="fas fa-exclamation-circle mr-2"></i>Refund Rejection Reason
+                            </h3>
+                            <p class="text-sm text-red-800 mb-2">{{ $booking->refundRequest->rejection_reason }}</p>
+                            @if($booking->refundRequest->rejected_at)
+                            <p class="text-xs text-red-600 mt-2">
+                                <i class="fas fa-clock mr-1"></i>
+                                Rejected on {{ $booking->refundRequest->rejected_at->format('d M Y, H:i') }}
                             </p>
                             @endif
                         </div>
