@@ -331,6 +331,11 @@ class BookingController extends Controller
 
     public function rejectBookingRequest(Request $request, $eventId, $bookingId)
     {
+        // Validate rejection reason
+        $request->validate([
+            'rejection_reason' => 'required|string|min:10|max:1000',
+        ]);
+
         return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'rejected');
     }
 
@@ -350,12 +355,18 @@ class BookingController extends Controller
                 ->with('error', 'Only pending booking requests can be updated.');
         }
 
-        DB::transaction(function () use ($booking, $targetStatus) {
+        DB::transaction(function () use ($booking, $targetStatus, $request) {
             $updateData = ['status' => $targetStatus];
 
             // Set confirmed_at timestamp when confirming a booking
             if ($targetStatus === 'confirmed') {
                 $updateData['confirmed_at'] = now();
+            }
+
+            // Set rejection_reason and rejected_at when rejecting
+            if ($targetStatus === 'rejected') {
+                $updateData['rejection_reason'] = $request->input('rejection_reason');
+                $updateData['rejected_at'] = now();
             }
 
             $booking->update($updateData);
