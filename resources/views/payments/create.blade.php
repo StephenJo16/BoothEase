@@ -60,8 +60,8 @@ $booth = $booking->booth;
                                     <span class="font-medium text-right">{{ $event->title }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">Booth Number</span>
-                                    <span class="font-medium">{{ $booth->number }}</span>
+                                    <span class="text-gray-600">Booth Name</span>
+                                    <span class="font-medium">{{ $booth->name }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Booth Size</span>
@@ -122,7 +122,7 @@ $booth = $booking->booth;
                                 <span class="font-medium text-green-600">FREE</span>
                             </div>
                             <div class="border-t pt-4">
-                                <div class="flex justify-between text-lg font-bold">
+                                <div class="flex justify-between text-md font-bold">
                                     <span>Total Amount</span>
                                     <span class="text-[#ff7700]">{{ formatRupiah($booking->total_price) }}</span>
                                 </div>

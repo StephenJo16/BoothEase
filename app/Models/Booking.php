@@ -15,6 +15,7 @@ class Booking extends Model
     // Status constants
     const STATUS_PENDING = 'pending';
     const STATUS_CONFIRMED = 'confirmed';
+    const STATUS_REJECTED = 'rejected';
     const STATUS_PAID = 'paid';
     const STATUS_ONGOING = 'ongoing';
     const STATUS_COMPLETED = 'completed';
@@ -28,12 +29,15 @@ class Booking extends Model
         'total_price',
         'notes',
         'confirmed_at',
+        'rejection_reason',
+        'rejected_at',
     ];
 
     protected $casts = [
         'booking_date' => 'date',
         'total_price' => 'integer',
         'confirmed_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -65,6 +69,11 @@ class Booking extends Model
     public function isConfirmed(): bool
     {
         return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
     }
 
     public function isPaid(): bool

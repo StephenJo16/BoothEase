@@ -67,7 +67,8 @@ class RefundRequestController extends Controller
         }
 
         // Get refund requests ordered by latest first
-        $refundRequests = $query->latest()->paginate(10);
+        $perPage = request('perPage', 5);
+        $refundRequests = $query->latest()->paginate($perPage)->withQueryString();
 
         // Calculate statistics for this event
         $totalRequests = RefundRequest::whereHas('booking.booth.event', function ($q) use ($event) {

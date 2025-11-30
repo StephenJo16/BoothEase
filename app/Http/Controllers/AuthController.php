@@ -17,7 +17,8 @@ class AuthController extends Controller
     // --- SIGN UP ---
     public function showSignupForm()
     {
-        return view('signup.index');
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('signup.index', compact('categories'));
     }
 
     private function normalizeIndoPhone(?string $input): ?string
@@ -111,6 +112,12 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            // Check if OAuth user needs to complete profile
+            if ($user->provider && (!$user->phone_number || !$user->business_category)) {
+                return redirect()->route('onboarding.show')->with('info', 'Please complete your profile to continue.');
+            }
+
             $welcomeMessage = 'Login successful. Welcome back, ' . $user->display_name . '!';
 
             if ($user->role->name === 'tenant') {
@@ -145,7 +152,8 @@ class AuthController extends Controller
     public function showOnboarding()
     {
         $user = Auth::user();
-        return view('onboarding.index', compact('user'));
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('onboarding.index', compact('user', 'categories'));
     }
 
     public function saveOnboarding(Request $request)

@@ -136,6 +136,10 @@
                                 <i class="fas fa-grip-lines"></i>
                                 Wall
                             </button>
+                            <button class="px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-800 rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="addElement('custom')">
+                                <i class="fas fa-square"></i>
+                                Custom
+                            </button>
 
                             <div class="col-span-full pb-2 border-b border-slate-300 text-sm font-semibold text-slate-700 mt-2">Actions:</div>
                             <button class="px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-medium transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-2" onclick="zoomIn()">
@@ -159,9 +163,7 @@
 
                     <!-- Canvas Card -->
                     <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
-                        <div class="w-full overflow-x-auto">
-                            <canvas id="layoutCanvas" width="900" height="600"></canvas>
-                        </div>
+                        <canvas id="layoutCanvas" width="860" height="600"></canvas>
                     </div>
 
                 </div>
@@ -334,6 +336,14 @@
                 defaultLabel: 'Wall',
                 width: 150, // Default wall length
                 height: 4 // Wall thickness
+            },
+            custom: {
+                color: '#ffffff',
+                strokeColor: '#000000',
+                textColor: '#000000',
+                defaultLabel: 'Custom',
+                width: 100,
+                height: 80
             }
         };
 
@@ -347,7 +357,8 @@
             toilet: 1,
             stairs: 1,
             elevator: 1,
-            wall: 1
+            wall: 1,
+            custom: 1
         };
 
         let isLoadingLayout = false;

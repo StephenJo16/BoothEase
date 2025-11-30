@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use App\Mail\BookingConfirmedMail;
 
 class BookingController extends Controller
 {
@@ -35,7 +37,7 @@ class BookingController extends Controller
         $query = Booking::with(['booth.event.category', 'user', 'refundRequest'])
             ->where('user_id', $userId);
 
-        // Search filter - search in event title, venue, booth number, booking ID
+        // Search filter - search in event title, venue, booth name, booking ID
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('booth.event', function ($eventQuery) use ($search) {
@@ -44,7 +46,7 @@ class BookingController extends Controller
                         ->orWhereJsonContains('location->city', $search);
                 })
                     ->orWhereHas('booth', function ($boothQuery) use ($search) {
-                        $boothQuery->where('number', 'like', '%' . $search . '%');
+                        $boothQuery->where('name', 'like', '%' . $search . '%');
                     })
                     ->orWhere('id', 'like', '%' . $search . '%');
             });
@@ -63,8 +65,8 @@ class BookingController extends Controller
             $query->where('total_price', '<=', $maxPrice);
         }
 
-        // Get per page value from request, default to 10
-        $perPage = request('perPage', 10);
+        // Get per page value from request, default to 5
+        $perPage = request('perPage', 5);
         $bookings = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         // Calculate statistics (all bookings, not filtered)
@@ -137,7 +139,7 @@ class BookingController extends Controller
             }
 
             // Get or create user based on email
-            $fullName = $validated['first_name'] . ' ' . $validated['last_name'];
+            $fullName = $validated['full_name'];
             $user = \App\Models\User::where('email', $validated['email'])->first();
 
             if (!$user) {
@@ -152,7 +154,7 @@ class BookingController extends Controller
                     'name' => $validated['business_name'],
                     'display_name' => $fullName,
                     'email' => $validated['email'],
-                    'phone_number' => $validated['phone'],
+                    'phone_number' => '+62' . $validated['phone'],
                     'business_category' => 'General', // Default category
                     'password' => Hash::make(Str::random(16)), // Generate random password
                 ]);
@@ -256,7 +258,7 @@ class BookingController extends Controller
                         ->orWhere('phone_number', 'like', "%{$search}%");
                 })
                     ->orWhereHas('booth', function ($boothQuery) use ($search) {
-                        $boothQuery->where('number', 'like', "%{$search}%");
+                        $boothQuery->where('name', 'like', "%{$search}%");
                     })
                     ->orWhere('id', 'like', "%{$search}%");
             });
@@ -277,8 +279,8 @@ class BookingController extends Controller
         // Order by created_at descending
         $query->orderBy('created_at', 'desc');
 
-        // Get per page value from request, default to 10
-        $perPage = $request->integer('perPage', 10);
+        // Get per page value from request, default to 5
+        $perPage = $request->integer('perPage', 5);
 
         // Paginate results
         $bookings = $query->paginate($perPage)->withQueryString();
@@ -329,6 +331,11 @@ class BookingController extends Controller
 
     public function rejectBookingRequest(Request $request, $eventId, $bookingId)
     {
+        // Validate rejection reason
+        $request->validate([
+            'rejection_reason' => 'required|string|min:10|max:1000',
+        ]);
+
         return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'rejected');
     }
 
@@ -348,12 +355,18 @@ class BookingController extends Controller
                 ->with('error', 'Only pending booking requests can be updated.');
         }
 
-        DB::transaction(function () use ($booking, $targetStatus) {
+        DB::transaction(function () use ($booking, $targetStatus, $request) {
             $updateData = ['status' => $targetStatus];
 
             // Set confirmed_at timestamp when confirming a booking
             if ($targetStatus === 'confirmed') {
                 $updateData['confirmed_at'] = now();
+            }
+
+            // Set rejection_reason and rejected_at when rejecting
+            if ($targetStatus === 'rejected') {
+                $updateData['rejection_reason'] = $request->input('rejection_reason');
+                $updateData['rejected_at'] = now();
             }
 
             $booking->update($updateData);
@@ -363,6 +376,16 @@ class BookingController extends Controller
             } elseif ($targetStatus === 'confirmed') {
                 // Keep booth as 'pending' until payment is completed
                 $booking->booth?->update(['status' => 'pending']);
+
+                // Send email notification to tenant
+                try {
+                    // Load relationships needed for the email
+                    $booking->load(['user', 'booth.event.user']);
+                    Mail::to($booking->user->email)->send(new BookingConfirmedMail($booking));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
+                    // Don't fail the transaction, just log the error
+                }
             }
         });
 
@@ -400,10 +423,10 @@ class BookingController extends Controller
     {
         $now = now();
 
-        // Cancel unpaid bookings that have been confirmed for more than 24 hours
+        // Cancel unpaid bookings that have been confirmed for more than 3 hours
         Booking::where('status', 'confirmed')
             ->whereNotNull('confirmed_at')
-            ->where('confirmed_at', '<=', $now->copy()->subHours(24))
+            ->where('confirmed_at', '<=', $now->copy()->subHours(3))
             ->whereDoesntHave('payment', function ($query) {
                 $query->where('payment_status', 'completed');
             })

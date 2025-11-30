@@ -91,16 +91,12 @@
                             onchange="handleBusinessCategoryChange()"
                             required>
                             <option value="" id="category-placeholder" disabled {{ old('business_category', $user->business_category) ? '' : 'selected' }}>Choose a Business Category</option>
-                            <option value="technology" {{ old('business_category', $user->business_category) == 'technology' ? 'selected' : '' }}>Technology</option>
-                            <option value="healthcare" {{ old('business_category', $user->business_category) == 'healthcare' ? 'selected' : '' }}>Healthcare</option>
-                            <option value="education" {{ old('business_category', $user->business_category) == 'education' ? 'selected' : '' }}>Education</option>
-                            <option value="retail" {{ old('business_category', $user->business_category) == 'retail' ? 'selected' : '' }}>Retail</option>
-                            <option value="food-beverage" {{ old('business_category', $user->business_category) == 'food-beverage' ? 'selected' : '' }}>Food & Beverage</option>
-                            <option value="automotive" {{ old('business_category', $user->business_category) == 'automotive' ? 'selected' : '' }}>Automotive</option>
-                            <option value="real-estate" {{ old('business_category', $user->business_category) == 'real-estate' ? 'selected' : '' }}>Real Estate</option>
-                            <option value="finance" {{ old('business_category', $user->business_category) == 'finance' ? 'selected' : '' }}>Finance</option>
-                            <option value="entertainment" {{ old('business_category', $user->business_category) == 'entertainment' ? 'selected' : '' }}>Entertainment</option>
-                            <option value="other" {{ old('business_category', $user->business_category) == 'other' ? 'selected' : '' }}>Other</option>
+                            @foreach ($categories as $category)
+                            <option value="{{ $category->name }}" {{ old('business_category', $user->business_category) === $category->name ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                            @endforeach
+                            <option value="other" {{ old('business_category', $user->business_category) === 'other' ? 'selected' : '' }}>Other</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mr-2 text-gray-700">
                             <i class="fa-solid fa-chevron-down"></i>

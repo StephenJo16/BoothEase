@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->date('registration_deadline')->nullable()->after('end_time');
+        Schema::table('bookings', function (Blueprint $table) {
+            $table->text('rejection_reason')->nullable()->after('notes');
+            $table->timestamp('rejected_at')->nullable()->after('rejection_reason');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->dropColumn('registration_deadline');
+        Schema::table('bookings', function (Blueprint $table) {
+            $table->dropColumn(['rejection_reason', 'rejected_at']);
         });
     }
 };

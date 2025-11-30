@@ -221,19 +221,12 @@
                                 </button>
                                 <button
                                     type="submit"
-                                    class="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                                    class="hover:cursor-pointer flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
                                     <i class="fas fa-times mr-2"></i>
                                     Confirm Rejection
                                 </button>
                             </div>
                         </form>
-                    </div>
-                    @else
-                    <div class="p-4 bg-{{ $refundRequest->status === 'approved' ? 'green' : 'red' }}-50 border border-{{ $refundRequest->status === 'approved' ? 'green' : 'red' }}-200 rounded-lg">
-                        <p class="text-sm text-{{ $refundRequest->status === 'approved' ? 'green' : 'red' }}-700 text-center font-medium">
-                            <i class="fas fa-{{ $refundRequest->status === 'approved' ? 'check-circle' : 'times-circle' }} mr-2"></i>
-                            This refund request has been {{ $refundRequest->status }}.
-                        </p>
                     </div>
                     @endif
                     @if($refundRequest->isRejected() && $refundRequest->rejection_reason)
@@ -283,8 +276,8 @@
                             <h3 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h3>
                             <div class="space-y-2">
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Booth Number:</span>
-                                    <span class="font-medium text-gray-900">{{ $booking->booth->number }}</span>
+                                    <span class="text-gray-600">Booth Name:</span>
+                                    <span class="font-medium text-gray-900">{{ $booking->booth->name }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Type:</span>

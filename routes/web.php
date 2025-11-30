@@ -11,6 +11,9 @@ use App\Http\Controllers\EventController;
 
 use App\Models\User;
 use App\Models\Event;
+use App\Models\City;
+use App\Models\District;
+use App\Models\Subdistrict;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -184,3 +187,25 @@ Route::get('/booth-layout/view', function (Request $request) {
 Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');
 Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
 Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
+
+// Location API routes for cascading dropdowns
+Route::get('/api/cities', function (Request $request) {
+    $cities = City::where('province_id', $request->province_id)
+        ->orderBy('name')
+        ->get(['id', 'name']);
+    return response()->json($cities);
+});
+
+Route::get('/api/districts', function (Request $request) {
+    $districts = District::where('city_id', $request->city_id)
+        ->orderBy('name')
+        ->get(['id', 'name']);
+    return response()->json($districts);
+});
+
+Route::get('/api/subdistricts', function (Request $request) {
+    $subdistricts = Subdistrict::where('district_id', $request->district_id)
+        ->orderBy('name')
+        ->get(['id', 'name']);
+    return response()->json($subdistricts);
+});

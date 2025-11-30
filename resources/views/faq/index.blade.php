@@ -63,7 +63,7 @@
                     </div>
 
                     <!-- FAQ Item 3 -->
-                    <div class="border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:ring-offset-2 transition-all duration-300">
+                    <!-- <div class="border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:ring-offset-2 transition-all duration-300">
                         <button class="faq-toggle w-full text-left p-6 focus:outline-none rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200" type="button">
                             <div class="flex justify-between items-center">
                                 <h3 class="text-lg font-semibold text-gray-900">How do I reset my password?</h3>
@@ -73,7 +73,7 @@
                         <div class="faq-content hidden px-6 pb-6">
                             <p class="text-gray-600">On the sign-in page, click on "Forgot Password?" link. Enter your registered mobile number and follow the instructions sent to your device to reset your password.</p>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- FAQ Item 4 -->
                     <!-- <div class="border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-[#ff7700] focus-within:ring-offset-2">

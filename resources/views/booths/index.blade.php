@@ -83,11 +83,11 @@
         </div>
 
         <!-- Main Content Grid -->
-        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+        <div id="mainContentGrid" class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <!-- Canvas Section -->
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+            <div class="lg:col-span-2 xl:col-span-3 bg-white rounded-xl shadow-lg border border-slate-200 p-6">
                 <!-- Floor Pills -->
-                <div id="floorPills" class="mb-4 flex-wrap gap-2 hidden">
+                <div id="floorPills" class="mb-4 flex flex-wrap gap-2">
                     <!-- Floor buttons will be populated here -->
                 </div>
 
@@ -115,20 +115,20 @@
                     </div>
                 </div>
                 <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-x-auto relative">
-                    <canvas id="layoutCanvas" width="800" height="600"></canvas>
+                    <canvas id="layoutCanvas" width="845" height="600"></canvas>
                 </div>
                 <div id="canvasMessage" class="mt-4 text-sm text-slate-600 text-center min-h-[20px]"></div>
             </div>
 
             <!-- Sidebar -->
-            <div class="space-y-6">
+            <div class="lg:col-span-1 xl:col-span-1">
                 <!-- Booth Details Card -->
-                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                <div id="boothDetailsCard" class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sticky top-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
                         <i class="fa-solid fa-info-circle me-2 text-[#ff7700]"></i>
                         Booth Details
                     </h2>
-                    <div id="boothDetailsContent">
+                    <div id="boothDetailsContent" class="overflow-hidden">
                         <!-- Default state when no booth is selected/hovered -->
                         <div id="noBoothSelected" class="text-center py-12">
                             <i class="fas fa-mouse-pointer text-6xl text-slate-300 mb-4"></i>
@@ -137,12 +137,12 @@
 
                         <!-- Booth details will be populated here -->
                         <div id="boothInfo" class="space-y-4 hidden">
-                            <!-- Booth Number and Floor -->
+                            <!-- Booth Name and Floor -->
                             <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200">
                                 <div class="flex items-end justify-between">
                                     <div>
-                                        <div class="text-xs text-slate-600 mb-1">Booth Number</div>
-                                        <div id="boothNumber" class="text-2xl font-bold text-slate-900">—</div>
+                                        <div class="text-xs text-slate-600 mb-1">Booth Name</div>
+                                        <div id="boothName" class="text-2xl font-bold text-slate-900">—</div>
                                     </div>
                                     <div class="text-right" id="boothFloorContainer">
                                         <div class="text-xs text-slate-600 mb-1">Floor</div>
@@ -250,6 +250,26 @@
             return colors[status] || colors['available'];
         }
 
+        function lockCanvasObject(obj, overrides = {}) {
+            obj.set({
+                selectable: false,
+                evented: false,
+                hasControls: false,
+                hasBorders: false,
+                lockMovementX: true,
+                lockMovementY: true,
+                lockRotation: true,
+                lockScalingX: true,
+                lockScalingY: true,
+                hoverCursor: 'default',
+                ...overrides
+            });
+
+            if (typeof obj.editable !== 'undefined') {
+                obj.editable = false;
+            }
+        }
+
         function setCanvasMessage(message, tone = 'info') {
             const msg = document.getElementById('canvasMessage');
             msg.textContent = message;
@@ -278,7 +298,7 @@
             boothInfo.classList.remove('hidden');
 
             // Populate booth details
-            document.getElementById('boothNumber').textContent = booth.number ?? 'N/A';
+            document.getElementById('boothName').textContent = booth.name ?? 'N/A';
             document.getElementById('boothType').textContent = booth.type ?? 'Standard';
             document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
             document.getElementById('boothPrice').textContent = formatRupiah(booth.price ?? 0);
@@ -418,7 +438,7 @@
 
             allFloors.forEach(floor => {
                 const button = document.createElement('button');
-                button.className = `floor-item px-4 py-2 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2 ${
+                button.className = `floor-item px-4 py-2 rounded-full font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2 mb-2 ${
                     floor.floor_number === currentFloor ? 'active' : ''
                 }`;
                 button.setAttribute('data-floor', floor.floor_number);
@@ -529,104 +549,60 @@
                         canvas.getObjects().forEach((obj) => {
                             // Check if this is a booth element
                             if (obj.elementType === 'booth' && obj.elementLabel) {
-                                // Find booth data by matching the booth number from the label
-                                const booth = boothsData.find(b => b.number === obj.elementLabel);
+                                // Find booth data by matching the booth name from the label
+                                const booth = boothsData.find(b => String(b.name) === String(obj.elementLabel));
                                 if (booth) {
                                     obj.boothData = booth;
+                                    lockCanvasObject(obj, {
+                                        evented: true,
+                                        hoverCursor: 'pointer'
+                                    });
 
                                     // Set colors based on status
                                     obj.set({
                                         fill: getBoothColor(booth.status),
                                         stroke: getBoothBorderColor(booth.status),
-                                        strokeWidth: 2,
-                                        // Lock all modifications - view only
-                                        selectable: false,
-                                        evented: true,
-                                        hasControls: false,
-                                        hasBorders: false,
-                                        lockMovementX: true,
-                                        lockMovementY: true,
-                                        lockRotation: true,
-                                        lockScalingX: true,
-                                        lockScalingY: true
+                                        strokeWidth: 2
                                     });
 
-                                    // Make clickable only if available
-                                    if (booth.status === 'available') {
-                                        obj.set({
-                                            hoverCursor: 'pointer'
-                                        });
+                                    obj.on('mousedown', function() {
+                                        selectBooth(booth);
+                                    });
 
-                                        obj.on('mousedown', function() {
-                                            selectBooth(booth);
-                                        });
+                                    obj.on('mouseover', function() {
+                                        hoveredBooth = booth;
+                                        // Only show hover details if no booth is selected
+                                        if (!selectedBooth) {
+                                            showBoothDetails(booth, true);
+                                        }
 
-                                        obj.on('mouseover', function() {
-                                            hoveredBooth = booth;
-                                            // Only show hover details if no booth is selected
-                                            if (!selectedBooth) {
-                                                showBoothDetails(booth, true);
-                                            }
+                                        if (!selectedBooth || selectedBooth.id !== booth.id) {
+                                            this.set({
+                                                strokeWidth: 3,
+                                                opacity: 0.8
+                                            });
+                                            canvas.renderAll();
+                                        }
+                                    });
 
-                                            if (!selectedBooth || selectedBooth.id !== booth.id) {
-                                                this.set({
-                                                    strokeWidth: 3,
-                                                    opacity: 0.8
-                                                });
-                                                canvas.renderAll();
-                                            }
-                                        });
+                                    obj.on('mouseout', function() {
+                                        hoveredBooth = null;
+                                        // Clear details if no booth is selected
+                                        if (!selectedBooth) {
+                                            showBoothDetails(null);
+                                        }
 
-                                        obj.on('mouseout', function() {
-                                            hoveredBooth = null;
-                                            // Clear details if no booth is selected
-                                            if (!selectedBooth) {
-                                                showBoothDetails(null);
-                                            }
-
-                                            if (!selectedBooth || selectedBooth.id !== booth.id) {
-                                                this.set({
-                                                    strokeWidth: 2,
-                                                    opacity: 1
-                                                });
-                                                canvas.renderAll();
-                                            }
-                                        });
-                                    } else {
-                                        obj.set({
-                                            hoverCursor: 'not-allowed'
-                                        });
-
-                                        // Still show details on hover for non-available booths
-                                        obj.on('mouseover', function() {
-                                            hoveredBooth = booth;
-                                            if (!selectedBooth) {
-                                                showBoothDetails(booth, true);
-                                            }
-                                        });
-
-                                        obj.on('mouseout', function() {
-                                            hoveredBooth = null;
-                                            if (!selectedBooth) {
-                                                showBoothDetails(null);
-                                            }
-                                        });
-                                    }
+                                        if (!selectedBooth || selectedBooth.id !== booth.id) {
+                                            this.set({
+                                                strokeWidth: 2,
+                                                opacity: 1
+                                            });
+                                            canvas.renderAll();
+                                        }
+                                    });
                                 }
                             } else {
-                                // Lock all non-booth elements (parking, entrance, exit, toilet, etc.)
-                                obj.set({
-                                    selectable: false,
-                                    evented: false,
-                                    hasControls: false,
-                                    hasBorders: false,
-                                    lockMovementX: true,
-                                    lockMovementY: true,
-                                    lockRotation: true,
-                                    lockScalingX: true,
-                                    lockScalingY: true,
-                                    hoverCursor: 'default'
-                                });
+                                lockCanvasObject(obj);
                             }
                         });
 

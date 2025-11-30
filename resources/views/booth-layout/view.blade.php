@@ -16,7 +16,7 @@ $allFloors = \App\Models\EventLayout::where('event_id', $eventId)
 
 $booths = \App\Models\Booth::where('event_id', $eventId)
 ->orderBy('floor_number')
-->orderBy('number')
+->orderBy('name')
 ->get();
 $totalBooths = $booths->count();
 $availableBooths = $booths->where('status', 'available')->count();
@@ -53,7 +53,7 @@ $rows[] = [
 'class' => 'text-slate-600 text-xs'
 ],
 [
-'content' => $booth->number ?? '-',
+'content' => $booth->name ?? '-',
 'class' => 'font-semibold text-slate-800'
 ],
 [
@@ -205,7 +205,7 @@ $rows[] = [
                     </div>
                 </div>
                 <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
-                    <div class="w-full overflow-x-auto">
+                    <div class="w-full overflow-hidden">
                         <canvas id="layoutCanvas" width="900" height="600"></canvas>
                     </div>
                 </div>
@@ -228,16 +228,18 @@ $rows[] = [
 
                         <!-- Booth details will be populated here -->
                         <div id="boothInfo" class="space-y-4 hidden">
-                            <!-- Booth Number -->
+                            <!-- Booth Name and Floor -->
                             <div class="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200">
-                                <div class="text-xs text-slate-600 mb-1">Booth Number</div>
-                                <div id="boothNumber" class="text-2xl font-bold text-slate-900 break-words">—</div>
-                            </div>
-
-                            <!-- Floor -->
-                            <div class="p-3 bg-slate-50 rounded-lg">
-                                <div class="text-xs text-slate-600 mb-1">Floor</div>
-                                <div id="boothFloor" class="font-semibold text-slate-900 break-words">—</div>
+                                <div class="flex items-end justify-between">
+                                    <div>
+                                        <div class="text-xs text-slate-600 mb-1">Booth Name</div>
+                                        <div id="boothName" class="text-2xl font-bold text-slate-900">—</div>
+                                    </div>
+                                    <div class="text-right" id="boothFloorContainer">
+                                        <div class="text-xs text-slate-600 mb-1">Floor</div>
+                                        <div id="boothFloor" class="text-sm font-semibold text-slate-700">—</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Type and Size -->
@@ -343,6 +345,26 @@ $rows[] = [
             return colors[status] || colors['available'];
         }
 
+        function lockCanvasObject(obj, overrides = {}) {
+            obj.set({
+                selectable: false,
+                evented: false,
+                hasControls: false,
+                hasBorders: false,
+                lockMovementX: true,
+                lockMovementY: true,
+                lockRotation: true,
+                lockScalingX: true,
+                lockScalingY: true,
+                hoverCursor: 'default',
+                ...overrides
+            });
+
+            if (typeof obj.editable !== 'undefined') {
+                obj.editable = false;
+            }
+        }
+
         function showBoothDetails(booth) {
             const noBoothSelected = document.getElementById('noBoothSelected');
             const boothInfo = document.getElementById('boothInfo');
@@ -364,7 +386,7 @@ $rows[] = [
             }
 
             // Populate booth details
-            document.getElementById('boothNumber').textContent = booth.number ?? 'N/A';
+            document.getElementById('boothName').textContent = booth.name ?? 'N/A';
             document.getElementById('boothFloor').textContent = floorName;
             document.getElementById('boothType').textContent = booth.type ?? 'Standard';
             document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
@@ -467,27 +489,20 @@ $rows[] = [
                         canvas.getObjects().forEach((obj) => {
                             // Check if this is a booth element
                             if (obj.elementType === 'booth' && obj.elementLabel) {
-                                // Find booth data by matching the booth number from the label
-                                const booth = boothsData.find(b => b.number === obj.elementLabel && b.floor_number === floorNumber);
+                                // Find booth data by matching the booth name from the label
+                                const booth = boothsData.find(b => b.name === obj.elementLabel && b.floor_number === floorNumber);
                                 if (booth) {
                                     obj.boothData = booth;
+                                    lockCanvasObject(obj, {
+                                        evented: true,
+                                        hoverCursor: 'pointer'
+                                    });
 
                                     // Set colors based on status
                                     obj.set({
                                         fill: getBoothColor(booth.status),
                                         stroke: getBoothBorderColor(booth.status),
-                                        strokeWidth: 2,
-                                        // Lock all modifications - view only
-                                        selectable: false,
-                                        evented: true,
-                                        hasControls: false,
-                                        hasBorders: false,
-                                        lockMovementX: true,
-                                        lockMovementY: true,
-                                        lockRotation: true,
-                                        lockScalingX: true,
-                                        lockScalingY: true,
-                                        hoverCursor: 'pointer'
+                                        strokeWidth: 2
                                     });
 
                                     obj.on('mousedown', function() {
@@ -527,19 +542,7 @@ $rows[] = [
                                     });
                                 }
                             } else {
-                                // Lock all non-booth elements (parking, entrance, exit, toilet, etc.)
-                                obj.set({
-                                    selectable: false,
-                                    evented: false,
-                                    hasControls: false,
-                                    hasBorders: false,
-                                    lockMovementX: true,
-                                    lockMovementY: true,
-                                    lockRotation: true,
-                                    lockScalingX: true,
-                                    lockScalingY: true,
-                                    hoverCursor: 'default'
-                                });
+                                lockCanvasObject(obj);
                             }
                         });
 
@@ -564,6 +567,9 @@ $rows[] = [
             }
 
             currentFloorNumber = floorNumber;
+            selectedBooth = null;
+            hoveredBooth = null;
+            showBoothDetails(null);
 
             // Update UI
             document.querySelectorAll('.floor-item').forEach(btn => {

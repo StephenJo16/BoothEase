@@ -35,7 +35,7 @@
             @endif
 
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <form method="POST" action="{{ route('my-events.store') }}" class="space-y-10 px-6 py-8">
+                <form method="POST" action="{{ route('my-events.store') }}" enctype="multipart/form-data" class="space-y-10 px-6 py-8">
                     @csrf
 
                     <section class="space-y-6">
@@ -44,18 +44,23 @@
                             <p class="text-sm text-gray-500">Provide the core information for your event.</p>
                         </div>
                         <div class="grid grid-cols-1 gap-6">
+                            <x-image-upload
+                                name="image"
+                                label="Event image"
+                                :required="true"
+                                :error="$errors->first('image')" />
                             <div>
                                 <label for="title" class="mb-2 block text-sm font-medium text-gray-700">Event title<span class="text-red-500"> *</span></label>
-                                <input id="title" name="title" type="text" value="{{ old('title') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                <input id="title" name="title" type="text" value="{{ old('title') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                             </div>
                             <div>
-                                <label for="description" class="mb-2 block text-sm font-medium text-gray-700">Description</label>
-                                <textarea id="description" name="description" rows="4" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Describe your event, target audience, and highlights.">{{ old('description') }}</textarea>
+                                <label for="description" class="mb-2 block text-sm font-medium text-gray-700">Description<span class="text-red-500"> *</span></label>
+                                <textarea id="description" name="description" rows="4" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Describe your event, target audience, and highlights.">{{ old('description') }}</textarea>
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label for="category_id" class="mb-2 block text-sm font-medium text-gray-700">Category<span class="text-red-500"> *</span></label>
-                                    <select id="category_id" name="category_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                    <select id="category_id" name="category_id" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                         <option value="">Select a category</option>
                                         @foreach($categories as $category)
                                         <option value="{{ $category->id }}" @selected(old('category_id')==$category->id)>{{ $category->name }}</option>
@@ -63,8 +68,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="capacity" class="mb-2 block text-sm font-medium text-gray-700">Expected capacity</label>
-                                    <input id="capacity" name="capacity" type="number" min="0" value="{{ old('capacity') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="e.g. 2500">
+                                    <label for="capacity" class="mb-2 block text-sm font-medium text-gray-700">Expected capacity<span class="text-red-500"> *</span></label>
+                                    <input id="capacity" name="capacity" type="number" min="0" value="{{ old('capacity') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="e.g. 2500">
                                 </div>
                             </div>
                         </div>
@@ -78,41 +83,77 @@
                         <div class="grid grid-cols-1 gap-6">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue</label>
-                                    <input id="venue" name="venue" type="text" value="{{ old('venue') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Venue or building name">
+                                    <label for="province_id" class="mb-2 block text-sm font-medium text-gray-700">Province<span class="text-red-500"> *</span></label>
+                                    <select id="province_id" name="province_id" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                        <option value="">Select province</option>
+                                        @foreach($provinces as $province)
+                                        <option value="{{ $province->id }}" @selected(old('province_id')==$province->id)>{{ $province->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div>
-                                    <label for="city" class="mb-2 block text-sm font-medium text-gray-700">City</label>
-                                    <input id="city" name="city" type="text" value="{{ old('city') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="City or region">
+                                    <label for="city_id" class="mb-2 block text-sm font-medium text-gray-700">City / Regency<span class="text-red-500"> *</span></label>
+                                    <select id="city_id" name="city_id" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $cities->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select city</option>
+                                        @foreach($cities as $city)
+                                        <option value="{{ $city->id }}" @selected(old('city_id')==$city->id)>{{ $city->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
-                            <div>
-                                <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address</label>
-                                <input id="address" name="address" type="text" value="{{ old('address') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label for="district_id" class="mb-2 block text-sm font-medium text-gray-700">District</label>
+                                    <select id="district_id" name="district_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $districts->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select district</option>
+                                        @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" @selected(old('district_id')==$district->id)>{{ $district->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="subdistrict_id" class="mb-2 block text-sm font-medium text-gray-700">Subdistrict</label>
+                                    <select id="subdistrict_id" name="subdistrict_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $subdistricts->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select subdistrict</option>
+                                        @foreach($subdistricts as $subdistrict)
+                                        <option value="{{ $subdistrict->id }}" @selected(old('subdistrict_id')==$subdistrict->id)>{{ $subdistrict->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue<span class="text-red-500"> *</span></label>
+                                    <input id="venue" name="venue" type="text" value="{{ old('venue') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Venue or building name">
+                                </div>
+                                <div>
+                                    <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address<span class="text-red-500"> *</span></label>
+                                    <input id="address" name="address" type="text" value="{{ old('address') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
+                                </div>
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label for="start_date" class="mb-2 block text-sm font-medium text-gray-700">Start date<span class="text-red-500"> *</span></label>
-                                    <input id="start_date" name="start_date" type="date" value="{{ old('start_date') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                    <input id="start_date" name="start_date" type="date" value="{{ old('start_date') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                                 <div>
                                     <label for="start_time" class="mb-2 block text-sm font-medium text-gray-700">Start time<span class="text-red-500"> *</span></label>
-                                    <input id="start_time" name="start_time" type="time" value="{{ old('start_time') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                    <input id="start_time" name="start_time" type="time" value="{{ old('start_time') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label for="end_date" class="mb-2 block text-sm font-medium text-gray-700">End date<span class="text-red-500"> *</span></label>
-                                    <input id="end_date" name="end_date" type="date" value="{{ old('end_date') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                    <input id="end_date" name="end_date" type="date" value="{{ old('end_date') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                                 <div>
                                     <label for="end_time" class="mb-2 block text-sm font-medium text-gray-700">End time<span class="text-red-500"> *</span></label>
-                                    <input id="end_time" name="end_time" type="time" value="{{ old('end_time') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                    <input id="end_time" name="end_time" type="time" value="{{ old('end_time') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                             </div>
                             <div>
-                                <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline</label>
-                                <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline<span class="text-red-500"> *</span></label>
+                                <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                             </div>
                         </div>
                     </section>
@@ -123,7 +164,7 @@
                             <p class="text-sm text-gray-500">Set whether paid bookings can be refunded.</p>
                         </div>
                         <div class="flex items-start gap-3">
-                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('refundable'))>
+                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded accent-[#ff7700] focus:ring-[#ff7700] border-gray-300" @checked(old('refundable'))>
                             <div class="flex-1">
                                 <label for="refundable" class="block text-sm font-medium text-gray-700">Allow refunds for paid bookings</label>
                                 <p class="mt-1 text-xs text-gray-500">When enabled, tenants can request refunds for their paid bookings. You'll need to review and approve each refund request.</p>
@@ -135,10 +176,9 @@
 
                     <section class="space-y-4">
                         <label class="flex items-start gap-3 text-sm text-gray-600">
-                            <input type="checkbox" name="confirm_terms" value="1" class="mt-1 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('confirm_terms'))>
-                            <span>I confirm that the event details are correct.</span>
+                            <input type="checkbox" name="confirm_terms" value="1" required class="mt-1 rounded accent-[#ff7700] focus:ring-[#ff7700] border-gray-300" @checked(old('confirm_terms'))>
+                            <span>I confirm that the event details are correct.<span class="text-red-500"> *</span></span>
                         </label>
-                        <p class="text-xs text-gray-500">Confirming is required when you choose to create the event. You can always save a draft without confirming.</p>
                     </section>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
@@ -157,6 +197,105 @@
         </div>
     </div>
 </body>
+
+<script>
+    // Cascading location dropdowns
+    const provinceSelect = document.getElementById('province_id');
+    const citySelect = document.getElementById('city_id');
+    const districtSelect = document.getElementById('district_id');
+    const subdistrictSelect = document.getElementById('subdistrict_id');
+
+    provinceSelect.addEventListener('change', async function() {
+        const provinceId = this.value;
+
+        // Reset dependent dropdowns
+        citySelect.innerHTML = '<option value="">Select city</option>';
+        districtSelect.innerHTML = '<option value="">Select district</option>';
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+
+        citySelect.disabled = true;
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+
+        if (!provinceId) return;
+
+        // Fetch cities for selected province
+        try {
+            const response = await fetch(`/api/cities?province_id=${provinceId}`);
+            const cities = await response.json();
+
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.id;
+                option.textContent = city.name;
+                citySelect.appendChild(option);
+            });
+
+            citySelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+        }
+    });
+
+    citySelect.addEventListener('change', async function() {
+        const cityId = this.value;
+
+        // Reset dependent dropdowns
+        districtSelect.innerHTML = '<option value="">Select district</option>';
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+
+        if (!cityId) return;
+
+        // Fetch districts for selected city
+        try {
+            const response = await fetch(`/api/districts?city_id=${cityId}`);
+            const districts = await response.json();
+
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.id;
+                option.textContent = district.name;
+                districtSelect.appendChild(option);
+            });
+
+            districtSelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching districts:', error);
+        }
+    });
+
+    districtSelect.addEventListener('change', async function() {
+        const districtId = this.value;
+
+        // Reset dependent dropdown
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+        subdistrictSelect.disabled = true;
+
+        if (!districtId) return;
+
+        // Fetch subdistricts for selected district
+        try {
+            const response = await fetch(`/api/subdistricts?district_id=${districtId}`);
+            const subdistricts = await response.json();
+
+            subdistricts.forEach(subdistrict => {
+                const option = document.createElement('option');
+                option.value = subdistrict.id;
+                option.textContent = subdistrict.name;
+                subdistrictSelect.appendChild(option);
+            });
+
+            subdistrictSelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching subdistricts:', error);
+        }
+    });
+</script>
+
+@stack('scripts')
 
 @include('components.footer')
 

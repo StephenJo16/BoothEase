@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book {{ $booth->number }} - {{ $event->title }}</title>
+    <title>Book {{ $booth->name }} - {{ $event->title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -88,9 +88,9 @@ $userPhone = $digits;
             <div class="lg:col-span-2 space-y-6">
                 <!-- Booth Information Card -->
                 <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
-                    <div class="flex items-start justify-between mb-6">
+                    <div class="flex items-start justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold text-slate-800 mb-2">{{ $booth->number }}</h1>
+                            <h1 class="text-3xl font-bold text-slate-800 mb-2">{{ $booth->name }}</h1>
                             <div class="flex flex-wrap gap-3 text-sm">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-100 text-[#ff7700] font-medium">
                                     <i class="fas fa-tag mr-2"></i>
@@ -109,12 +109,6 @@ $userPhone = $digits;
                             <div class="text-xs text-slate-500 mt-1">for {{ $eventDuration }} days</div>
                             @endif
                         </div>
-                    </div>
-
-                    <div class="prose max-w-none">
-                        <p class="text-slate-700 leading-relaxed">
-                            Secure your spot at {{ $event->title }} with this premium booth location. This booth offers excellent visibility and foot traffic, perfect for showcasing your products and engaging with potential customers throughout the event.
-                        </p>
                     </div>
                 </div>
 
@@ -147,14 +141,17 @@ $userPhone = $digits;
                         </div>
                         @endif
 
-                        @if($event->venue)
+                        @if($event->venue || $event->display_location)
                         <div class="flex items-start">
                             <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
                                 <i class="fas fa-map-marker-alt text-xl"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-slate-600 mb-1">Venue</div>
-                                <div class="font-semibold text-slate-900">{{ $event->venue }}</div>
+                                <div class="text-xs text-slate-600 mb-1">Location</div>
+                                <div class="font-semibold text-slate-900">{{ $event->display_location ?? $event->venue }}</div>
+                                @if($event->address)
+                                <div class="text-xs text-slate-600 mt-1">{{ $event->address }}</div>
+                                @endif
                             </div>
                         </div>
                         @endif
@@ -182,6 +179,21 @@ $userPhone = $digits;
                             </div>
                         </div>
                         @endif
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-[#ff7700] mr-4 flex-shrink-0">
+                                <i class="fas fa-{{ $event->refundable ? 'check-circle' : 'times-circle' }} text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-600 mb-1">Refund Policy</div>
+                                <div class="font-semibold {{ $event->refundable ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $event->refundable ? 'Refundable' : 'Non-Refundable' }}
+                                </div>
+                                <div class="text-xs text-slate-600 mt-1">
+                                    {{ $event->refundable ? 'This booking can be refunded if cancelled' : 'This booking cannot be refunded once confirmed' }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -197,31 +209,17 @@ $userPhone = $digits;
                         <input type="hidden" name="booth_id" value="{{ $booth->id }}">
 
                         <!-- Contact Information -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                    First Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="first_name" required
-                                    value="{{ old('first_name', $user ? explode(' ', $user->display_name)[0] : '') }}"
-                                    class="w-full px-4 py-3 border {{ $errors->has('first_name') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
-                                    placeholder="Enter your first name">
-                                @error('first_name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                    Last Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="last_name" required
-                                    value="{{ old('last_name', $user && str_word_count($user->display_name) > 1 ? substr($user->display_name, strpos($user->display_name, ' ') + 1) : '') }}"
-                                    class="w-full px-4 py-3 border {{ $errors->has('last_name') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
-                                    placeholder="Enter your last name">
-                                @error('last_name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Full Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="full_name" required
+                                value="{{ old('full_name', $user ? explode(' ', $user->display_name)[0] : '') }}"
+                                class="w-full px-4 py-3 border {{ $errors->has('full_name') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] outline-none transition-all"
+                                placeholder="Enter your full name">
+                            @error('full_name')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -286,7 +284,7 @@ $userPhone = $digits;
                         <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                             <label class="flex items-start cursor-pointer">
                                 <input type="checkbox" id="agreeTerms" required
-                                    class="mt-1 mr-3 w-5 h-5 text-[#ff7700] border-slate-300 rounded focus:ring-[#ff7700]">
+                                    class="mt-1 mr-3 w-5 h-5 accent-[#ff7700] focus:ring-[#ff7700] border-slate-300 rounded">
                                 <span class="text-sm text-slate-700">
                                     I agree to the <a href="#" class="text-[#ff7700] hover:underline font-medium">Terms and Conditions</a>
                                     and <a href="#" class="text-[#ff7700] hover:underline font-medium">Cancellation Policy</a>.
@@ -296,7 +294,7 @@ $userPhone = $digits;
                         </div>
 
                         <!-- Submit Button (Desktop) -->
-                        <div class="hidden lg:block">
+                        <div>
                             <button type="submit"
                                 class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-bold text-lg py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
                                 Request Booking
@@ -322,8 +320,8 @@ $userPhone = $digits;
                                 <div class="text-xs text-slate-600 mb-2">BOOTH DETAILS</div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between text-sm">
-                                        <span class="text-slate-700">Booth Number</span>
-                                        <span class="font-semibold text-slate-900">{{ $booth->number }}</span>
+                                        <span class="text-slate-700">Booth Name</span>
+                                        <span class="font-semibold text-slate-900">{{ $booth->name }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-700">Type</span>
@@ -350,10 +348,13 @@ $userPhone = $digits;
                                         <div class="font-semibold text-slate-900">{{ $eventDuration }} days</div>
                                     </div>
                                     @endif
-                                    @if($event->venue)
+                                    @if($event->venue || $event->display_location)
                                     <div class="text-sm">
-                                        <div class="text-slate-700 mb-1">Venue</div>
-                                        <div class="font-semibold text-slate-900">{{ $event->venue }}</div>
+                                        <div class="text-slate-700 mb-1">Location</div>
+                                        <div class="font-semibold text-slate-900">{{ $event->display_location ?? $event->venue }}</div>
+                                        @if($event->address)
+                                        <div class="text-xs text-slate-600 mt-1">{{ $event->address }}</div>
+                                        @endif
                                     </div>
                                     @endif
                                 </div>
@@ -388,14 +389,7 @@ $userPhone = $digits;
                         </div>
                     </div>
 
-                    <!-- Mobile Submit Button -->
-                    <div class="lg:hidden">
-                        <button type="submit" form="bookingForm"
-                            class="w-full bg-[#ff7700] hover:bg-[#e66600] text-white font-bold text-lg py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
-                            <i class="fas fa-credit-card"></i>
-                            Proceed to Payment
-                        </button>
-                    </div>
+
                 </div>
             </div>
         </div>

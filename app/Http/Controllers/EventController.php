@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\Province;
+use App\Models\City;
+use App\Models\District;
+use App\Models\Subdistrict;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -20,19 +24,24 @@ class EventController extends Controller
         // Get filter parameters
         $search = $request->input('search');
         $categories = $request->input('categories', []);
-        $minPrice = $request->input('min_price');
-        $maxPrice = $request->input('max_price');
+        $provinceId = $request->input('province_id');
+        $cityId = $request->input('city_id');
 
         // Base query with filters
-        $baseQuery = function ($query) use ($search, $categories, $minPrice, $maxPrice) {
+        $baseQuery = function ($query) use ($search, $categories, $provinceId, $cityId) {
             // Search filter
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', '%' . $search . '%')
                         ->orWhere('description', 'like', '%' . $search . '%')
-                        ->orWhere('location->venue', 'like', '%' .  $search . '%')
-                        ->orWhere('location->city', 'like', '%' . $search . '%')
-                        ->orWhere('location->address', 'like', '%' . $search . '%');
+                        ->orWhere('venue', 'like', '%' .  $search . '%')
+                        ->orWhere('address', 'like', '%' . $search . '%')
+                        ->orWhereHas('city', function ($q) use ($search) {
+                            $q->where('name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('province', function ($q) use ($search) {
+                            $q->where('name', 'like', '%' . $search . '%');
+                        });
                 });
             }
 
@@ -41,22 +50,14 @@ class EventController extends Controller
                 $query->whereIn('category_id', $categories);
             }
 
-            // Price filter - check booth configuration in location JSON
-            if ($minPrice !== null || $maxPrice !== null) {
-                $query->where(function ($q) use ($minPrice, $maxPrice) {
-                    $boothTypes = ['standard', 'premium', 'vip'];
+            // Province filter
+            if ($provinceId) {
+                $query->where('province_id', $provinceId);
+            }
 
-                    foreach ($boothTypes as $type) {
-                        $q->orWhere(function ($subQ) use ($type, $minPrice, $maxPrice) {
-                            if ($minPrice !== null) {
-                                $subQ->where('location->booths->' . $type . '->price', '>=', $minPrice);
-                            }
-                            if ($maxPrice !== null) {
-                                $subQ->where('location->booths->' . $type . '->price', '<=', $maxPrice);
-                            }
-                        });
-                    }
-                });
+            // City filter
+            if ($cityId) {
+                $query->where('city_id', $cityId);
             }
         };
 
@@ -132,17 +133,25 @@ class EventController extends Controller
         // Get all categories for filter dropdown
         $allCategories = Category::orderBy('name')->get();
 
+        // Get all provinces for filter dropdown
+        $allProvinces = Province::orderBy('name')->get();
+
+        // Get cities based on selected province
+        $allCities = $provinceId ? City::where('province_id', $provinceId)->orderBy('name')->get() : collect();
+
         return view('events.index', [
             'openForRegistration' => $openForRegistration,
             'registrationClosed' => $registrationClosed,
             'ongoingEvents' => $ongoingEvents,
             'completedEvents' => $completedEvents,
             'allCategories' => $allCategories,
+            'allProvinces' => $allProvinces,
+            'allCities' => $allCities,
             'filters' => [
                 'search' => $search,
                 'categories' => $categories,
-                'min_price' => $minPrice,
-                'max_price' => $maxPrice,
+                'province_id' => $provinceId,
+                'city_id' => $cityId,
             ],
         ]);
     }
@@ -158,7 +167,7 @@ class EventController extends Controller
             'category',
             'user',
             'booths' => function ($query) {
-                $query->orderBy('number');
+                $query->orderBy('name');
             }
         ]);
 
@@ -182,7 +191,7 @@ class EventController extends Controller
         $bookedBooths = $event->booths()->where('status', 'booked')->count();
 
         // Get price range from booth configuration
-        $boothConfig = $event->booth_configuration;
+        $boothConfig = $event->booth_configuration ?? [];
         $prices = [];
         foreach ($boothConfig as $type => $config) {
             if (isset($config['price'])) {
@@ -233,7 +242,7 @@ class EventController extends Controller
             'category',
             'user',
             'booths' => function ($query) {
-                $query->orderBy('number');
+                $query->orderBy('name');
             }
         ]);
 
@@ -242,7 +251,7 @@ class EventController extends Controller
         $availableBooths = $event->booths()->where('status', 'available')->count();
 
         // Get price range from booth configuration
-        $boothConfig = $event->booth_configuration;
+        $boothConfig = $event->booth_configuration ?? [];
         $prices = [];
         foreach ($boothConfig as $type => $config) {
             if (isset($config['price'])) {
@@ -313,9 +322,14 @@ class EventController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
                     ->orWhere('description', 'like', '%' . $search . '%')
-                    ->orWhere('location->venue', 'like', '%' . $search . '%')
-                    ->orWhere('location->city', 'like', '%' . $search . '%')
-                    ->orWhere('location->address', 'like', '%' . $search . '%');
+                    ->orWhere('venue', 'like', '%' . $search . '%')
+                    ->orWhere('address', 'like', '%' . $search . '%')
+                    ->orWhereHas('city', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('province', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    });
             });
         }
 
@@ -334,9 +348,13 @@ class EventController extends Controller
         // Get all categories for filter dropdown
         $allCategories = Category::orderBy('name')->get();
 
+        // Get all provinces for filter dropdown
+        $allProvinces = Province::orderBy('name')->get();
+
         return view('my-events.index', [
             'events' => $events,
             'allCategories' => $allCategories,
+            'allProvinces' => $allProvinces,
             'filters' => [
                 'search' => $search,
                 'categories' => $categories,
@@ -348,9 +366,28 @@ class EventController extends Controller
     public function create(Request $request)
     {
         $categories = Category::orderBy('name')->get();
+        $provinces = Province::orderBy('name')->get();
+        $cities = collect();
+        $districts = collect();
+        $subdistricts = collect();
+
+        // If returning with validation errors, load dependent data
+        if (old('province_id')) {
+            $cities = City::where('province_id', old('province_id'))->orderBy('name')->get();
+        }
+        if (old('city_id')) {
+            $districts = District::where('city_id', old('city_id'))->orderBy('name')->get();
+        }
+        if (old('district_id')) {
+            $subdistricts = Subdistrict::where('district_id', old('district_id'))->orderBy('name')->get();
+        }
 
         return view('my-events.create', [
             'categories' => $categories,
+            'provinces' => $provinces,
+            'cities' => $cities,
+            'districts' => $districts,
+            'subdistricts' => $subdistricts,
         ]);
     }
 
@@ -387,7 +424,7 @@ class EventController extends Controller
             'category',
             'booths' => function ($query) {
                 $query->with('bookings.user')
-                    ->orderBy('number');
+                    ->orderBy('name');
             }
         ]);
 
@@ -401,10 +438,18 @@ class EventController extends Controller
         $this->ensureOwnership($request, $event);
 
         $categories = Category::orderBy('name')->get();
+        $provinces = Province::orderBy('name')->get();
+        $cities = $event->province_id ? City::where('province_id', $event->province_id)->orderBy('name')->get() : collect();
+        $districts = $event->city_id ? District::where('city_id', $event->city_id)->orderBy('name')->get() : collect();
+        $subdistricts = $event->district_id ? Subdistrict::where('district_id', $event->district_id)->orderBy('name')->get() : collect();
 
         return view('my-events.edit', [
             'event' => $event,
             'categories' => $categories,
+            'provinces' => $provinces,
+            'cities' => $cities,
+            'districts' => $districts,
+            'subdistricts' => $subdistricts,
         ]);
     }
 
@@ -471,12 +516,16 @@ class EventController extends Controller
         $requiresFullValidation = in_array($action, ['publish', 'create_layout']);
 
         $rules = [
+            'image' => [$requiresFullValidation ? 'required' : 'nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => [$requiresFullValidation ? 'required' : 'nullable', 'integer', 'exists:categories,id'],
             'capacity' => ['nullable', 'integer', 'min:0'],
+            'province_id' => ['nullable', 'integer', 'exists:provinces,id'],
+            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'district_id' => ['nullable', 'integer', 'exists:districts,id'],
+            'subdistrict_id' => ['nullable', 'integer', 'exists:subdistricts,id'],
             'venue' => [$requiresFullValidation ? 'required' : 'nullable', 'string', 'max:255'],
-            'city' => [$requiresFullValidation ? 'required' : 'nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
             'start_date' => [$requiresFullValidation ? 'required' : 'nullable', 'date'],
             'start_time' => [$requiresFullValidation ? 'required' : 'nullable', 'date_format:H:i'],
@@ -497,7 +546,7 @@ class EventController extends Controller
         ];
 
         $messages = [
-            'confirm_terms.accepted' => 'Please confirm that all event details are accurate before creating the event.',
+            'confirm_terms.accepted' => 'You must check the confirmation box at the bottom of the form before proceeding to set up booths.',
         ];
 
         return $request->validate($rules, $messages);
@@ -510,6 +559,12 @@ class EventController extends Controller
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
+            'province_id' => $data['province_id'] ?? null,
+            'city_id' => $data['city_id'] ?? null,
+            'district_id' => $data['district_id'] ?? null,
+            'subdistrict_id' => $data['subdistrict_id'] ?? null,
+            'venue' => $data['venue'] ?? null,
+            'address' => $data['address'] ?? null,
             'registration_deadline' => $data['registration_deadline'] ?? null,
             'refundable' => $data['refundable'] ?? false,
         ]);
@@ -517,18 +572,19 @@ class EventController extends Controller
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);
         $event->end_time = $this->combineDateAndTime($data['end_date'] ?? null, $data['end_time'] ?? null);
 
-        $event->location = array_filter([
-            'venue' => $data['venue'] ?? null,
-            'city' => $data['city'] ?? null,
-            'address' => $data['address'] ?? null,
-            'booths' => $this->extractBoothConfig($data),
-        ], function ($value) {
-            if (is_array($value)) {
-                return !empty($value);
-            }
+        // Handle image upload
+        if (request()->hasFile('image')) {
+            $image = request()->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('events', $imageName, 'public');
+            $event->image_path = $imagePath;
+        }
 
-            return filled($value);
-        });
+        // Store booth configuration
+        $boothConfig = $this->extractBoothConfig($data);
+        if (!empty($boothConfig)) {
+            $event->booth_configuration = $boothConfig;
+        }
 
         // Determine status based on action
         // New events start as DRAFT until booths are configured

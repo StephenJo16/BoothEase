@@ -28,6 +28,25 @@
                         </h2>
                     </div>
 
+                    <!-- Google Sign In Button -->
+                    <div class="mb-6">
+                        <a href="{{ route('google.redirect') }}"
+                            class="w-full flex gap-x-4 items-center justify-center px-4 py-3 border border-gray-200 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200 h-12">
+                            <i class="fa-brands fa-google"></i>
+                            <span class="font-medium">Sign Up with Google</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative mb-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">Or continue with email</span>
+                        </div>
+                    </div>
+
                     <div class="flex mb-6">
                         <button
                             type="button"
@@ -131,16 +150,12 @@
                                 onchange="handleBusinessCategoryChange()"
                                 required>
                                 <option value="" id="category-placeholder" disabled {{ old('business_category') ? '' : 'selected' }}>Choose a Business Category</option>
-                                <option value="technology" {{ old('business_category') == 'technology' ? 'selected' : '' }}>Technology</option>
-                                <option value="healthcare" {{ old('business_category') == 'healthcare' ? 'selected' : '' }}>Healthcare</option>
-                                <option value="education" {{ old('business_category') == 'education' ? 'selected' : '' }}>Education</option>
-                                <option value="retail" {{ old('business_category') == 'retail' ? 'selected' : '' }}>Retail</option>
-                                <option value="food-beverage" {{ old('business_category') == 'food-beverage' ? 'selected' : '' }}>Food & Beverage</option>
-                                <option value="automotive" {{ old('business_category') == 'automotive' ? 'selected' : '' }}>Automotive</option>
-                                <option value="real-estate" {{ old('business_category') == 'real-estate' ? 'selected' : '' }}>Real Estate</option>
-                                <option value="finance" {{ old('business_category') == 'finance' ? 'selected' : '' }}>Finance</option>
-                                <option value="entertainment" {{ old('business_category') == 'entertainment' ? 'selected' : '' }}>Entertainment</option>
-                                <option value="other" {{ old('business_category') == 'other' ? 'selected' : '' }}>Other</option>
+                                @foreach ($categories as $category)
+                                <option value="{{ $category->name }}" {{ old('business_category') === $category->name ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                                @endforeach
+                                <option value="other" {{ old('business_category') === 'other' ? 'selected' : '' }}>Other</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mr-2 text-gray-700">
                                 <i class="fa-solid fa-chevron-down"></i>

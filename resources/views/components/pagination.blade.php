@@ -57,7 +57,7 @@
                     class="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#ff7700]"
                     onchange="window.location.href = updateQueryParam('perPage', this.value)">
                     @foreach($perPageOptions as $option)
-                    <option value="{{ $option }}" {{ request('perPage', 10) == $option ? 'selected' : '' }}>
+                    <option value="{{ $option }}" {{ request('perPage', 5) == $option ? 'selected' : '' }}>
                         {{ $option }}
                     </option>
                     @endforeach

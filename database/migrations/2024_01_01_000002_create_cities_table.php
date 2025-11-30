@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payments', function (Blueprint $table) {
-            $table->string('snap_token')->nullable()->after('amount');
-            $table->string('transaction_id')->nullable()->after('snap_token');
+        Schema::create('cities', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('province_id')->constrained('provinces')->onDelete('cascade');
+            $table->string('code', 10)->unique();
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -22,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payments', function (Blueprint $table) {
-            $table->dropColumn(['snap_token', 'transaction_id']);
-        });
+        Schema::dropIfExists('cities');
     }
 };

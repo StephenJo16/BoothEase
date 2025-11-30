@@ -69,7 +69,7 @@ $rows[] = [
 'rowClass' => 'h-20',
 'cells' => [
 [
-'content' => $booth->number ?? 'N/A',
+'content' => $booth->name ?? 'N/A',
 'class' => 'font-medium text-gray-900'
 ],
 [
@@ -170,6 +170,9 @@ $rows[] = [
                                             <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
                                             <span>{{ $event->venue ?? 'Venue TBA' }}</span>
                                         </div>
+                                        @if($event->city)
+                                        <p class="text-sm text-gray-500">{{ $event->city->name }}, {{ $event->province->name ?? '' }}</p>
+                                        @endif
                                         @if($event->address)
                                         <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                         @endif
@@ -196,7 +199,7 @@ $rows[] = [
                                         <p class="text-sm text-gray-600">Select a booth that fits your needs</p>
                                     </div>
                                     @if($isRegistrationOpen)
-                                    <a href="/events/{{ $event->id }}/booths" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
+                                    <a href="{{ auth()->check() ? '/events/' . $event->id . '/booths' : '/login' }}" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
                                         View Booths
                                     </a>
                                     @else
@@ -249,7 +252,7 @@ $rows[] = [
                                                     <p class="text-sm text-gray-600">Location</p>
                                                     <p class="font-medium">{{ $event->venue ?? 'Venue TBA' }}</p>
                                                     @if($event->city)
-                                                    <p class="text-sm text-gray-500">{{ $event->city }}</p>
+                                                    <p class="text-sm text-gray-500">{{ $event->city->name }}, {{ $event->province->name ?? '' }}</p>
                                                     @endif
                                                     @if($event->address)
                                                     <p class="text-xs text-gray-500">{{ $event->address }}</p>
@@ -419,6 +422,9 @@ $rows[] = [
                                         <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
                                         <span>{{ $event->venue ?? 'Venue TBA' }}</span>
                                     </div>
+                                    @if($event->city)
+                                    <p class="text-sm text-gray-500">{{ $event->city->name }}, {{ $event->province->name ?? '' }}</p>
+                                    @endif
                                     @if($event->address)
                                     <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                     @endif

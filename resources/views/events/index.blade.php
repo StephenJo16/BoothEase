@@ -23,7 +23,7 @@
 if (!function_exists('getMinBoothPrice')) {
 function getMinBoothPrice($event) {
 $prices = [];
-$boothConfig = $event->location['booths'] ?? [];
+$boothConfig = $event->booth_configuration ?? [];
 
 foreach ($boothConfig as $type => $config) {
 if (isset($config['price'])) {
@@ -62,12 +62,14 @@ return !empty($prices) ? min($prices) : 0;
                         label="Filter"
                         :categories="$allCategories"
                         :selectedCategories="$filters['categories'] ?? []"
-                        :minPrice="$filters['min_price'] ?? ''"
-                        :maxPrice="$filters['max_price'] ?? ''" />
+                        :provinces="$allProvinces"
+                        :cities="$allCities"
+                        :selectedProvinceId="$filters['province_id'] ?? ''"
+                        :selectedCityId="$filters['city_id'] ?? ''" />
                 </form>
 
                 <!-- Active Filters Display -->
-                @if(!empty($filters['categories'] ?? []) || ($filters['min_price'] ?? '') || ($filters['max_price'] ?? ''))
+                @if(!empty($filters['categories'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? ''))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
@@ -85,22 +87,32 @@ return !empty($prices) ? min($prices) : 0;
                     @endif
                     @endforeach
 
-                    @if($filters['min_price'] ?? '')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        Min: {{ formatRupiah($filters['min_price']) }}
-                        <button type="button" data-remove-filter="min_price" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                    @if($filters['province_id'] ?? '')
+                    @php
+                    $province = $allProvinces->find($filters['province_id']);
+                    @endphp
+                    @if($province)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        Province: {{ $province->name }}
+                        <button type="button" data-remove-filter="province_id" class="hover:cursor-pointer ml-2 hover:text-purple-600">
                             <i class="fas fa-times"></i>
                         </button>
                     </span>
                     @endif
+                    @endif
 
-                    @if($filters['max_price'] ?? '')
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        Max: {{ formatRupiah($filters['max_price']) }}
-                        <button type="button" data-remove-filter="max_price" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                    @if($filters['city_id'] ?? '')
+                    @php
+                    $city = $allCities->find($filters['city_id']);
+                    @endphp
+                    @if($city)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        City: {{ $city->name }}
+                        <button type="button" data-remove-filter="city_id" class="hover:cursor-pointer ml-2 hover:text-purple-600">
                             <i class="fas fa-times"></i>
                         </button>
                     </span>
+                    @endif
                     @endif
 
                     <a href="{{ route('events') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
@@ -148,11 +160,20 @@ return !empty($prices) ? min($prices) : 0;
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
+                            @if($event->image_path)
+                            <div class="h-48 relative">
+                                <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                                <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                                    {{ $event->category->name ?? 'Uncategorized' }}
+                                </span>
+                            </div>
+                            @else
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
                                 <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
                                     {{ $event->category->name ?? 'Uncategorized' }}
                                 </span>
                             </div>
+                            @endif
                             <div class="p-6">
                                 <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="space-y-2 text-sm text-gray-600 mb-4">
@@ -225,6 +246,17 @@ return !empty($prices) ? min($prices) : 0;
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-90">
+                            @if($event->image_path)
+                            <div class="h-48 relative">
+                                <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                                <span class="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                                    <i class="fas fa-lock mr-1"></i> Closed
+                                </span>
+                                <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                                    {{ $event->category->name ?? 'Uncategorized' }}
+                                </span>
+                            </div>
+                            @else
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
                                 <span class="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
                                     <i class="fas fa-lock mr-1"></i> Closed
@@ -233,6 +265,7 @@ return !empty($prices) ? min($prices) : 0;
                                     {{ $event->category->name ?? 'Uncategorized' }}
                                 </span>
                             </div>
+                            @endif
                             <div class="p-6">
                                 <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="space-y-2 text-sm text-gray-600 mb-4">
@@ -305,11 +338,20 @@ return !empty($prices) ? min($prices) : 0;
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
+                            @if($event->image_path)
+                            <div class="h-48 relative">
+                                <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                                <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                                    {{ $event->category->name ?? 'Uncategorized' }}
+                                </span>
+                            </div>
+                            @else
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
                                 <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
                                     {{ $event->category->name ?? 'Uncategorized' }}
                                 </span>
                             </div>
+                            @endif
                             <div class="p-6">
                                 <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="space-y-2 text-sm text-gray-600 mb-4">
@@ -376,6 +418,17 @@ return !empty($prices) ? min($prices) : 0;
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-75">
+                            @if($event->image_path)
+                            <div class="h-48 relative grayscale">
+                                <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                                <span class="absolute top-3 left-3 bg-gray-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                                    <i class="fas fa-flag-checkered mr-1"></i> Completed
+                                </span>
+                                <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                                    {{ $event->category->name ?? 'Uncategorized' }}
+                                </span>
+                            </div>
+                            @else
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative grayscale">
                                 <span class="absolute top-3 left-3 bg-gray-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
                                     <i class="fas fa-flag-checkered mr-1"></i> Completed
@@ -384,6 +437,7 @@ return !empty($prices) ? min($prices) : 0;
                                     {{ $event->category->name ?? 'Uncategorized' }}
                                 </span>
                             </div>
+                            @endif
                             <div class="p-6">
                                 <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
                                 <div class="space-y-2 text-sm text-gray-600 mb-4">

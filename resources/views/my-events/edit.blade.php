@@ -13,14 +13,6 @@
 
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
-
-    @php
-    $location = is_array($event->location) ? $event->location : [];
-    $booths = $location['booths'] ?? [];
-    $status = $event->status;
-    $badge = getEventStatusDisplay($status);
-    @endphp
-
     <div class="min-h-screen py-10">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             @include('components.back-button', ['text' => 'Back to Event Details', 'url' => route('my-events.show', $event)])
@@ -30,9 +22,6 @@
                     <h1 class="text-3xl font-bold text-gray-900">Edit event</h1>
                     <p class="mt-1 text-gray-600">Update the details and republish when you are ready.</p>
                 </div>
-                <span class="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold {{ $badge['class'] }}">
-                    {{ $badge['label'] }}
-                </span>
             </div>
 
             @if($errors->any())
@@ -47,7 +36,7 @@
             @endif
 
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <form method="POST" action="{{ route('my-events.update', $event) }}" class="space-y-10 px-6 py-8">
+                <form method="POST" action="{{ route('my-events.update', $event) }}" enctype="multipart/form-data" class="space-y-10 px-6 py-8">
                     @csrf
                     @method('PUT')
 
@@ -57,6 +46,13 @@
                             <p class="text-sm text-gray-500">Adjust the information attendees will see.</p>
                         </div>
                         <div class="grid grid-cols-1 gap-6">
+                            <x-image-upload
+                                name="image"
+                                label="Event image"
+                                :required="false"
+                                :currentImage="$event->image_path"
+                                helpText="Leave empty to keep current image"
+                                :error="$errors->first('image')" />
                             <div>
                                 <label for="title" class="mb-2 block text-sm font-medium text-gray-700">Event title<span class="text-red-500"> *</span></label>
                                 <input id="title" name="title" type="text" value="{{ old('title', $event->title) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
@@ -91,17 +87,53 @@
                         <div class="grid grid-cols-1 gap-6">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue</label>
-                                    <input id="venue" name="venue" type="text" value="{{ old('venue', $location['venue'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Venue or building name">
+                                    <label for="province_id" class="mb-2 block text-sm font-medium text-gray-700">Province</label>
+                                    <select id="province_id" name="province_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                        <option value="">Select province</option>
+                                        @foreach($provinces as $province)
+                                        <option value="{{ $province->id }}" @selected(old('province_id', $event->province_id)==$province->id)>{{ $province->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div>
-                                    <label for="city" class="mb-2 block text-sm font-medium text-gray-700">City</label>
-                                    <input id="city" name="city" type="text" value="{{ old('city', $location['city'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="City or region">
+                                    <label for="city_id" class="mb-2 block text-sm font-medium text-gray-700">City / Regency</label>
+                                    <select id="city_id" name="city_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $cities->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select city</option>
+                                        @foreach($cities as $city)
+                                        <option value="{{ $city->id }}" @selected(old('city_id', $event->city_id)==$city->id)>{{ $city->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
-                            <div>
-                                <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address</label>
-                                <input id="address" name="address" type="text" value="{{ old('address', $location['address'] ?? '') }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label for="district_id" class="mb-2 block text-sm font-medium text-gray-700">District</label>
+                                    <select id="district_id" name="district_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $districts->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select district</option>
+                                        @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" @selected(old('district_id', $event->district_id)==$district->id)>{{ $district->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="subdistrict_id" class="mb-2 block text-sm font-medium text-gray-700">Subdistrict</label>
+                                    <select id="subdistrict_id" name="subdistrict_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $subdistricts->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">Select subdistrict</option>
+                                        @foreach($subdistricts as $subdistrict)
+                                        <option value="{{ $subdistrict->id }}" @selected(old('subdistrict_id', $event->subdistrict_id)==$subdistrict->id)>{{ $subdistrict->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue</label>
+                                    <input id="venue" name="venue" type="text" value="{{ old('venue', $event->venue) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Venue or building name">
+                                </div>
+                                <div>
+                                    <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address</label>
+                                    <input id="address" name="address" type="text" value="{{ old('address', $event->address) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
+                                </div>
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
@@ -136,8 +168,8 @@
                             <p class="text-sm text-gray-500">Set whether paid bookings can be refunded.</p>
                         </div>
                         <div class="flex items-start gap-3">
-                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded border-gray-300 text-[#ff7700] focus:ring-[#ff7700]" @checked(old('refundable', $event->refundable))>
-                            <div class="flex-1">
+                            <input type="checkbox" id="refundable" name="refundable" value="1" class="mt-1 h-4 w-4 rounded accent-[#ff7700] focus:ring-[#ff7700] border-gray-300" @checked(old('refundable', $event->refundable))>
+                            <div class=" flex-1">
                                 <label for="refundable" class="block text-sm font-medium text-gray-700">Allow refunds for paid bookings</label>
                                 <p class="mt-1 text-xs text-gray-500">When enabled, tenants can request refunds for their paid bookings. You'll need to review and approve each refund request.</p>
                             </div>
@@ -160,5 +192,104 @@
         </div>
     </div>
 </body>
+
+<script>
+    // Cascading location dropdowns
+    const provinceSelect = document.getElementById('province_id');
+    const citySelect = document.getElementById('city_id');
+    const districtSelect = document.getElementById('district_id');
+    const subdistrictSelect = document.getElementById('subdistrict_id');
+
+    provinceSelect.addEventListener('change', async function() {
+        const provinceId = this.value;
+
+        // Reset dependent dropdowns
+        citySelect.innerHTML = '<option value="">Select city</option>';
+        districtSelect.innerHTML = '<option value="">Select district</option>';
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+
+        citySelect.disabled = true;
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+
+        if (!provinceId) return;
+
+        // Fetch cities for selected province
+        try {
+            const response = await fetch(`/api/cities?province_id=${provinceId}`);
+            const cities = await response.json();
+
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.id;
+                option.textContent = city.name;
+                citySelect.appendChild(option);
+            });
+
+            citySelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+        }
+    });
+
+    citySelect.addEventListener('change', async function() {
+        const cityId = this.value;
+
+        // Reset dependent dropdowns
+        districtSelect.innerHTML = '<option value="">Select district</option>';
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+
+        if (!cityId) return;
+
+        // Fetch districts for selected city
+        try {
+            const response = await fetch(`/api/districts?city_id=${cityId}`);
+            const districts = await response.json();
+
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.id;
+                option.textContent = district.name;
+                districtSelect.appendChild(option);
+            });
+
+            districtSelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching districts:', error);
+        }
+    });
+
+    districtSelect.addEventListener('change', async function() {
+        const districtId = this.value;
+
+        // Reset dependent dropdown
+        subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
+        subdistrictSelect.disabled = true;
+
+        if (!districtId) return;
+
+        // Fetch subdistricts for selected district
+        try {
+            const response = await fetch(`/api/subdistricts?district_id=${districtId}`);
+            const subdistricts = await response.json();
+
+            subdistricts.forEach(subdistrict => {
+                const option = document.createElement('option');
+                option.value = subdistrict.id;
+                option.textContent = subdistrict.name;
+                subdistrictSelect.appendChild(option);
+            });
+
+            subdistrictSelect.disabled = false;
+        } catch (error) {
+            console.error('Error fetching subdistricts:', error);
+        }
+    });
+</script>
+
+@stack('scripts')
 
 </html>

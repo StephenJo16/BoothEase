@@ -74,4 +74,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rating::class, 'ratee_id');
     }
+
+    /**
+     * Check if user has completed their profile.
+     * For OAuth users, phone_number and business_category must be filled.
+     */
+    public function hasCompletedProfile(): bool
+    {
+        // If user signed up via OAuth (has provider), check if profile is complete
+        if ($this->provider) {
+            return !empty($this->phone_number) && !empty($this->business_category);
+        }
+
+        // Non-OAuth users are considered complete by default
+        return true;
+    }
 }

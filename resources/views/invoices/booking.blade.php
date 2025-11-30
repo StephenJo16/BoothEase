@@ -252,7 +252,7 @@
         <thead>
             <tr>
                 <th style="width: 50%;">Description</th>
-                <th style="width: 15%; text-align: center;">Booth Number</th>
+                <th style="width: 15%; text-align: center;">Booth Name</th>
                 <th style="width: 15%; text-align: center;">Size</th>
                 <th style="width: 20%; text-align: right;">Amount</th>
             </tr>
@@ -266,7 +266,7 @@
                     <em style="color: #666; font-size: 11px;">Note: {{ $booking->notes }}</em>
                     @endif
                 </td>
-                <td style="text-align: center;">{{ $booth->number }}</td>
+                <td style="text-align: center;">{{ $booth->name }}</td>
                 <td style="text-align: center;">{{ $booth->size ?? 'N/A' }}</td>
                 <td style="text-align: right;">
                     Rp{{ number_format($booking->total_price, 0, ',', '.') }}
