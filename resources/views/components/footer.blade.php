@@ -1,7 +1,7 @@
 <footer class="bg-gray-900 text-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div class="flex justify-center items-center mb-6">
-            <img src="{{ asset('images/boothease-logo-cropped.png') }}" alt="BoothEase" class="h-10 mr-3">
+            <img src="{{ asset('images/boothease-logo-cropped.webp') }}" alt="BoothEase" class="h-10 mr-3">
         </div>
         <p class="text-gray-400 mb-4">Making event booth booking simple and efficient</p>
         <p class="text-sm text-gray-500">All Rights Reserved ©</p>
@@ -10,15 +10,15 @@
 
 {{-- KODE NOTIFIKASI --}}
 @if (session('success'))
-    <div class="notification-popup success">
-        {{ session('success') }}
-    </div>
+<div class="notification-popup success">
+    {{ session('success') }}
+</div>
 @endif
 
 @if (session('error'))
-    <div class="notification-popup error">
-        {{ session('error') }}
-    </div>
+<div class="notification-popup error">
+    {{ session('error') }}
+</div>
 @endif
 
 <style>
@@ -36,13 +36,13 @@
         background-color: #ffffff;
         color: #1F2937;
         pointer-events: none;
-        
+
         /* UPDATED FONT */
-        font-family: 'Lato', sans-serif; 
+        font-family: 'Lato', sans-serif;
     }
 
     .notification-popup.success {
-        border: 2px solid #F97316; 
+        border: 2px solid #F97316;
     }
 
     .notification-popup.error {
@@ -54,14 +54,17 @@
             opacity: 0;
             transform: translateY(-20px);
         }
+
         10% {
             opacity: 1;
             transform: translateY(0);
         }
+
         90% {
             opacity: 1;
             transform: translateY(0);
         }
+
         100% {
             opacity: 0;
             transform: translateY(-20px);
