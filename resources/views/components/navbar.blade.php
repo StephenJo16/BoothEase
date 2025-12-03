@@ -3,7 +3,7 @@
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center">
                 <a href="/" class="flex items-center space-x-2">
-                    <img src="{{ asset('images/boothease-logo-cropped.png') }}" alt="BoothEase" class="h-10 w-auto">
+                    <img src="{{ asset('images/boothease-logo-cropped.webp') }}" alt="BoothEase" class="h-10 w-auto">
                 </a>
             </div>
 
