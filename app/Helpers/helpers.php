@@ -193,3 +193,24 @@ if (!function_exists('getEventDuration')) {
         return floor($event->start_time->diffInDays($event->end_time)) + 1;
     }
 }
+
+// Helper function to get category color scheme
+if (!function_exists('getCategoryColors')) {
+    function getCategoryColors($categoryId)
+    {
+        $schemes = [
+            ['color' => 'text-blue-600', 'gradient' => ['from-blue-400', 'to-blue-600']],
+            ['color' => 'text-green-600', 'gradient' => ['from-green-400', 'to-green-600']],
+            ['color' => 'text-purple-600', 'gradient' => ['from-purple-400', 'to-purple-600']],
+            ['color' => 'text-red-600', 'gradient' => ['from-red-400', 'to-red-600']],
+            ['color' => 'text-orange-600', 'gradient' => ['from-yellow-400', 'to-orange-500']],
+            ['color' => 'text-indigo-600', 'gradient' => ['from-indigo-400', 'to-indigo-600']],
+            ['color' => 'text-pink-600', 'gradient' => ['from-pink-400', 'to-pink-600']],
+            ['color' => 'text-teal-600', 'gradient' => ['from-teal-400', 'to-teal-600']],
+            ['color' => 'text-cyan-600', 'gradient' => ['from-cyan-400', 'to-cyan-600']],
+        ];
+
+        $index = ($categoryId ?? 0) % count($schemes);
+        return $schemes[$index];
+    }
+}

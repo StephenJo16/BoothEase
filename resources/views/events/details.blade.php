@@ -18,26 +18,6 @@
 </head>
 
 @php
-
-// Helper to get color scheme based on category
-if (!function_exists('getCategoryColors')) {
-function getCategoryColors($categoryId) {
-$schemes = [
-['color' => 'text-blue-600', 'gradient' => ['from-blue-400', 'to-blue-600']],
-['color' => 'text-green-600', 'gradient' => ['from-green-400', 'to-green-600']],
-['color' => 'text-purple-600', 'gradient' => ['from-purple-400', 'to-purple-600']],
-['color' => 'text-red-600', 'gradient' => ['from-red-400', 'to-red-600']],
-['color' => 'text-orange-600', 'gradient' => ['from-yellow-400', 'to-orange-500']],
-['color' => 'text-indigo-600', 'gradient' => ['from-indigo-400', 'to-indigo-600']],
-['color' => 'text-pink-600', 'gradient' => ['from-pink-400', 'to-pink-600']],
-['color' => 'text-teal-600', 'gradient' => ['from-teal-400', 'to-teal-600']],
-['color' => 'text-cyan-600', 'gradient' => ['from-cyan-400', 'to-cyan-600']],
-];
-$index = ($categoryId ?? 0) % count($schemes);
-return $schemes[$index];
-}
-}
-
 $colorScheme = getCategoryColors($event->category_id);
 
 // Format event dates and times using helper functions
@@ -110,8 +90,9 @@ $rows[] = [
                     <div class="lg:col-span-3">
                         <!-- Event Header -->
                         <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                            <div class="h-80 bg-gradient-to-br {{ $colorScheme['gradient'][0] }} {{ $colorScheme['gradient'][1] }} relative">
-                                <span class="absolute top-4 right-4 bg-white bg-opacity-90 {{ $colorScheme['color'] }} text-sm font-semibold px-3 py-1 rounded-full">{{ $event->category->name ?? 'Uncategorized' }}</span>
+                            <div class="h-80 bg-gradient-to-br relative">
+                                <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                                <span class="absolute top-4 right-4 bg-white bg-opacity-90 {{ $colorScheme['color'] }} text-sm font-semibold px-3 py-1 rounded-full">{{ $event->category->name  }}</span>
                             </div>
                             <div class="p-8">
                                 <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $event->title }}</h1>
