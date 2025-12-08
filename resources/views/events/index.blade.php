@@ -18,7 +18,6 @@
 </head>
 
 @php
-
 // Helper to get minimum booth price
 if (!function_exists('getMinBoothPrice')) {
 function getMinBoothPrice($event) {
@@ -136,27 +135,9 @@ return !empty($prices) ? min($prices) : 0;
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($openForRegistration as $event)
                         @php
-                        $categoryColors = [
-                        'text-blue-600', 'text-green-600', 'text-purple-600', 'text-red-600',
-                        'text-orange-600', 'text-indigo-600', 'text-pink-600', 'text-teal-600',
-                        'text-cyan-600', 'text-yellow-600'
-                        ];
-                        $gradients = [
-                        ['from-blue-400', 'to-blue-600'],
-                        ['from-green-400', 'to-green-600'],
-                        ['from-purple-400', 'to-purple-600'],
-                        ['from-red-400', 'to-red-600'],
-                        ['from-yellow-400', 'to-orange-500'],
-                        ['from-indigo-400', 'to-indigo-600'],
-                        ['from-pink-400', 'to-pink-600'],
-                        ['from-teal-400', 'to-teal-600'],
-                        ['from-cyan-400', 'to-cyan-600'],
-                        ];
-
-                        $colorIndex = ($event->category_id ?? 0) % count($categoryColors);
-                        $gradientIndex = ($event->category_id ?? 0) % count($gradients);
-                        $categoryColor = $categoryColors[$colorIndex];
-                        $gradient = $gradients[$gradientIndex];
+                        $colorScheme = getCategoryColors($event->category_id);
+                        $categoryColor = $colorScheme['color'];
+                        $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
@@ -222,27 +203,9 @@ return !empty($prices) ? min($prices) : 0;
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($registrationClosed as $event)
                         @php
-                        $categoryColors = [
-                        'text-blue-600', 'text-green-600', 'text-purple-600', 'text-red-600',
-                        'text-orange-600', 'text-indigo-600', 'text-pink-600', 'text-teal-600',
-                        'text-cyan-600', 'text-yellow-600'
-                        ];
-                        $gradients = [
-                        ['from-blue-400', 'to-blue-600'],
-                        ['from-green-400', 'to-green-600'],
-                        ['from-purple-400', 'to-purple-600'],
-                        ['from-red-400', 'to-red-600'],
-                        ['from-yellow-400', 'to-orange-500'],
-                        ['from-indigo-400', 'to-indigo-600'],
-                        ['from-pink-400', 'to-pink-600'],
-                        ['from-teal-400', 'to-teal-600'],
-                        ['from-cyan-400', 'to-cyan-600'],
-                        ];
-
-                        $colorIndex = ($event->category_id ?? 0) % count($categoryColors);
-                        $gradientIndex = ($event->category_id ?? 0) % count($gradients);
-                        $categoryColor = $categoryColors[$colorIndex];
-                        $gradient = $gradients[$gradientIndex];
+                        $colorScheme = getCategoryColors($event->category_id);
+                        $categoryColor = $colorScheme['color'];
+                        $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-90">
@@ -250,7 +213,7 @@ return !empty($prices) ? min($prices) : 0;
                             <div class="h-48 relative">
                                 <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
                                 <span class="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                                    <i class="fas fa-lock mr-1"></i> Closed
+                                    Registration Closed
                                 </span>
                                 <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
                                     {{ $event->category->name ?? 'Uncategorized' }}
@@ -259,7 +222,7 @@ return !empty($prices) ? min($prices) : 0;
                             @else
                             <div class="h-48 bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} relative">
                                 <span class="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                                    <i class="fas fa-lock mr-1"></i> Closed
+                                    Registration Closed
                                 </span>
                                 <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
                                     {{ $event->category->name ?? 'Uncategorized' }}
@@ -314,27 +277,9 @@ return !empty($prices) ? min($prices) : 0;
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($ongoingEvents as $event)
                         @php
-                        $categoryColors = [
-                        'text-blue-600', 'text-green-600', 'text-purple-600', 'text-red-600',
-                        'text-orange-600', 'text-indigo-600', 'text-pink-600', 'text-teal-600',
-                        'text-cyan-600', 'text-yellow-600'
-                        ];
-                        $gradients = [
-                        ['from-blue-400', 'to-blue-600'],
-                        ['from-green-400', 'to-green-600'],
-                        ['from-purple-400', 'to-purple-600'],
-                        ['from-red-400', 'to-red-600'],
-                        ['from-yellow-400', 'to-orange-500'],
-                        ['from-indigo-400', 'to-indigo-600'],
-                        ['from-pink-400', 'to-pink-600'],
-                        ['from-teal-400', 'to-teal-600'],
-                        ['from-cyan-400', 'to-cyan-600'],
-                        ];
-
-                        $colorIndex = ($event->category_id ?? 0) % count($categoryColors);
-                        $gradientIndex = ($event->category_id ?? 0) % count($gradients);
-                        $categoryColor = $categoryColors[$colorIndex];
-                        $gradient = $gradients[$gradientIndex];
+                        $colorScheme = getCategoryColors($event->category_id);
+                        $categoryColor = $colorScheme['color'];
+                        $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
@@ -361,7 +306,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                                        <span>{{ $event->start_time ? $event->start_time->format('d F Y') : 'Date TBA' }} - {{ $event->end_time ? $event->end_time->format('d F Y') : 'TBA' }}</span>
+                                        <span>{{ $event->start_time ? $event->start_time->format('d F Y') : 'Date TBA' }}</span>
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-store mr-2 text-[#ff7700]"></i>
@@ -394,27 +339,9 @@ return !empty($prices) ? min($prices) : 0;
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($completedEvents as $event)
                         @php
-                        $categoryColors = [
-                        'text-blue-600', 'text-green-600', 'text-purple-600', 'text-red-600',
-                        'text-orange-600', 'text-indigo-600', 'text-pink-600', 'text-teal-600',
-                        'text-cyan-600', 'text-yellow-600'
-                        ];
-                        $gradients = [
-                        ['from-blue-400', 'to-blue-600'],
-                        ['from-green-400', 'to-green-600'],
-                        ['from-purple-400', 'to-purple-600'],
-                        ['from-red-400', 'to-red-600'],
-                        ['from-yellow-400', 'to-orange-500'],
-                        ['from-indigo-400', 'to-indigo-600'],
-                        ['from-pink-400', 'to-pink-600'],
-                        ['from-teal-400', 'to-teal-600'],
-                        ['from-cyan-400', 'to-cyan-600'],
-                        ];
-
-                        $colorIndex = ($event->category_id ?? 0) % count($categoryColors);
-                        $gradientIndex = ($event->category_id ?? 0) % count($gradients);
-                        $categoryColor = $categoryColors[$colorIndex];
-                        $gradient = $gradients[$gradientIndex];
+                        $colorScheme = getCategoryColors($event->category_id);
+                        $categoryColor = $colorScheme['color'];
+                        $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-75">
@@ -447,13 +374,12 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-gray-500"></i>
-                                        <span>{{ $event->end_time ? $event->end_time->format('d F Y') : 'Date TBA' }}</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <i class="fas fa-store mr-2 text-gray-500"></i>
-                                        <span>{{ $event->booths_count ?? 0 }} Total Booths</span>
+                                        <span>{{ $event->start_time ? $event->start_time->format('d F Y') : 'Date TBA' }}</span>
                                     </div>
                                 </div>
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-400 hover:bg-gray-500 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                                    View Details
+                                </a>
                             </div>
                         </div>
                         @endforeach

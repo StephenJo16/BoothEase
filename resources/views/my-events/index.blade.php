@@ -124,15 +124,26 @@
 
                 $location = $event->display_location ?: 'Location to be confirmed';
                 $category = optional($event->category)->name ?: 'Uncategorised';
+
+                // Get category colors
+                $colorScheme = getCategoryColors($event->category_id);
+                $categoryColor = $colorScheme['color'];
+                $gradient = $colorScheme['gradient'];
                 @endphp
                 <div class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     @if($event->image_path)
-                    <div class="h-48 w-full overflow-hidden">
+                    <div class="h-48 w-full overflow-hidden relative">
                         <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
+                        <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                            {{ $category }}
+                        </span>
                     </div>
                     @else
-                    <div class="h-48 w-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                        <i class="fa-solid fa-image text-6xl text-gray-300"></i>
+                    <div class="h-48 w-full overflow-hidden bg-gradient-to-br {{ $gradient[0] }} {{ $gradient[1] }} flex items-center justify-center relative">
+                        <i class="fa-solid fa-image text-6xl text-white opacity-30"></i>
+                        <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $categoryColor }} text-xs font-semibold px-2 py-1 rounded-full">
+                            {{ $category }}
+                        </span>
                     </div>
                     @endif
                     <div class="border-b border-gray-100 px-5 py-4">
