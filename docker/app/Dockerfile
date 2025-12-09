@@ -1,42 +1,41 @@
 FROM php:8.2-fpm
 
-# System dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libpng-dev libonig-dev libzip-dev zip unzip curl libxml2-dev libpq-dev \
-    libicu-dev git \
+    libpng-dev libonig-dev libzip-dev zip unzip curl git libxml2-dev libpq-dev libicu-dev \
     && docker-php-ext-install intl pdo pdo_mysql mbstring zip exif pcntl gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install NodeJS (for build only)
+# Install Node.js (for Vite build)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
 WORKDIR /var/www
 
-# Copy dependency files first
+# Copy dependency files first (better caching)
 COPY composer.json composer.lock package.json package-lock.json vite.config.js ./
 
-# ----------------- FIX START -----------------
-# 1. Install dependencies but SKIP autoloader generation and scripts
-#    (This prevents it from crashing looking for helpers.php)
-RUN composer install --no-dev --no-scripts --no-autoloader
+# Install PHP dependencies without scripts (helpers.php may not exist yet)
+RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader
 
-# 2. Install NPM dependencies
+# Install JS dependencies
 RUN npm install
 
-# 3. Copy full application (including app/Helpers/helpers.php)
+# Now copy full Laravel project
 COPY . .
 
-# 4. NOW generate the optimized autoloader since the file exists
+# Now generate optimized autoloader (helpers.php exists)
 RUN composer dump-autoload --optimize
-# ----------------- FIX END -------------------
 
 # Build Vite assets
 RUN npm run build
 
-# Fix permissions
+# Cache Laravel config & routes
+RUN php artisan config:cache && php artisan route:cache
+
+# Permissions
 RUN chmod -R 777 storage bootstrap/cache
 
 EXPOSE 9000
