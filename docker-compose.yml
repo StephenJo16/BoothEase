@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: laravel_app
+    volumes:
+      - ./:/var/www
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+    networks:
+      - laravel
+
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: laravel_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel
+
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: boothease
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel
+
+volumes:
+  dbdata:
+
+networks:
+  laravel:

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
+use App\Helpers\ViteHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register Vite helper directives
+        Blade::directive('viteCss', function () {
+            return "<?php echo \\App\\Helpers\\ViteHelper::cssAssets(); ?>";
+        });
+
+        Blade::directive('viteJs', function () {
+            return "<?php echo \\App\\Helpers\\ViteHelper::jsAssets(); ?>";
+        });
     }
 }
