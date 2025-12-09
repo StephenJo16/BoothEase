@@ -7,10 +7,11 @@ services:
       dockerfile: docker/app/Dockerfile
     container_name: laravel_app
     volumes:
-      - ./:/var/www
+      - storage_data:/var/www/storage
+      - bootstrap_cache:/var/www/bootstrap/cache
     environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
+      APP_ENV: production
+      APP_DEBUG: false
     networks:
       - laravel
 
@@ -24,7 +25,8 @@ services:
     depends_on:
       - app
     volumes:
-      - ./:/var/www
+      - storage_data:/var/www/storage
+      - bootstrap_cache:/var/www/bootstrap/cache
     networks:
       - laravel
 
@@ -44,6 +46,8 @@ services:
 
 volumes:
   dbdata:
+  storage_data:
+  bootstrap_cache:
 
 networks:
   laravel:
