@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     build:
@@ -6,6 +8,9 @@ services:
     container_name: laravel_app
     volumes:
       - app_data:/var/www
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
     networks:
       - laravel
 
@@ -23,5 +28,23 @@ services:
     networks:
       - laravel
 
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: boothease
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel
+
 volumes:
   app_data:
+  dbdata:
+
+networks:
+  laravel:
