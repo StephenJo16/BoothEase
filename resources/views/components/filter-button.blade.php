@@ -10,7 +10,7 @@
     </button>
 
     <!-- Dropdown Menu -->
-    <div class="filter-dropdown hidden absolute right-0 mt-2 w-[480px] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+    <div class="filter-dropdown hidden absolute right-0 mt-2 w-[460px] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
         <div class="py-2">
             @if($type === 'category' || $type === 'combined')
             <!-- Category Filter Section -->
