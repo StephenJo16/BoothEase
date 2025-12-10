@@ -11,11 +11,6 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
     volumes:
-      # 1. REMOVED the 'app_data' volume.
-      #    Now, the container uses the fresh code inside the image.
-
-      # 2. Shared Volume for Public Assets (CSS/JS/Images)
-      #    This allows Nginx to see the files built by 'npm run build' inside this app.
       - public_assets:/var/www/public
     networks:
       - laravel
@@ -28,11 +23,21 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"  # <--- CRITICAL: Open the SSL port
     depends_on:
       - app
     volumes:
-      # 3. Mount the SAME shared volume here so Nginx can serve the files
       - public_assets:/var/www/public
+
+      # --- SSL MAPPINGS ---
+      # Left side: Where files are on your Azure VM
+      # Right side: Where Nginx will look for them inside the container
+      - /home/azureuser/boothease_me_fullchain.crt:/etc/nginx/ssl/boothease_me_fullchain.crt
+      - /home/azureuser/boothease_me.key:/etc/nginx/ssl/boothease_me.key
+
+      # OPTIONAL: If you want to edit nginx config without rebuilding the image,
+      # uncomment the line below and point it to your local config file:
+      # - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - laravel
 
@@ -46,14 +51,10 @@ services:
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
     volumes:
-      # 4. CRITICAL DB FIX:
-      #    Map to a folder './mysql_db_data' on your Azure VM.
-      #    Your data will live in this folder. It will NEVER be wiped by docker-compose down.
       - ./mysql_db_data:/var/lib/mysql
     networks:
       - laravel
 
-# Define the named volume for assets
 volumes:
   public_assets:
 
