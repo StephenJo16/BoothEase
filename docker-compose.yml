@@ -6,11 +6,17 @@ services:
       context: .
       dockerfile: docker/app/Dockerfile
     container_name: laravel_app
-    volumes:
-      - app_data:/var/www
+    restart: always
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
+    volumes:
+      # 1. REMOVED the 'app_data' volume.
+      #    Now, the container uses the fresh code inside the image.
+
+      # 2. Shared Volume for Public Assets (CSS/JS/Images)
+      #    This allows Nginx to see the files built by 'npm run build' inside this app.
+      - public_assets:/var/www/public
     networks:
       - laravel
 
@@ -19,12 +25,14 @@ services:
       context: ./docker/nginx
       dockerfile: Dockerfile
     container_name: laravel_nginx
+    restart: always
     ports:
       - "80:80"
     depends_on:
       - app
     volumes:
-      - app_data:/var/www
+      # 3. Mount the SAME shared volume here so Nginx can serve the files
+      - public_assets:/var/www/public
     networks:
       - laravel
 
@@ -38,13 +46,16 @@ services:
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
     volumes:
-      - dbdata:/var/lib/mysql
+      # 4. CRITICAL DB FIX:
+      #    Map to a folder './mysql_db_data' on your Azure VM.
+      #    Your data will live in this folder. It will NEVER be wiped by docker-compose down.
+      - ./mysql_db_data:/var/lib/mysql
     networks:
       - laravel
 
+# Define the named volume for assets
 volumes:
-  app_data:
-  dbdata:
+  public_assets:
 
 networks:
   laravel:
