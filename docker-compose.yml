@@ -33,7 +33,7 @@ services:
       # Left side: Where files are on your Azure VM
       # Right side: Where Nginx will look for them inside the container
       - /home/azureuser/boothease_me_fullchain.crt:/etc/nginx/ssl/boothease_me_fullchain.crt
-      - /home/azureuser/boothease_me.key:/etc/nginx/ssl/boothease_me.key
+      - /home/azureuser/boothease.key:/etc/nginx/ssl/boothease.key
 
       # OPTIONAL: If you want to edit nginx config without rebuilding the image,
       # uncomment the line below and point it to your local config file:
