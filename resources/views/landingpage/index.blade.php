@@ -74,7 +74,7 @@ $colorSchemes = [
                 <!-- Right Content - Logo -->
                 <div class="flex justify-center lg:justify-end">
                     <div class="w-140 h-80 rounded-lg flex items-center justify-center">
-                        <img src="{{ asset('images/boothease-logo-cropped.png') }}" alt="BoothEase Logo" class="max-w-full max-h-full object-contain">
+                        <img src="{{ asset('images/boothease-logo-cropped.webp') }}" alt="BoothEase Logo" class="max-w-full max-h-full object-contain">
                     </div>
                 </div>
             </div>

@@ -50,16 +50,18 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     // Memproses data dari form login
     Route::post('/login', [AuthController::class, 'login']);
-
-
-    Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect'])->name('google.redirect');
-    Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('google.callback');
 });
 
+// Google OAuth routes (outside guest middleware to allow callback after authentication)
+Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('google.callback');
 
-// --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---
+
+// --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---   
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    // GET route as fallback for expired CSRF tokens
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
     Route::get('/profile', [UserController::class, 'show'])->name('profile');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');

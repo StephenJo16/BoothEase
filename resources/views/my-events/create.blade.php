@@ -220,11 +220,15 @@
 
         if (!provinceId) return;
 
+        // Show loading state
+        citySelect.innerHTML = '<option value="">Loading cities...</option>';
+
         // Fetch cities for selected province
         try {
             const response = await fetch(`/api/cities?province_id=${provinceId}`);
             const cities = await response.json();
 
+            citySelect.innerHTML = '<option value="">Select city</option>';
             cities.forEach(city => {
                 const option = document.createElement('option');
                 option.value = city.id;
@@ -235,6 +239,7 @@
             citySelect.disabled = false;
         } catch (error) {
             console.error('Error fetching cities:', error);
+            citySelect.innerHTML = '<option value="">Error loading cities</option>';
         }
     });
 
@@ -250,11 +255,15 @@
 
         if (!cityId) return;
 
+        // Show loading state
+        districtSelect.innerHTML = '<option value="">Loading districts...</option>';
+
         // Fetch districts for selected city
         try {
             const response = await fetch(`/api/districts?city_id=${cityId}`);
             const districts = await response.json();
 
+            districtSelect.innerHTML = '<option value="">Select district</option>';
             districts.forEach(district => {
                 const option = document.createElement('option');
                 option.value = district.id;
@@ -265,6 +274,7 @@
             districtSelect.disabled = false;
         } catch (error) {
             console.error('Error fetching districts:', error);
+            districtSelect.innerHTML = '<option value="">Error loading districts</option>';
         }
     });
 
@@ -277,11 +287,15 @@
 
         if (!districtId) return;
 
+        // Show loading state
+        subdistrictSelect.innerHTML = '<option value="">Loading subdistricts...</option>';
+
         // Fetch subdistricts for selected district
         try {
             const response = await fetch(`/api/subdistricts?district_id=${districtId}`);
             const subdistricts = await response.json();
 
+            subdistrictSelect.innerHTML = '<option value="">Select subdistrict</option>';
             subdistricts.forEach(subdistrict => {
                 const option = document.createElement('option');
                 option.value = subdistrict.id;
@@ -292,8 +306,98 @@
             subdistrictSelect.disabled = false;
         } catch (error) {
             console.error('Error fetching subdistricts:', error);
+            subdistrictSelect.innerHTML = '<option value="">Error loading subdistricts</option>';
         }
     });
+
+    // Date and time validation
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+    const registrationDeadlineInput = document.getElementById('registration_deadline');
+
+    // Get tomorrow's date
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowString = tomorrow.toISOString().split('T')[0];
+
+    // Set minimum date for registration deadline to tomorrow
+    registrationDeadlineInput.min = tomorrowString;
+
+    function validateDates() {
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+
+        if (startDate && endDate) {
+            if (endDate < startDate) {
+                endDateInput.setCustomValidity('End date cannot be before start date');
+            } else {
+                endDateInput.setCustomValidity('');
+
+                // If same day, validate times
+                if (startDate === endDate) {
+                    validateTimes();
+                } else {
+                    startTimeInput.setCustomValidity('');
+                    endTimeInput.setCustomValidity('');
+                }
+            }
+        }
+
+        validateRegistrationDeadline();
+    }
+
+    function validateRegistrationDeadline() {
+        const deadline = registrationDeadlineInput.value;
+        const startDate = startDateInput.value;
+
+        if (deadline) {
+            // Check if deadline is not today or in the past
+            if (deadline < tomorrowString) {
+                registrationDeadlineInput.setCustomValidity('Registration deadline must be at least tomorrow');
+                return;
+            }
+
+            // Check if deadline is before start date
+            if (startDate && deadline >= startDate) {
+                registrationDeadlineInput.setCustomValidity('Registration deadline must be before the event start date');
+                return;
+            }
+
+            registrationDeadlineInput.setCustomValidity('');
+        }
+    }
+
+    function validateTimes() {
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+
+        // Only validate times if it's the same day
+        if (startDate && endDate && startDate === endDate && startTime && endTime) {
+            if (endTime <= startTime) {
+                endTimeInput.setCustomValidity('End time must be after start time for same-day events');
+            } else {
+                endTimeInput.setCustomValidity('');
+            }
+        } else if (startDate !== endDate) {
+            // Clear time validation if different days
+            endTimeInput.setCustomValidity('');
+        }
+    }
+
+    startDateInput.addEventListener('change', function() {
+        // Update min attribute for end date
+        endDateInput.min = this.value;
+        validateDates();
+    });
+
+    endDateInput.addEventListener('change', validateDates);
+    startTimeInput.addEventListener('change', validateTimes);
+    endTimeInput.addEventListener('change', validateTimes);
+    registrationDeadlineInput.addEventListener('change', validateRegistrationDeadline);
 </script>
 
 @stack('scripts')

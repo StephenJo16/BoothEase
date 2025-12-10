@@ -460,6 +460,14 @@ class EventController extends Controller
         $action = $request->input('action', 'save');
         $data = $this->validatePayload($request, $action === 'save' ? ($event->isPublished() ? 'publish' : 'draft') : $action);
 
+        // Additional validation: if event has no image and no new image is uploaded, reject
+        if (!$event->image_path && !$request->hasFile('image')) {
+            return redirect()
+                ->back()
+                ->withErrors(['image' => 'Please upload an event image. This event currently has no image.'])
+                ->withInput();
+        }
+
         $this->applyPayload($event, $data, $request->user(), $action);
 
         $statusMessage = $action === 'publish'
@@ -490,6 +498,16 @@ class EventController extends Controller
             return redirect()
                 ->back()
                 ->with('error', "Cannot publish event. The number of booths ($boothCount) must match the event capacity ($capacity).");
+        }
+
+        // Validate that the registration deadline is at least tomorrow
+        if ($event->registration_deadline) {
+            $tomorrow = now()->addDay()->startOfDay();
+            if ($event->registration_deadline->startOfDay()->lt($tomorrow)) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Cannot publish event. The registration deadline must be at least tomorrow. Please update the event details.');
+            }
         }
 
         $event->status = Event::STATUS_PUBLISHED;
@@ -547,6 +565,10 @@ class EventController extends Controller
 
         $messages = [
             'confirm_terms.accepted' => 'You must check the confirmation box at the bottom of the form before proceeding to set up booths.',
+            'image.required' => 'Please upload an event image before proceeding.',
+            'image.image' => 'The uploaded file must be an image.',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, or webp.',
+            'image.max' => 'The image size must not exceed 2MB.',
         ];
 
         return $request->validate($rules, $messages);

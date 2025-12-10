@@ -3,7 +3,7 @@
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center">
                 <a href="/" class="flex items-center space-x-2">
-                    <img src="{{ asset('images/boothease-logo-cropped.png') }}" alt="BoothEase" class="h-10 w-auto">
+                    <img src="{{ asset('images/boothease-logo-cropped.webp') }}" alt="BoothEase" class="h-10 w-auto">
                 </a>
             </div>
 
@@ -37,15 +37,12 @@
                             </div>
                         </a>
                         <div class="border-t border-gray-100"></div>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:cursor-pointer hover:bg-gray-100 hover:text-[#ff7700] transition-colors">
-                                <div class="flex items-center">
-                                    <i class="fa-solid fa-arrow-right-from-bracket mr-4"></i>
-                                    Logout
-                                </div>
-                            </button>
-                        </form>
+                        <a href="{{ route('logout.get') }}" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:cursor-pointer hover:bg-gray-100 hover:text-[#ff7700] transition-colors">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-arrow-right-from-bracket mr-4"></i>
+                                Logout
+                            </div>
+                        </a>
                     </div>
                 </div>
                 @else
@@ -82,12 +79,9 @@
                 {{ Auth::user()->display_name }}
             </div>
             <a href="{{ route('profile') }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">View Profile</a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full text-left block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">
-                    Logout
-                </button>
-            </form>
+            <a href="{{ route('logout.get') }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">
+                Logout
+            </a>
             @endguest
         </div>
     </div>
