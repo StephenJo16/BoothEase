@@ -190,10 +190,10 @@ $roleBadgeClasses = match($user->role_id) {
                             </label>
                             <div class="w-full sm:w-2/3">
                                 <div class="relative">
-                                    <select id="business_category" name="business_category" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled onchange="handleBusinessCategoryChange()">
+                                    <select id="category_id" name="category_id" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled>
                                         @foreach ($categories as $category)
-                                        <option value="{{ $category->name }}" @selected($current===$category->name)>
-                                            {{ ucfirst(str_replace('-', ' ', $category->name)) }}
+                                        <option value="{{ $category->id }}" @selected($user->category_id == $category->id)>
+                                            {{ $category->name }}
                                         </option>
                                         @endforeach
                                     </select>
@@ -201,12 +201,6 @@ $roleBadgeClasses = match($user->role_id) {
                                         <i class="fa-solid fa-chevron-down text-xs"></i>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div id="custom-business-category-field" class="{{ $current === 'other' ? 'flex' : 'hidden' }} flex-col sm:flex-row sm:items-center">
-                            <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Custom Category</label>
-                            <div class="w-full sm:w-2/3">
-                                <input type="text" id="custom_business_category" name="custom_business_category" value="{{ $customValue }}" placeholder="Please specify your business category" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]" readonly>
                             </div>
                         </div>
 

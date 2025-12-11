@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('subdistrict_id')->nullable()->constrained('subdistricts')->onDelete('set null');
             $table->string('venue')->nullable()->comment('Venue name');
             $table->text('address')->nullable()->comment('Full formatted address');
-            $table->date('registration_deadline')->nullable();
+            $table->dateTime('registration_deadline')->nullable();
             $table->boolean('refundable')->default(false);
             $table->dateTime('start_time');
             $table->dateTime('end_time')->nullable();

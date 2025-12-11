@@ -17,11 +17,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'role_id',
+        'category_id',
         'name', // Dari form: business_name
         'display_name', // Dari form: full_name
         'email',
         'phone_number', // Gabungan country_code + phone_number
-        'business_category',
         'password',
         'provider',
         'provider_id',
@@ -60,6 +60,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the category associated with the user.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
      * Get the ratings given by this user.
      */
     public function ratingsGiven()
@@ -77,13 +85,13 @@ class User extends Authenticatable
 
     /**
      * Check if user has completed their profile.
-     * For OAuth users, phone_number and business_category must be filled.
+     * For OAuth users, phone_number and category_id must be filled.
      */
     public function hasCompletedProfile(): bool
     {
         // If user signed up via OAuth (has provider), check if profile is complete
         if ($this->provider) {
-            return !empty($this->phone_number) && !empty($this->business_category);
+            return !empty($this->phone_number) && !empty($this->category_id);
         }
 
         // Non-OAuth users are considered complete by default

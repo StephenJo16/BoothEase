@@ -255,8 +255,8 @@ $paidBookingRows[] = [
                             $boothsMismatch = $capacity && $boothCount !== $capacity;
 
                             // Check if registration deadline has passed
-                            $tomorrow = now()->addDay()->startOfDay();
-                            $deadlinePassed = $event->registration_deadline && $event->registration_deadline->startOfDay()->lt($tomorrow);
+                            $now = now();
+                            $deadlinePassed = $event->registration_deadline && $event->registration_deadline->lt($now);
 
                             $cannotPublish = $boothsMismatch || $deadlinePassed;
                             @endphp

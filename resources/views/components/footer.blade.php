@@ -55,7 +55,7 @@
         min-width: 320px;
         max-width: 400px;
         overflow: hidden;
-        
+
         /* Font Settings */
         font-family: 'Lato', sans-serif;
         color: #1F2937;
@@ -140,7 +140,8 @@
         height: 3px;
         width: 100%;
         opacity: 0.3;
-        animation: progress 4.5s linear forwards; /* Durasi sedikit kurang dari total animasi */
+        animation: progress 4.5s linear forwards;
+        /* Durasi sedikit kurang dari total animasi */
     }
 
     /* Animations */

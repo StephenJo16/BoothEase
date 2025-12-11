@@ -46,8 +46,7 @@ class AuthController extends Controller
             'phone_number' => 'required|string|max:20',
             'password' => 'required|string|min:8',
             'user_type' => ['required', 'string', Rule::in(['tenant', 'event_organizer'])],
-            'business_category' => 'required|string',
-            'custom_business_category' => 'nullable|string|required_if:business_category,other|max:255',
+            'category_id' => 'required|exists:categories,id',
         ]);
 
         $normalizedPhone = $this->normalizeIndoPhone($request->phone_number);
@@ -67,17 +66,13 @@ class AuthController extends Controller
 
         $role = Role::where('name', $request->user_type)->firstOrFail();
 
-        $category = ($request->business_category === 'other')
-            ? $request->custom_business_category
-            : $request->business_category;
-
         $user = User::create([
             'role_id' => $role->id,
+            'category_id' => $request->category_id,
             'display_name' => $request->full_name,
             'name' => $request->business_name,
             'email' => $request->email,
             'phone_number' => $normalizedPhone,
-            'business_category' => $category,
             'password' => Hash::make($request->password),
         ]);
 
@@ -114,7 +109,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             // Check if OAuth user needs to complete profile
-            if ($user->provider && (!$user->phone_number || !$user->business_category)) {
+            if ($user->provider && (!$user->phone_number || !$user->category_id)) {
                 return redirect()->route('onboarding.show')->with('info', 'Please complete your profile to continue.');
             }
 
@@ -161,8 +156,7 @@ class AuthController extends Controller
         $request->validate([
             'business_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
-            'business_category' => 'required|string',
-            'custom_business_category' => 'nullable|string|required_if:business_category,other|max:255',
+            'category_id' => 'required|exists:categories,id',
             'user_type' => ['required', 'string', Rule::in(['tenant', 'event_organizer'])],
         ]);
 
@@ -184,16 +178,12 @@ class AuthController extends Controller
             return back()->withErrors(['phone_number' => 'The mobile number has already been taken.'])->withInput();
         }
 
-        $category = $request->business_category === 'other'
-            ? $request->custom_business_category
-            : $request->business_category;
-
         $roleName = $request->input('user_type', 'tenant');
         $roleId = Role::where('name', $roleName)->value('id') ?? $user->role_id;
 
         $user->name = $request->business_name;
         $user->phone_number = $normalizedPhone;
-        $user->business_category = $category;
+        $user->category_id = $request->category_id;
         $user->role_id = $roleId;
         $user->save();
 
