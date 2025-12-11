@@ -17,11 +17,6 @@
 
 @php
 /* --- This PHP block handles category logic --- */
-$categoryNames = $categories->pluck('name')->toArray();
-$rawCategory = $user->business_category;
-$isCustomSaved = $rawCategory && !in_array($rawCategory, $categoryNames, true);
-$current = old('business_category', $isCustomSaved ? 'other' : $rawCategory);
-$customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '');
 $roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
 $roleLabel = $roleMap[$user->role_id] ?? 'Member';
 $roleBadgeClasses = match($user->role_id) {
@@ -348,21 +343,7 @@ $roleBadgeClasses = match($user->role_id) {
             }
         }
 
-        function handleBusinessCategoryChange() {
-            const categorySelect = document.getElementById('business_category');
-            const customField = document.getElementById('custom-business-category-field');
-            if (categorySelect.value === 'other') {
-                customField.classList.remove('hidden');
-                customField.classList.add('flex');
-            } else {
-                customField.classList.add('hidden');
-                customField.classList.remove('flex');
-                document.getElementById('custom_business_category').value = '';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
-            handleBusinessCategoryChange();
 
             // [FIX] Auto-open password form jika ada error validasi terkait password
             // Ini agar user langsung bisa memperbaiki input tanpa klik tombol lagi

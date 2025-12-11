@@ -153,7 +153,7 @@
             const organizerTab = document.getElementById('organizer-tab');
             const userTypeInput = document.getElementById('user_type');
             const businessNameInput = document.getElementById('business_name');
-            const categoryPlaceholder = document.querySelector('#business_category option[disabled]');
+            const categoryPlaceholder = document.querySelector('#category_id option[disabled]');
 
             // Reset styles
             tenantTab.classList.remove('active');
