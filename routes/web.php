@@ -29,7 +29,7 @@ Route::get('/', function () {
     // Get top 3 published events sorted by booking count
     // Only show events where registration deadline hasn't closed
     $topEvents = Event::where('status', Event::STATUS_PUBLISHED)
-        ->where('registration_deadline', '>=', now()->toDateString())
+        ->where('registration_deadline', '>=', now())
         ->withCount('bookings')
         ->with(['category', 'booths'])
         ->orderBy('bookings_count', 'desc')

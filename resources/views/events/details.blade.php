@@ -158,13 +158,6 @@ $rows[] = [
                                         <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                         @endif
                                     </div>
-
-                                    <!-- Action Buttons -->
-                                    <div class="space-y-2 pt-4">
-                                        <button class="w-full hover:cursor-pointer bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
-                                            Contact Organizer
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -291,12 +284,20 @@ $rows[] = [
                                                 </div>
                                                 @endif
                                             </div>
-                                            @if($event->user->email)
-                                            <p class="text-gray-600 mt-2">
-                                                <i class="fas fa-envelope mr-2 text-[#ff7700]"></i>
-                                                {{ $event->user->email }}
-                                            </p>
-                                            @endif
+                                            <div class="flex flex-wrap gap-4 mt-2">
+                                                @if($event->user->email)
+                                                <p class="text-gray-600 flex items-center">
+                                                    <i class="fas fa-envelope mr-2 text-[#ff7700]"></i>
+                                                    {{ $event->user->email }}
+                                                </p>
+                                                @endif
+                                                @if($event->user->phone_number)
+                                                <p class="text-gray-600 flex items-center">
+                                                    <i class="fas fa-phone mr-2 text-[#ff7700]"></i>
+                                                    {{ formatPhoneNumber($event->user->phone_number) }}
+                                                </p>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="border-t pt-4">

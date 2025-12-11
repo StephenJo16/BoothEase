@@ -61,7 +61,7 @@ class EventController extends Controller
             }
         };
 
-        // 1. Published events where registration is still open (before registration_deadline)
+        // 1. Published events where registration is still open (up to registration_deadline datetime)
         $openForRegistration = Event::with(['category', 'booths'])
             ->where('status', Event::STATUS_PUBLISHED)
             ->where(function ($query) use ($now) {
@@ -201,7 +201,7 @@ class EventController extends Controller
         $minPrice = !empty($prices) ? min($prices) : 0;
         $maxPrice = !empty($prices) ? max($prices) : 0;
 
-        // Check if registration is still open
+        // Check if registration is still open (up to the deadline datetime)
         $now = now();
         $isRegistrationOpen = is_null($event->registration_deadline) || $event->registration_deadline >= $now;
 
@@ -502,8 +502,8 @@ class EventController extends Controller
 
         // Validate that the registration deadline is at least tomorrow
         if ($event->registration_deadline) {
-            $tomorrow = now()->addDay()->startOfDay();
-            if ($event->registration_deadline->startOfDay()->lt($tomorrow)) {
+            $now = now();
+            if ($event->registration_deadline->lt($now)) {
                 return redirect()
                     ->back()
                     ->with('error', 'Cannot publish event. The registration deadline must be at least tomorrow. Please update the event details.');
@@ -550,6 +550,7 @@ class EventController extends Controller
             'end_date' => [$requiresFullValidation ? 'required' : 'nullable', 'date', 'after_or_equal:start_date'],
             'end_time' => [$requiresFullValidation ? 'required' : 'nullable', 'date_format:H:i'],
             'registration_deadline' => ['nullable', 'date'],
+            'registration_deadline_time' => ['nullable', 'date_format:H:i'],
             'refundable' => ['nullable', 'boolean'],
             'booth_standard_size' => ['nullable', 'string', 'max:50'],
             'booth_standard_price' => ['nullable', 'integer', 'min:0'],
@@ -587,12 +588,12 @@ class EventController extends Controller
             'subdistrict_id' => $data['subdistrict_id'] ?? null,
             'venue' => $data['venue'] ?? null,
             'address' => $data['address'] ?? null,
-            'registration_deadline' => $data['registration_deadline'] ?? null,
             'refundable' => $data['refundable'] ?? false,
         ]);
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);
         $event->end_time = $this->combineDateAndTime($data['end_date'] ?? null, $data['end_time'] ?? null);
+        $event->registration_deadline = $this->combineDateAndTime($data['registration_deadline'] ?? null, $data['registration_deadline_time'] ?? null);
 
         // Handle image upload
         if (request()->hasFile('image')) {

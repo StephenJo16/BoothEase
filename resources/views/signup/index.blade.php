@@ -112,21 +112,23 @@
 
                         <div class="relative">
                             <div class="flex">
-                                <div class="flex items-center px-3 py-border border-r-0 border-gray-300 rounded-l-lg text-gray-700 font-medium">
+                                <div class="flex items-center px-3 py-3 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-700 font-medium">
                                     +62
                                 </div>
                                 <input
                                     type="tel"
                                     name="phone_number"
                                     id="phone_number"
-                                    class="block w-full border @error('phone_number')@else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
-                                    placeholder="Mobile Number"
+                                    class="block w-full border border-l-0 @error('phone_number')@else border-gray-300 @enderror rounded-r-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
+                                    placeholder="812-3456-7890"
                                     value="{{ old('phone_number') }}"
+                                    maxlength="15"
+                                    oninput="formatPhoneInput(this)"
                                     required>
-                                @error('phone_number')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
+                            @error('phone_number')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -199,6 +201,36 @@
     </div>
 
     <script>
+        function formatPhoneInput(input) {
+            // Get only digits from the input
+            let digits = input.value.replace(/\D/g, '');
+
+            // Limit to reasonable phone number length (without country code)
+            if (digits.length > 12) {
+                digits = digits.substring(0, 12);
+            }
+
+            // Format the number with hyphens
+            let formatted = '';
+            if (digits.length > 0) {
+                // First block: 3 digits (or less if shorter)
+                formatted = digits.substring(0, 3);
+
+                if (digits.length > 3) {
+                    // Second block: next 4 digits
+                    formatted += '-' + digits.substring(3, 7);
+                }
+
+                if (digits.length > 7) {
+                    // Third block: remaining digits (up to 4)
+                    formatted += '-' + digits.substring(7);
+                }
+            }
+
+            // Update the input value with formatted version
+            input.value = formatted;
+        }
+
         function switchTab(type) {
             const tenantTab = document.getElementById('tenant-tab');
             const organizerTab = document.getElementById('organizer-tab');
@@ -243,6 +275,12 @@
             const userType = document.getElementById('user_type').value;
             switchTab(userType);
             handleBusinessCategoryChange();
+
+            // Format phone number on page load if there's an old value
+            const phoneInput = document.getElementById('phone_number');
+            if (phoneInput.value) {
+                formatPhoneInput(phoneInput);
+            }
         });
     </script>
 
