@@ -12,6 +12,8 @@ services:
       APP_DEBUG: "false"
     volumes:
       - public_assets:/var/www/public
+      # 1. SHARE STORAGE (Write Access)
+      - laravel_storage:/var/www/storage
     networks:
       - laravel
 
@@ -23,21 +25,17 @@ services:
     restart: always
     ports:
       - "80:80"
-      - "443:443"  # <--- CRITICAL: Open the SSL port
+      - "443:443"
     depends_on:
       - app
     volumes:
       - public_assets:/var/www/public
+      # 2. SHARE STORAGE (Read Access)
+      - laravel_storage:/var/www/storage
 
-      # --- SSL MAPPINGS ---
-      # Left side: Where files are on your Azure VM
-      # Right side: Where Nginx will look for them inside the container
+      # SSL MAPPINGS (Keep your existing ones)
       - /home/azureuser/boothease_me_fullchain.crt:/etc/nginx/ssl/boothease_me_fullchain.crt
       - /home/azureuser/boothease.key:/etc/nginx/ssl/boothease_me.key
-
-      # OPTIONAL: If you want to edit nginx config without rebuilding the image,
-      # uncomment the line below and point it to your local config file:
-      # - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - laravel
 
@@ -55,8 +53,10 @@ services:
     networks:
       - laravel
 
+# 3. DEFINE THE VOLUME
 volumes:
   public_assets:
+  laravel_storage:
 
 networks:
   laravel:
