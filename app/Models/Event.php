@@ -44,7 +44,7 @@ class Event extends Model
         'booth_configuration' => 'array',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
-        'registration_deadline' => 'date',
+        'registration_deadline' => 'datetime',
         'refundable' => 'boolean',
     ];
 

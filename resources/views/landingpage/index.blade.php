@@ -57,9 +57,9 @@ $colorSchemes = [
     <!-- Hero Section -->
     <section class="bg-white py-40 border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+            <div class="grid grid-cols-2 gap-4 lg:gap-12 items-center">
                 <!-- Left Content -->
-                <div class="mb-12 lg:mb-0">
+                <div>
                     <h1 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                         Looking for an event?
                     </h1>

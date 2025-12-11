@@ -32,20 +32,15 @@ class UserController extends Controller
             'full_name'                 => ['required', 'string', 'max:255'],
             'business_name'             => ['required', 'string', 'max:255', Rule::unique('users', 'name')->ignore($user->id)],
             'mobile_number'             => ['required', 'string', 'max:20'],
-            'business_category'         => ['required', 'string'],
-            'custom_business_category'  => ['nullable', 'string', 'max:255'],
+            'category_id'               => ['required', 'exists:categories,id'],
         ]);
 
         $phone = '+62' . ltrim($validated['mobile_number'], '0');
 
-        $category = $validated['business_category'] === 'other'
-            ? ($validated['custom_business_category'] ?? 'other')
-            : $validated['business_category'];
-
         $user->display_name      = $validated['full_name'];
         $user->name              = $validated['business_name'];
         $user->phone_number      = $phone;
-        $user->business_category = $category;
+        $user->category_id       = $validated['category_id'];
         $user->save();
 
         // Use 'success' to match the notification code

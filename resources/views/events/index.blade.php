@@ -170,7 +170,7 @@ return !empty($prices) ? min($prices) : 0;
                                     @if($event->registration_deadline)
                                     <div class="flex items-center">
                                         <i class="fas fa-clock mr-2 text-[#ff7700]"></i>
-                                        <span>Register by: {{ $event->registration_deadline->format('d F Y') }}</span>
+                                        <span>Register by: {{ $event->registration_deadline->format('d M Y, H:i') }}</span>
                                     </div>
                                     @endif
                                     <div class="flex items-center">
@@ -244,7 +244,7 @@ return !empty($prices) ? min($prices) : 0;
                                     @if($event->registration_deadline)
                                     <div class="flex items-center text-orange-600 font-medium">
                                         <i class="fas fa-exclamation-circle mr-2"></i>
-                                        <span>Registration ended: {{ $event->registration_deadline->format('d F Y') }}</span>
+                                        <span>Registration ended: {{ $event->registration_deadline->format('d M Y, H:i') }}</span>
                                     </div>
                                     @endif
                                     <div class="flex items-center">

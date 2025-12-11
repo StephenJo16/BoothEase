@@ -152,9 +152,15 @@
                                     <input id="end_time" name="end_time" type="time" value="{{ old('end_time') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                             </div>
-                            <div>
-                                <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline<span class="text-red-500"> *</span></label>
-                                <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline date<span class="text-red-500"> *</span></label>
+                                    <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                </div>
+                                <div>
+                                    <label for="registration_deadline_time" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline time<span class="text-red-500"> *</span></label>
+                                    <input id="registration_deadline_time" name="registration_deadline_time" type="time" value="{{ old('registration_deadline_time', '23:59') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -316,6 +322,7 @@
     const startTimeInput = document.getElementById('start_time');
     const endTimeInput = document.getElementById('end_time');
     const registrationDeadlineInput = document.getElementById('registration_deadline');
+    const registrationDeadlineTimeInput = document.getElementById('registration_deadline_time');
 
     // Get tomorrow's date
     const tomorrow = new Date();
@@ -350,7 +357,9 @@
 
     function validateRegistrationDeadline() {
         const deadline = registrationDeadlineInput.value;
+        const deadlineTime = registrationDeadlineTimeInput.value;
         const startDate = startDateInput.value;
+        const startTime = startTimeInput.value;
 
         if (deadline) {
             // Check if deadline is not today or in the past
@@ -359,10 +368,15 @@
                 return;
             }
 
-            // Check if deadline is before start date
-            if (startDate && deadline >= startDate) {
-                registrationDeadlineInput.setCustomValidity('Registration deadline must be before the event start date');
-                return;
+            // Check if deadline datetime is before start datetime
+            if (startDate && deadline && deadlineTime && startTime) {
+                const deadlineDateTime = new Date(deadline + 'T' + deadlineTime);
+                const startDateTime = new Date(startDate + 'T' + startTime);
+
+                if (deadlineDateTime >= startDateTime) {
+                    registrationDeadlineInput.setCustomValidity('Registration deadline must be before the event start time');
+                    return;
+                }
             }
 
             registrationDeadlineInput.setCustomValidity('');
@@ -398,6 +412,7 @@
     startTimeInput.addEventListener('change', validateTimes);
     endTimeInput.addEventListener('change', validateTimes);
     registrationDeadlineInput.addEventListener('change', validateRegistrationDeadline);
+    registrationDeadlineTimeInput.addEventListener('change', validateRegistrationDeadline);
 </script>
 
 @stack('scripts')

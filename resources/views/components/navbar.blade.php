@@ -18,7 +18,6 @@
                 @if($isTenant)
                 <a href="{{ route('my-bookings') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">My Bookings</a>
                 @endif
-                <a href="#" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">How it Works</a>
                 <a href="{{ route('faq') }}" class="text-gray-700 hover:text-[#ff7700] font-medium transition-colors">FAQ</a>
 
                 @auth
@@ -68,7 +67,6 @@
             @if($isTenant)
             <a href="{{ route('my-bookings') }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">My Bookings</a>
             @endif
-            <a href="#" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">How it Works</a>
             <a href="{{ route('faq') }}" class="block px-3 py-2 text-gray-700 hover:text-[#ff7700] font-medium">FAQ</a>
             <div class="border-t border-gray-200 my-2"></div>
             @guest
