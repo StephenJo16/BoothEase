@@ -222,7 +222,7 @@ class AuthController extends Controller
                 'name' => $businessName,
                 'email' => $google->getEmail(),
                 'phone_number' => null,
-                'business_category' => null,
+                'category_id' => null,
                 'password' => Hash::make(Str::random(32)),
                 'provider' => 'google',
                 'provider_id' => $google->getId(),
@@ -248,7 +248,7 @@ class AuthController extends Controller
 
         $welcomeMessage = 'Successfully logged in with Google. Welcome, ' . $user->display_name . '!';
 
-        $needsOnboarding = empty($user->phone_number) || empty($user->business_category);
+        $needsOnboarding = empty($user->phone_number) || empty($user->category_id);
         if ($needsOnboarding) {
             return redirect()->route('onboarding.show')->with('success', 'Welcome! Please complete your profile.');
         }

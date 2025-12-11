@@ -76,10 +76,10 @@ $totalRatings = $tenantRatings->count();
                                 <div class="flex-1">
                                     <h3 class="text-xl font-bold text-gray-900">{{ $tenant->name }}</h3>
                                     <p class="text-gray-600">{{ $tenant->display_name }}</p>
-                                    @if($tenant->business_category)
+                                    @if($tenant->category)
                                     <p class="text-sm text-gray-500 mt-1">
                                         <i class="fas fa-briefcase mr-1"></i>
-                                        {{ ucfirst($tenant->business_category) }}
+                                        {{ ucfirst($tenant->category->name) }}
                                     </p>
                                     @endif
 
