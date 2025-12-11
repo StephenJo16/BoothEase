@@ -3,46 +3,132 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>My Profile</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 @php
+/* --- This PHP block handles category logic --- */
+$categoryNames = $categories->pluck('name')->toArray();
+$rawCategory = $user->business_category;
+$isCustomSaved = $rawCategory && !in_array($rawCategory, $categoryNames, true);
+$current = old('business_category', $isCustomSaved ? 'other' : $rawCategory);
+$customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '');
 $roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
 $roleLabel = $roleMap[$user->role_id] ?? 'Member';
 $roleBadgeClasses = match($user->role_id) {
-1 => 'bg-purple-100 text-purple-800',
-2 => 'bg-blue-100 text-blue-800',
-3 => 'bg-green-100 text-green-800',
-default => 'bg-gray-100 text-gray-800',
+    1 => 'bg-purple-100 text-purple-800',
+    2 => 'bg-blue-100 text-blue-800',
+    3 => 'bg-green-100 text-green-800',
+    default => 'bg-gray-100 text-gray-800',
 };
 @endphp
 
 <body class="bg-gray-50 min-h-screen">
 
-    @if (session('success'))
-    <div class="notification-popup success">
-        <i class="fa-solid fa-circle-check mr-2"></i>
-        {{ session('success') }}
+    {{-- 
+        [FIX] MENAMBAHKAN NOTIFIKASI UNTUK VALIDATION ERROR
+        Menangkap $errors validasi Laravel secara manual di sini agar muncul pop-up merah
+        ketika validasi password gagal.
+    --}}
+    @if ($errors->any())
+    <div class="notification-popup error" style="display: flex;">
+        <div class="icon-box">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="text-content">
+            <h4 class="title">Action Failed</h4>
+            <div class="message text-sm">
+                <ul class="list-disc pl-4 space-y-1">
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+        <div class="progress-bar"></div>
     </div>
+    {{-- CSS Inline khusus untuk error block ini agar style terjamin --}}
+    <style>
+        .notification-popup {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
+            z-index: 9999;
+            min-width: 320px;
+            max-width: 400px;
+            overflow: hidden;
+            font-family: 'Lato', sans-serif;
+            color: #1F2937;
+            opacity: 0;
+            transform: translateX(50px);
+            animation: slideInFade 5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        .notification-popup .icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 14px;
+            flex-shrink: 0;
+            color: white;
+            font-size: 14px;
+        }
+        .notification-popup .text-content { flex: 1; }
+        .notification-popup .title {
+            font-weight: 700;
+            font-size: 15px;
+            margin: 0 0 2px 0;
+            line-height: 1.4;
+        }
+        .notification-popup .message {
+            font-size: 14px;
+            color: #6B7280;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .notification-popup.error { border-left: 4px solid #EF4444; }
+        .notification-popup.error .icon-box { background: #EF4444; }
+        .notification-popup.error .title { color: #EF4444; }
+        .notification-popup.error .progress-bar {
+            background-color: #EF4444;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            opacity: 0.3;
+            animation: progress 4.5s linear forwards;
+        }
+        @keyframes slideInFade {
+            0% { opacity: 0; transform: translateX(100%); }
+            10% { opacity: 1; transform: translateX(0); }
+            90% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+        @keyframes progress {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+    </style>
     @endif
 
-    {{-- Shows a generic error if validation fails --}}
-    @if ($errors->any())
-    <div class="notification-popup error">
-        <i class="fa-solid fa-triangle-exclamation mr-2"></i>
-        Please review the form for errors.
-    </div>
-    @endif
+    {{-- Navbar --}}
     @include('components.navbar')
 
     <div class="flex items-start justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -68,7 +154,6 @@ default => 'bg-gray-100 text-gray-800',
                         @csrf
                         @method('PUT')
 
-                        {{-- All your profile form fields go here, no changes needed --}}
                         <div class="flex flex-col sm:flex-row sm:items-center">
                             <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Full Name</label>
                             <div class="w-full sm:w-2/3">
@@ -141,7 +226,6 @@ default => 'bg-gray-100 text-gray-800',
                             <form id="password-form" method="POST" action="{{ route('profile.password') }}" class="space-y-4">
                                 @csrf
                                 @method('PUT')
-                                {{-- Password Fields... --}}
                                 <div class="flex flex-col sm:flex-row sm:items-center">
                                     <label for="current_password" class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Current Password</label>
                                     <div class="w-full sm:w-2/3">
@@ -194,10 +278,8 @@ default => 'bg-gray-100 text-gray-800',
         </div>
     </div>
 
-    <!-- Footer -->
     @include('components.footer')
 
-    {{-- Your JavaScript code remains the same --}}
     <script>
         let isEditMode = false;
         let isPasswordChangeMode = false;
@@ -264,6 +346,29 @@ default => 'bg-gray-100 text-gray-800',
                 document.getElementById('password-form').reset();
             }
         }
+
+        function handleBusinessCategoryChange() {
+            const categorySelect = document.getElementById('business_category');
+            const customField = document.getElementById('custom-business-category-field');
+            if (categorySelect.value === 'other') {
+                customField.classList.remove('hidden');
+                customField.classList.add('flex');
+            } else {
+                customField.classList.add('hidden');
+                customField.classList.remove('flex');
+                document.getElementById('custom_business_category').value = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            handleBusinessCategoryChange();
+
+            // [FIX] Auto-open password form jika ada error validasi terkait password
+            // Ini agar user langsung bisa memperbaiki input tanpa klik tombol lagi
+            @if($errors->has('current_password') || $errors->has('new_password'))
+                togglePasswordChange();
+            @endif
+        });
     </script>
 
     <style>
@@ -275,56 +380,6 @@ default => 'bg-gray-100 text-gray-800',
         .profile-input,
         .profile-select {
             transition: all 0.2s ease;
-        }
-
-        .notification-popup {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(-20px);
-            animation: fadeInSlideDown 4s ease-in-out forwards;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            background-color: #ffffff;
-            color: #1F2937;
-            font-family: 'Lato', sans-serif;
-            display: flex;
-            align-items: center;
-        }
-
-        .notification-popup.success {
-            border-left: 5px solid #F97316;
-            /* Orange border for success */
-        }
-
-        .notification-popup.error {
-            border-left: 5px solid #ef4444;
-            /* Red border for error */
-        }
-
-        @keyframes fadeInSlideDown {
-            0% {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-
-            10% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-
-            90% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-
-            100% {
-                opacity: 0;
-                transform: translateX(100%);
-            }
         }
     </style>
 </body>

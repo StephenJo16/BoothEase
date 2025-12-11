@@ -100,8 +100,7 @@
 
     /* Success Theme */
     .notification-popup.success {
-        border-left: 4px solid #F97316;
-        /* Orange Brand Color */
+        border-left: 4px solid #F97316; /* Orange Brand Color */
     }
 
     .notification-popup.success .icon-box {
@@ -118,8 +117,7 @@
 
     /* Error Theme */
     .notification-popup.error {
-        border-left: 4px solid #EF4444;
-        /* Red Color */
+        border-left: 4px solid #EF4444; /* Red Color */
     }
 
     .notification-popup.error .icon-box {
@@ -152,17 +150,14 @@
             opacity: 0;
             transform: translateX(100%);
         }
-
         10% {
             opacity: 1;
             transform: translateX(0);
         }
-
         90% {
             opacity: 1;
             transform: translateX(0);
         }
-
         100% {
             opacity: 0;
             transform: translateX(100%);
@@ -170,12 +165,7 @@
     }
 
     @keyframes progress {
-        0% {
-            width: 100%;
-        }
-
-        100% {
-            width: 0%;
-        }
+        0% { width: 100%; }
+        100% { width: 0%; }
     }
 </style>
