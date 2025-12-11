@@ -179,6 +179,52 @@ $eventDuration = getEventDuration($event);
 
                 <!-- Sidebar -->
                 <div class="space-y-6">
+                    @if($booking->status === 'confirmed' && $booking->status !== 'cancelled' && (!$booking->payment || $booking->payment->payment_status !== 'completed'))
+                    <!-- Payment Countdown Timer -->
+                    <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg shadow-md p-6" id="payment-countdown-container">
+                        <div class="text-center">
+                            <div class="flex items-center justify-center mb-3">
+                                <i class="fas fa-clock text-[#ff7700] text-3xl mr-3"></i>
+                                <h3 class="text-xl font-bold text-gray-900">Payment Deadline</h3>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-4">Complete payment before time runs out</p>
+
+                            <div id="countdown-timer" class="bg-white rounded-lg p-4 shadow-inner mb-3">
+                                <div class="grid grid-cols-3 gap-2 text-center">
+                                    <div>
+                                        <div id="hours" class="text-3xl font-bold text-[#ff7700]">00</div>
+                                        <div class="text-xs text-gray-600 uppercase">Hours</div>
+                                    </div>
+                                    <div>
+                                        <div id="minutes" class="text-3xl font-bold text-[#ff7700]">00</div>
+                                        <div class="text-xs text-gray-600 uppercase">Minutes</div>
+                                    </div>
+                                    <div>
+                                        <div id="seconds" class="text-3xl font-bold text-[#ff7700]">00</div>
+                                        <div class="text-xs text-gray-600 uppercase">Seconds</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="countdown-expired" class="hidden">
+                                <div class="bg-red-100 border border-red-400 rounded-lg p-4">
+                                    <i class="fas fa-exclamation-circle text-red-600 text-2xl mb-2"></i>
+                                    <p class="text-red-700 font-semibold">Payment deadline has expired</p>
+                                    <p class="text-red-600 text-sm mt-1">This booking may be cancelled soon</p>
+                                    <button onclick="location.reload()" class="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                                        <i class="fas fa-sync mr-1"></i> Refresh Status
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="text-xs text-gray-600 mt-3">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Deadline: {{ $booking->confirmed_at->addHours(3)->format('d M Y, H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Booking Summary -->
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Booking Summary</h2>
@@ -720,6 +766,74 @@ $eventDuration = getEventDuration($event);
                     buttonText.innerHTML = 'Check Payment Status';
                     button.querySelector('i').classList.remove('fa-spin');
                 });
+        });
+    </script>
+    @endif
+
+    <!-- Payment Countdown Timer Script -->
+    @if($booking->status === 'confirmed' && (!$booking->payment || $booking->payment->payment_status !== 'completed'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Payment deadline is 3 hours after confirmation
+            const confirmedAt = new Date('{{ $booking->confirmed_at->toIso8601String() }}');
+            const paymentDeadline = new Date(confirmedAt.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours
+
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            const countdownTimer = document.getElementById('countdown-timer');
+            const countdownExpired = document.getElementById('countdown-expired');
+
+            function updateCountdown() {
+                const now = new Date();
+                const timeRemaining = paymentDeadline - now;
+
+                if (timeRemaining <= 0) {
+                    // Timer expired - hide entire countdown container and reload to check status
+                    clearInterval(interval);
+                    const container = document.getElementById('payment-countdown-container');
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                    // Immediately reload to check if booking was cancelled
+                    window.location.reload();
+                    return;
+                }
+
+                // Calculate time components
+                const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+                // Update display
+                hoursElement.textContent = String(hours).padStart(2, '0');
+                minutesElement.textContent = String(minutes).padStart(2, '0');
+                secondsElement.textContent = String(seconds).padStart(2, '0');
+
+                // Color changes based on time remaining
+                const container = document.getElementById('payment-countdown-container');
+                if (timeRemaining < 15 * 60 * 1000) { // Less than 15 minutes
+                    container.className = 'bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-500 rounded-lg shadow-md p-6 animate-pulse';
+                    hoursElement.className = 'text-3xl font-bold text-red-600';
+                    minutesElement.className = 'text-3xl font-bold text-red-600';
+                    secondsElement.className = 'text-3xl font-bold text-red-600';
+                } else if (timeRemaining < 30 * 60 * 1000) { // Less than 30 minutes
+                    container.className = 'bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-400 rounded-lg shadow-md p-6';
+                    hoursElement.className = 'text-3xl font-bold text-orange-600';
+                    minutesElement.className = 'text-3xl font-bold text-orange-600';
+                    secondsElement.className = 'text-3xl font-bold text-orange-600';
+                } else {
+                    hoursElement.className = 'text-3xl font-bold text-[#ff7700]';
+                    minutesElement.className = 'text-3xl font-bold text-[#ff7700]';
+                    secondsElement.className = 'text-3xl font-bold text-[#ff7700]';
+                }
+            }
+
+            // Update immediately
+            updateCountdown();
+
+            // Update every 1000ms (1 second) for smooth second display
+            const interval = setInterval(updateCountdown, 1000);
         });
     </script>
     @endif

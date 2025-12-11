@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EventPublished;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Province;
@@ -513,6 +514,9 @@ class EventController extends Controller
         $event->status = Event::STATUS_PUBLISHED;
         $event->save();
 
+        // Dispatch event to notify matching tenants
+        EventPublished::dispatch($event);
+
         return redirect()
             ->route('my-events.show', $event)
             ->with('status', 'Event published successfully!');
@@ -612,6 +616,8 @@ class EventController extends Controller
         // Determine status based on action
         // New events start as DRAFT until booths are configured
         // Only set to PUBLISHED if it's an update action and was already published
+        $wasPublished = $event->exists && $event->status === Event::STATUS_PUBLISHED;
+
         if ($action === 'save') {
             // Keep the existing status unless it hasn't been set before
             $event->status = $event->status ?: Event::STATUS_DRAFT;
@@ -630,6 +636,11 @@ class EventController extends Controller
         $event->user_id = $event->user_id ?: $user->id;
 
         $event->save();
+
+        // Dispatch event notification if event was just published (not already published)
+        if (!$wasPublished && $event->status === Event::STATUS_PUBLISHED) {
+            EventPublished::dispatch($event);
+        }
     }
 
     protected function extractBoothConfig(array $data): array

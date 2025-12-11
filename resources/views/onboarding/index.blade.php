@@ -85,36 +85,21 @@
 
                     <div class="relative">
                         <select
-                            name="business_category"
-                            id="business_category"
-                            class="block w-full border @error('business_category') @else border-gray-300 @enderror rounded-lg px-3 bg-white py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none"
-                            onchange="handleBusinessCategoryChange()"
+                            name="category_id"
+                            id="category_id"
+                            class="block w-full border @error('category_id') @else border-gray-300 @enderror rounded-lg px-3 bg-white py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none"
                             required>
-                            <option value="" id="category-placeholder" disabled {{ old('business_category', $user->business_category) ? '' : 'selected' }}>Choose a Business Category</option>
+                            <option value="" id="category-placeholder" disabled {{ old('category_id', $user->category_id) ? '' : 'selected' }}>Choose a Business Category</option>
                             @foreach ($categories as $category)
-                            <option value="{{ $category->name }}" {{ old('business_category', $user->business_category) === $category->name ? 'selected' : '' }}>
+                            <option value="{{ $category->id }}" {{ old('category_id', $user->category_id) == $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>
                             @endforeach
-                            <option value="other" {{ old('business_category', $user->business_category) === 'other' ? 'selected' : '' }}>Other</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 mr-2 text-gray-700">
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
-                        @error('business_category')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div id="custom-business-category-field" class="{{ old('business_category', $user->business_category) == 'other' ? '' : 'hidden' }}">
-                        <input
-                            type="text"
-                            name="custom_business_category"
-                            id="custom_business_category"
-                            class="block w-full border @error('custom_business_category') @else border-gray-300 @enderror rounded-lg px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]"
-                            placeholder="Please specify your business category"
-                            value="{{ old('custom_business_category') }}">
-                        @error('custom_business_category')
+                        @error('category_id')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -186,26 +171,10 @@
             }
         }
 
-        function handleBusinessCategoryChange() {
-            const categorySelect = document.getElementById('business_category');
-            const customField = document.getElementById('custom-business-category-field');
-            const customInput = document.getElementById('custom_business_category');
-
-            if (categorySelect.value === 'other') {
-                customField.classList.remove('hidden');
-                customInput.setAttribute('required', 'required');
-            } else {
-                customField.classList.add('hidden');
-                customInput.removeAttribute('required');
-                customInput.value = ''; // Clear the input
-            }
-        }
-
         // Initialize tabs and fields on page load
         document.addEventListener('DOMContentLoaded', function() {
             const userType = document.getElementById('user_type').value;
             switchTab(userType);
-            handleBusinessCategoryChange();
 
             // Format phone number on page load if there's an old value
             const phoneInput = document.getElementById('phone_number');

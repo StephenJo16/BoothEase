@@ -17,14 +17,6 @@
 </head>
 
 @php
-/* --- This PHP block handles category logic --- */
-// Get all category names from the database collection
-$categoryNames = $categories->pluck('name')->toArray();
-
-$rawCategory = $user->business_category;
-$isCustomSaved = $rawCategory && !in_array($rawCategory, $categoryNames, true);
-$current = old('business_category', $isCustomSaved ? 'other' : $rawCategory);
-$customValue = old('custom_business_category', $isCustomSaved ? $rawCategory : '');
 $roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
 $roleLabel = $roleMap[$user->role_id] ?? 'Member';
 $roleBadgeClasses = match($user->role_id) {
@@ -113,10 +105,10 @@ default => 'bg-gray-100 text-gray-800',
                             </label>
                             <div class="w-full sm:w-2/3">
                                 <div class="relative">
-                                    <select id="business_category" name="business_category" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled onchange="handleBusinessCategoryChange()">
+                                    <select id="category_id" name="category_id" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled>
                                         @foreach ($categories as $category)
-                                        <option value="{{ $category->name }}" @selected($current===$category->name)>
-                                            {{ ucfirst(str_replace('-', ' ', $category->name)) }}
+                                        <option value="{{ $category->id }}" @selected($user->category_id == $category->id)>
+                                            {{ $category->name }}
                                         </option>
                                         @endforeach
                                     </select>
@@ -124,12 +116,6 @@ default => 'bg-gray-100 text-gray-800',
                                         <i class="fa-solid fa-chevron-down text-xs"></i>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div id="custom-business-category-field" class="{{ $current === 'other' ? 'flex' : 'hidden' }} flex-col sm:flex-row sm:items-center">
-                            <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Custom Category</label>
-                            <div class="w-full sm:w-2/3">
-                                <input type="text" id="custom_business_category" name="custom_business_category" value="{{ $customValue }}" placeholder="Please specify your business category" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]" readonly>
                             </div>
                         </div>
 
@@ -278,22 +264,6 @@ default => 'bg-gray-100 text-gray-800',
                 document.getElementById('password-form').reset();
             }
         }
-
-        function handleBusinessCategoryChange() {
-            const categorySelect = document.getElementById('business_category');
-            const customField = document.getElementById('custom-business-category-field');
-            if (categorySelect.value === 'other') {
-                customField.classList.remove('hidden');
-                customField.classList.add('flex');
-            } else {
-                customField.classList.add('hidden');
-                customField.classList.remove('flex');
-                document.getElementById('custom_business_category').value = '';
-            }
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            handleBusinessCategoryChange();
-        });
     </script>
 
     <style>

@@ -149,13 +149,16 @@ class BookingController extends Controller
                     $defaultRole = \App\Models\Role::first(); // Fallback to first role if 'user' role doesn't exist
                 }
 
+                // Get a default category (first one available)
+                $defaultCategory = \App\Models\Category::first();
+
                 $user = \App\Models\User::create([
                     'role_id' => $defaultRole->id,
+                    'category_id' => $defaultCategory ? $defaultCategory->id : null,
                     'name' => $validated['business_name'],
                     'display_name' => $fullName,
                     'email' => $validated['email'],
                     'phone_number' => '+62' . $validated['phone'],
-                    'business_category' => 'General', // Default category
                     'password' => Hash::make(Str::random(16)), // Generate random password
                 ]);
             }
