@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use App\Mail\BookingConfirmedMail;
+use App\Mail\BookingRejectedMail;
+use App\Mail\BookingRequestCreatedMail;
 
 class BookingController extends Controller
 {
@@ -175,6 +177,11 @@ class BookingController extends Controller
 
             // Update booth status to pending (will become 'booked' after payment)
             $booth->update(['status' => 'pending']);
+
+            // Send email notification to event organizer
+            $booking->load(['booth.event.user', 'user']);
+            $eventOrganizer = $booking->booth->event->user;
+            Mail::to($eventOrganizer->email)->send(new BookingRequestCreatedMail($booking));
 
             return redirect()->route('my-bookings')
                 ->with('success', 'Booking request submitted successfully! Your booking is pending confirmation.');
@@ -376,6 +383,16 @@ class BookingController extends Controller
 
             if ($targetStatus === 'rejected') {
                 $booking->booth?->update(['status' => 'available']);
+
+                // Send email notification to tenant
+                try {
+                    // Load relationships needed for the email
+                    $booking->load(['user', 'booth.event.user']);
+                    Mail::to($booking->user->email)->send(new BookingRejectedMail($booking));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send booking rejection email: ' . $e->getMessage());
+                    // Don't fail the transaction, just log the error
+                }
             } elseif ($targetStatus === 'confirmed') {
                 // Keep booth as 'pending' until payment is completed
                 $booking->booth?->update(['status' => 'pending']);

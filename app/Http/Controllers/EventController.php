@@ -312,8 +312,8 @@ class EventController extends Controller
         ])
             ->withCount([
                 'booths',
-                'bookings as booked_booths_count' => function ($query) {
-                    $query->where('bookings.status', '!=', 'cancelled');
+                'booths as booked_booths_count' => function ($query) {
+                    $query->where('status', 'booked');
                 }
             ])
             ->ownedBy($request->user());

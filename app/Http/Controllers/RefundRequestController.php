@@ -7,6 +7,10 @@ use App\Models\Event;
 use App\Http\Requests\StoreRefundRequestRequest;
 use App\Http\Requests\UpdateRefundRequestRequest;
 use Illuminate\Http\Request;
+use App\Mail\RefundRequestCreatedMail;
+use App\Mail\RefundRequestApprovedMail;
+use App\Mail\RefundRequestRejectedMail;
+use Illuminate\Support\Facades\Mail;
 
 class RefundRequestController extends Controller
 {
@@ -190,6 +194,10 @@ class RefundRequestController extends Controller
             'status' => RefundRequest::STATUS_PENDING,
         ]);
 
+        // Send email notification to event organizer
+        $eventOrganizer = $booking->booth->event->user;
+        Mail::to($eventOrganizer->email)->send(new RefundRequestCreatedMail($refundRequest));
+
         return redirect()->route('my-booking-details', $booking->id)
             ->with('success', 'Refund request submitted successfully! You will receive an email notification regarding the status of your request.');
     }
@@ -296,6 +304,10 @@ class RefundRequestController extends Controller
             'status' => 'available',
         ]);
 
+        // Send email notification to tenant
+        $tenant = $refundRequest->user;
+        Mail::to($tenant->email)->send(new RefundRequestApprovedMail($refundRequest));
+
         return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
             ->with('success', 'Refund request has been approved successfully! The booking has been cancelled and the booth is now available.');
     }
@@ -329,6 +341,10 @@ class RefundRequestController extends Controller
             'rejection_reason' => $validated['rejection_reason'],
             'rejected_at' => now(),
         ]);
+
+        // Send email notification to tenant
+        $tenant = $refundRequest->user;
+        Mail::to($tenant->email)->send(new RefundRequestRejectedMail($refundRequest));
 
         return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
             ->with('success', 'Refund request has been rejected.');
