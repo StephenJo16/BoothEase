@@ -14,6 +14,7 @@ services:
       - public_assets:/var/www/public
       # 1. SHARE STORAGE (Write Access)
       - laravel_storage:/var/www/storage
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     networks:
       - laravel
 
