@@ -411,6 +411,19 @@ $rows[] = [
                                     <div class="text-xs text-gray-500 mt-1">{{ $event->address }}</div>
                                     @endif
                                 </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund Policy</label>
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-{{ $event->refundable ? 'check-circle' : 'times-circle' }} text-sm text-[#ff7700]"></i>
+                                        <div class="font-semibold {{ $event->refundable ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ $event->refundable ? 'Refundable' : 'Non-Refundable' }}
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ $event->refundable ? 'This booking can be refunded if cancelled' : 'This booking cannot be refunded once confirmed' }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

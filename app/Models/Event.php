@@ -31,6 +31,7 @@ class Event extends Model
         'booth_configuration',
         'status',
         'refundable',
+        'terms_and_conditions',
     ];
 
     // Status constants

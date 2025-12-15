@@ -1,4 +1,4 @@
-@props(['label' => 'Filter', 'type' => 'category', 'categories' => [], 'selectedCategories' => [], 'selectedStatuses' => [], 'provinces' => [], 'cities' => [], 'selectedProvinceId' => '', 'selectedCityId' => ''])
+@props(['label' => 'Filter', 'type' => 'category', 'categories' => [], 'selectedCategories' => [], 'selectedStatuses' => [], 'provinces' => [], 'cities' => [], 'selectedProvinceId' => '', 'selectedCityId' => '', 'refundable' => ''])
 
 <div class="relative inline-block">
     <button
@@ -68,6 +68,24 @@
                     </select>
                 </div>
                 @endif
+            </div>
+            @endif
+
+            @if($type === 'category' || $type === 'combined')
+            <!-- Refundable Filter Section -->
+            <div class="px-4 py-2 mt-2 text-sm font-semibold text-gray-900 border-t border-gray-200">
+                Filter by Refund Policy
+            </div>
+            <div class="px-4 py-2">
+                <label class="flex items-center px-2 py-2 hover:bg-gray-50 cursor-pointer rounded">
+                    <input
+                        type="checkbox"
+                        name="refundable"
+                        value="1"
+                        {{ !empty($refundable) ? 'checked' : '' }}
+                        class="filter-checkbox mr-3 accent-[#ff7700] focus:ring-[#ff7700] border-gray-300 rounded">
+                    <span class="text-sm text-gray-700">Show only refundable events</span>
+                </label>
             </div>
             @endif
             @elseif($type === 'status')
