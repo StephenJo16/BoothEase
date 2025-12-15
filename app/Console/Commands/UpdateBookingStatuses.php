@@ -51,25 +51,46 @@ class UpdateBookingStatuses extends Command
             $cancelledCount++;
         }
 
-        // Update bookings to 'ongoing' status when event has started
+        // Auto-reject pending bookings when event starts and make booth available
+        $bookingsToReject = Booking::where('status', 'pending')
+            ->whereHas('booth.event', function ($query) use ($now) {
+                $query->where('start_time', '<=', $now);
+            })
+            ->get();
+
+        $rejectedCount = 0;
+        foreach ($bookingsToReject as $booking) {
+            $booking->status = 'rejected';
+            $booking->save();
+
+            if ($booking->booth) {
+                $booking->booth->status = 'available';
+                $booking->booth->save();
+            }
+
+            $rejectedCount++;
+        }
+
+        // Update bookings to 'ongoing' status when event has started (only paid bookings)
         $ongoingCount = Booking::whereHas('booth.event', function ($query) use ($now) {
             $query->where('start_time', '<=', $now)
                 ->where('end_time', '>=', $now);
         })
-            ->whereIn('status', ['pending', 'confirmed', 'paid'])
+            ->where('status', 'paid')
             ->update(['status' => 'ongoing']);
 
-        // Update bookings to 'completed' status when event has ended
+        // Update bookings to 'completed' status when event has ended (only ongoing bookings)
         $completedCount = Booking::whereHas('booth.event', function ($query) use ($now) {
             $query->where('end_time', '<', $now);
         })
-            ->whereIn('status', ['pending', 'confirmed', 'paid', 'ongoing'])
+            ->where('status', 'ongoing')
             ->update(['status' => 'completed']);
 
-        $total = $ongoingCount + $completedCount + $cancelledCount;
+        $total = $ongoingCount + $completedCount + $cancelledCount + $rejectedCount;
 
         $this->info("Updated {$total} booking(s):");
         $this->info("- {$cancelledCount} unpaid booking(s) cancelled after 3 hours");
+        $this->info("- {$rejectedCount} pending booking(s) rejected when event started");
         $this->info("- {$ongoingCount} booking(s) set to 'ongoing'");
         $this->info("- {$completedCount} booking(s) set to 'completed'");
 

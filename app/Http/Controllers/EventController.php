@@ -508,13 +508,13 @@ class EventController extends Controller
                 ->with('error', "Cannot publish event. The number of booths ($boothCount) must match the event capacity ($capacity).");
         }
 
-        // Validate that the registration deadline is at least tomorrow
+        // Validate that the registration deadline is at least 1 day from today
         if ($event->registration_deadline) {
-            $now = now();
-            if ($event->registration_deadline->lt($now)) {
+            $tomorrow = now()->addDay()->startOfDay();
+            if ($event->registration_deadline->lt($tomorrow)) {
                 return redirect()
                     ->back()
-                    ->with('error', 'Cannot publish event. The registration deadline must be at least tomorrow. Please update the event details.');
+                    ->with('error', 'Cannot publish event. The registration deadline must be at least 1 day from today. Please update the event details.');
             }
         }
 
