@@ -65,11 +65,12 @@ return !empty($prices) ? min($prices) : 0;
                         :provinces="$allProvinces"
                         :cities="$allCities"
                         :selectedProvinceId="$filters['province_id'] ?? ''"
-                        :selectedCityId="$filters['city_id'] ?? ''" />
+                        :selectedCityId="$filters['city_id'] ?? ''"
+                        :refundable="$filters['refundable'] ?? ''" />
                 </form>
 
                 <!-- Active Filters Display -->
-                @if(!empty($filters['categories'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? ''))
+                @if(!empty($filters['categories'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? '') || ($filters['refundable'] ?? ''))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
@@ -113,6 +114,15 @@ return !empty($prices) ? min($prices) : 0;
                         </button>
                     </span>
                     @endif
+                    @endif
+
+                    @if($filters['refundable'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Refundable Only
+                        <button type="button" data-remove-filter="refundable" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
                     @endif
 
                     <a href="{{ route('events') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">

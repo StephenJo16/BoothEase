@@ -59,7 +59,7 @@
                                 <input id="title" name="title" type="text" value="{{ old('title', $event->title) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                             </div>
                             <div>
-                                <label for="description" class="mb-2 block text-sm font-medium text-gray-700">Description</label>
+                                <label for="description" class="mb-2 block text-sm font-medium text-gray-700">Descriptio<span class="text-red-500"> *</span>n</label>
                                 <textarea id="description" name="description" rows="4" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Describe your event, target audience, and highlights.">{{ old('description', $event->description) }}</textarea>
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -73,7 +73,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="capacity" class="mb-2 block text-sm font-medium text-gray-700">Expected capacity</label>
+                                    <label for="capacity" class="mb-2 block text-sm font-medium text-gray-700">Expected capacity<span class="text-red-500"> *</span></label>
                                     <input id="capacity" name="capacity" type="number" min="0" value="{{ old('capacity', $event->capacity) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="e.g. 2500">
                                 </div>
                             </div>
@@ -88,7 +88,7 @@
                         <div class="grid grid-cols-1 gap-6">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label for="province_id" class="mb-2 block text-sm font-medium text-gray-700">Province</label>
+                                    <label for="province_id" class="mb-2 block text-sm font-medium text-gray-700">Province<span class="text-red-500"> *</span></label>
                                     <select id="province_id" name="province_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                         <option value="">Select province</option>
                                         @foreach($provinces as $province)
@@ -97,7 +97,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="city_id" class="mb-2 block text-sm font-medium text-gray-700">City / Regency</label>
+                                    <label for="city_id" class="mb-2 block text-sm font-medium text-gray-700">City / Regency<span class="text-red-500"> *</span></label>
                                     <select id="city_id" name="city_id" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" {{ $cities->isEmpty() ? 'disabled' : '' }}>
                                         <option value="">Select city</option>
                                         @foreach($cities as $city)
@@ -128,11 +128,11 @@
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue</label>
+                                    <label for="venue" class="mb-2 block text-sm font-medium text-gray-700">Venue<span class="text-red-500"> *</span></label>
                                     <input id="venue" name="venue" type="text" value="{{ old('venue', $event->venue) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Venue or building name">
                                 </div>
                                 <div>
-                                    <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address</label>
+                                    <label for="address" class="mb-2 block text-sm font-medium text-gray-700">Address<span class="text-red-500"> *</span></label>
                                     <input id="address" name="address" type="text" value="{{ old('address', $event->address) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="Street address or location details">
                                 </div>
                             </div>
@@ -158,11 +158,11 @@
                             </div>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline date</label>
+                                    <label for="registration_deadline" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline date<span class="text-red-500"> *</span></label>
                                     <input id="registration_deadline" name="registration_deadline" type="date" value="{{ old('registration_deadline', optional($event->registration_deadline)->format('Y-m-d')) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                                 <div>
-                                    <label for="registration_deadline_time" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline time</label>
+                                    <label for="registration_deadline_time" class="mb-2 block text-sm font-medium text-gray-700">Registration deadline time<span class="text-red-500"> *</span></label>
                                     <input id="registration_deadline_time" name="registration_deadline_time" type="time" value="{{ old('registration_deadline_time', optional($event->registration_deadline)->format('H:i')) }}" class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]">
                                 </div>
                             </div>
@@ -180,6 +180,18 @@
                                 <label for="refundable" class="block text-sm font-medium text-gray-700">Allow refunds for paid bookings</label>
                                 <p class="mt-1 text-xs text-gray-500">When enabled, tenants can request refunds for their paid bookings. You'll need to review and approve each refund request.</p>
                             </div>
+                        </div>
+                    </section>
+
+                    <section class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">Terms and Conditions</h2>
+                            <p class="text-sm text-gray-500">Provide a link to your event's terms and conditions document.</p>
+                        </div>
+                        <div>
+                            <label for="terms_and_conditions" class="mb-2 block text-sm font-medium text-gray-700">Terms and Conditions Link<span class="text-red-500"> *</span></label>
+                            <input id="terms_and_conditions" name="terms_and_conditions" type="url" value="{{ old('terms_and_conditions', $event->terms_and_conditions) }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="https://drive.google.com/file/d/...">
+                            <p class="mt-1 text-xs text-gray-500">Provide a Google Drive link or other accessible URL to your terms and conditions document.</p>
                         </div>
                     </section>
 

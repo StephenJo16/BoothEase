@@ -27,9 +27,10 @@ class EventController extends Controller
         $categories = $request->input('categories', []);
         $provinceId = $request->input('province_id');
         $cityId = $request->input('city_id');
+        $refundable = $request->input('refundable');
 
         // Base query with filters
-        $baseQuery = function ($query) use ($search, $categories, $provinceId, $cityId) {
+        $baseQuery = function ($query) use ($search, $categories, $provinceId, $cityId, $refundable) {
             // Search filter
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -59,6 +60,11 @@ class EventController extends Controller
             // City filter
             if ($cityId) {
                 $query->where('city_id', $cityId);
+            }
+
+            // Refundable filter
+            if ($refundable) {
+                $query->where('refundable', true);
             }
         };
 
@@ -153,6 +159,7 @@ class EventController extends Controller
                 'categories' => $categories,
                 'province_id' => $provinceId,
                 'city_id' => $cityId,
+                'refundable' => $refundable,
             ],
         ]);
     }
@@ -538,7 +545,7 @@ class EventController extends Controller
         $requiresFullValidation = in_array($action, ['publish', 'create_layout']);
 
         $rules = [
-            'image' => [$requiresFullValidation ? 'required' : 'nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => [$requiresFullValidation ? 'required' : 'nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif,svg', 'max:5120'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => [$requiresFullValidation ? 'required' : 'nullable', 'integer', 'exists:categories,id'],
@@ -556,6 +563,7 @@ class EventController extends Controller
             'registration_deadline' => ['nullable', 'date'],
             'registration_deadline_time' => ['nullable', 'date_format:H:i'],
             'refundable' => ['nullable', 'boolean'],
+            'terms_and_conditions' => [$requiresFullValidation ? 'required' : 'nullable', 'url', 'max:500'],
             'booth_standard_size' => ['nullable', 'string', 'max:50'],
             'booth_standard_price' => ['nullable', 'integer', 'min:0'],
             'booth_standard_qty' => ['nullable', 'integer', 'min:0'],
@@ -572,8 +580,8 @@ class EventController extends Controller
             'confirm_terms.accepted' => 'You must check the confirmation box at the bottom of the form before proceeding to set up booths.',
             'image.required' => 'Please upload an event image before proceeding.',
             'image.image' => 'The uploaded file must be an image.',
-            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, or webp.',
-            'image.max' => 'The image size must not exceed 2MB.',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif, or svg.',
+            'image.max' => 'The image size must not exceed 5MB.',
         ];
 
         return $request->validate($rules, $messages);
@@ -593,6 +601,7 @@ class EventController extends Controller
             'venue' => $data['venue'] ?? null,
             'address' => $data['address'] ?? null,
             'refundable' => $data['refundable'] ?? false,
+            'terms_and_conditions' => $data['terms_and_conditions'] ?? null,
         ]);
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);

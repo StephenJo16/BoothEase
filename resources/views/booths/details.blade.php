@@ -288,8 +288,7 @@ $userPhone = $digits;
                                     class="mt-1 mr-3 w-5 h-5 accent-[#ff7700] focus:ring-[#ff7700] border-slate-300 rounded">
                                 <span class="text-sm text-slate-700">
                                     I agree to the <a href="#" class="text-[#ff7700] hover:underline font-medium">Terms and Conditions</a>
-                                    and <a href="#" class="text-[#ff7700] hover:underline font-medium">Cancellation Policy</a>.
-                                    I understand that booth assignments are final once confirmed.
+                                    of the event.
                                 </span>
                             </label>
                         </div>
