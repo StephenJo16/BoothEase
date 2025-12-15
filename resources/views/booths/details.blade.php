@@ -287,7 +287,14 @@ $userPhone = $digits;
                                 <input type="checkbox" id="agreeTerms" required
                                     class="mt-1 mr-3 w-5 h-5 accent-[#ff7700] focus:ring-[#ff7700] border-slate-300 rounded">
                                 <span class="text-sm text-slate-700">
-                                    I agree to the <a href="#" class="text-[#ff7700] hover:underline font-medium">Terms and Conditions</a>
+                                    I agree to the 
+                                    @if($event->terms_and_conditions)
+                                        <a href="{{ $event->terms_and_conditions }}" target="_blank" rel="noopener noreferrer" class="text-[#ff7700] hover:underline font-medium">
+                                            Terms and Conditions <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                                        </a>
+                                    @else
+                                        <span class="text-[#ff7700] font-medium">Terms and Conditions</span>
+                                    @endif
                                     of the event.
                                 </span>
                             </label>

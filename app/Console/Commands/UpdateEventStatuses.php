@@ -27,14 +27,14 @@ class UpdateEventStatuses extends Command
     {
         $now = now();
 
-        // Update events to 'ongoing' status
-        $ongoingCount = \App\Models\Event::where('status', '!=', \App\Models\Event::STATUS_COMPLETED)
+        // Update events to 'ongoing' status (only for published events)
+        $ongoingCount = \App\Models\Event::where('status', \App\Models\Event::STATUS_PUBLISHED)
             ->where('start_time', '<=', $now)
             ->where('end_time', '>=', $now)
             ->update(['status' => \App\Models\Event::STATUS_ONGOING]);
 
-        // Update events to 'completed' status
-        $completedCount = \App\Models\Event::where('status', '!=', \App\Models\Event::STATUS_COMPLETED)
+        // Update events to 'completed' status (only for ongoing events)
+        $completedCount = \App\Models\Event::where('status', \App\Models\Event::STATUS_ONGOING)
             ->where('end_time', '<', $now)
             ->update(['status' => \App\Models\Event::STATUS_COMPLETED]);
 
