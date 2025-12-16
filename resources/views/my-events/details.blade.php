@@ -32,9 +32,13 @@ $headers = [
 ['title' => 'Status', 'class' => 'text-left'],
 ];
 
+// Paginate booths
+$perPage = (int) request('perPage', 10);
+$paginatedBooths = $event->booths()->paginate($perPage)->withQueryString();
+
 // Transform booths data into rows format
 $rows = [];
-foreach($event->booths as $booth) {
+foreach($paginatedBooths as $booth) {
 $boothStatus = getBoothStatusDisplay($booth->status);
 
 $rows[] = [
@@ -64,8 +68,7 @@ $rows[] = [
 ];
 }
 
-$boothCount = count($rows);
-$boothCountText = $boothCount === 0 ? 'No booths configured' : ($boothCount === 1 ? '1 booth configured' : "$boothCount booths configured");
+$boothCount = $paginatedBooths->total();
 
 // Paid Bookings Data (including ongoing and completed)
 $paidBookings = $event->booths->flatMap->bookings->whereIn('status', ['paid', 'ongoing', 'completed']);
@@ -371,6 +374,7 @@ $paidBookingRows[] = [
                     'tableClass' => 'min-w-full text-sm',
                     'containerClass' => 'overflow-x-auto'
                     ])
+                    <x-pagination :paginator="$paginatedBooths" />
                     @else
                     <div class="px-4 py-6 text-center text-gray-500">
                         No booth layout has been configured for this event yet.

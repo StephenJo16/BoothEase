@@ -76,10 +76,20 @@ class PaymentController extends Controller
 
             // Prepare transaction details for Midtrans
             $orderId = 'BOOKING-' . $booking->id . '-' . time();
+
+            // Ensure amount is integer to avoid decimal issues
+            $amount = (int) round($booking->total_price);
+
+            // Truncate item name to 50 characters (Midtrans limit)
+            $itemName = 'Booth ' . $booking->booth->name . ' - ' . $booking->booth->event->title;
+            if (strlen($itemName) > 50) {
+                $itemName = substr($itemName, 0, 47) . '...';
+            }
+
             $transactionDetails = [
                 'transaction_details' => [
                     'order_id' => $orderId,
-                    'gross_amount' => (int) $booking->total_price,
+                    'gross_amount' => $amount,
                 ],
                 'customer_details' => [
                     'first_name' => $booking->user->name,
@@ -89,9 +99,9 @@ class PaymentController extends Controller
                 'item_details' => [
                     [
                         'id' => 'booth-' . $booking->booth->id,
-                        'price' => (int) $booking->total_price,
+                        'price' => $amount,
                         'quantity' => 1,
-                        'name' => 'Booth ' . $booking->booth->name . ' - ' . $booking->booth->event->title,
+                        'name' => $itemName,
                     ],
                 ],
             ];
@@ -194,6 +204,86 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             Log::error('Payment callback error: ' . $e->getMessage());
             return response()->json(['message' => 'Error processing callback'], 500);
+        }
+    }
+
+    /**
+     * Handle payment notification from Midtrans (webhook)
+     */
+    public function handleNotification(Request $request)
+    {
+        try {
+            $serverKey = config('services.midtrans.server_key');
+            $hashed = hash('sha512', $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+
+            // Verify signature
+            if ($hashed !== $request->signature_key) {
+                Log::warning('Invalid Midtrans notification signature', ['order_id' => $request->order_id]);
+                return response()->json(['message' => 'Invalid signature'], 403);
+            }
+
+            // Find payment by transaction ID
+            $payment = Payment::where('transaction_id', $request->order_id)->first();
+
+            if (!$payment) {
+                Log::warning('Payment not found for notification', ['order_id' => $request->order_id]);
+                return response()->json(['message' => 'Payment not found'], 404);
+            }
+
+            // Update payment status based on Midtrans transaction status
+            $transactionStatus = $request->transaction_status;
+            $fraudStatus = $request->fraud_status ?? 'accept';
+
+            Log::info('Midtrans notification received', [
+                'order_id' => $request->order_id,
+                'transaction_status' => $transactionStatus,
+                'payment_type' => $request->payment_type
+            ]);
+
+            // Capture payment type and channel from Midtrans
+            $payment->payment_type = $request->payment_type;
+
+            // For bank transfers, capture the specific bank
+            if ($request->payment_type === 'bank_transfer' && isset($request->va_numbers[0]['bank'])) {
+                $payment->payment_channel = $request->va_numbers[0]['bank'];
+            } elseif ($request->payment_type === 'echannel') {
+                $payment->payment_channel = 'mandiri';
+            } elseif ($request->payment_type === 'permata') {
+                $payment->payment_channel = 'permata';
+            }
+
+            if ($transactionStatus == 'capture') {
+                if ($fraudStatus == 'accept') {
+                    $payment->payment_status = 'completed';
+                    $payment->payment_date = now();
+                }
+            } else if ($transactionStatus == 'settlement') {
+                $payment->payment_status = 'completed';
+                $payment->payment_date = now();
+            } else if ($transactionStatus == 'pending') {
+                $payment->payment_status = 'pending';
+            } else if (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                $payment->payment_status = 'failed';
+            }
+
+            $payment->save();
+
+            // Update booking status if payment is completed
+            if ($payment->payment_status === 'completed') {
+                $payment->booking->update(['status' => 'paid']);
+                // Update booth status to 'booked' after successful payment
+                $payment->booking->booth?->update(['status' => 'booked']);
+
+                Log::info('Payment completed and booking updated', [
+                    'booking_id' => $payment->booking_id,
+                    'payment_id' => $payment->id
+                ]);
+            }
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            Log::error('Payment notification error: ' . $e->getMessage());
+            return response()->json(['message' => 'Error processing notification'], 500);
         }
     }
 

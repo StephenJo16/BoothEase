@@ -180,12 +180,12 @@
                 <div class="lg:col-span-1 xl:col-span-1">
                     <div class="sticky top-5 space-y-6">
                         <!-- Properties Card -->
-                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
                             <h3 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b-2 border-slate-200 flex items-center">
                                 <i class="fas fa-cog mr-2 text-[#ff7700]"></i>
                                 Properties
                             </h3>
-                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 overflow-hidden text-sm">
+                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 text-sm">
                                 Select a booth to edit its properties
                             </div>
 
@@ -546,21 +546,27 @@
             content.innerHTML = `
                 <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
-                    <select id="propType" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
+                    <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                         ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
-                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
+                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                 </div>
 
                 <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size:</label>
+                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size (cm):</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
-                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
+                        <div class="relative">
+                            <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                        </div>
                     </div>
                 </div>
 
@@ -575,7 +581,7 @@
             const obj = canvas.getActiveObject();
             if (!obj || obj.elementType !== 'booth') return;
 
-            const newLabel = obj.elementLabel || 'Booth'; // Keep existing label
+            const newLabel = document.getElementById('propLabel').value.trim();
             const newType = document.getElementById('propType').value;
             const newPrice = parseFloat(document.getElementById('propPrice').value) || 0;
             const newWidth = parseInt(document.getElementById('propWidth').value) || 120;
