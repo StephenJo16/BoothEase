@@ -581,7 +581,7 @@
             const obj = canvas.getActiveObject();
             if (!obj || obj.elementType !== 'booth') return;
 
-            const newLabel = document.getElementById('propLabel').value.trim();
+            const newLabel = obj.elementLabel || 'Booth';
             const newType = document.getElementById('propType').value;
             const newPrice = parseFloat(document.getElementById('propPrice').value) || 0;
             const newWidth = parseInt(document.getElementById('propWidth').value) || 120;

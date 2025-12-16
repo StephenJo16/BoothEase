@@ -603,7 +603,7 @@
                 return;
             }
 
-            const newLabel = document.getElementById('propLabel')?.value.trim() || 'Booth';
+            const newLabel = obj.elementLabel || 'Booth';
             const newType = document.getElementById('propType')?.value || 'Standard';
             const newPrice = parseFloat(document.getElementById('propPrice')?.value) || 0;
             const newWidth = parseInt(document.getElementById('propWidth')?.value, 10) || 120;
@@ -639,7 +639,6 @@
 
             // Update the properties panel to reflect the new object
             updatePropertiesPanel(newBooth);
-            handleCanvasChange();
         }
 
         function exportJSON() {
