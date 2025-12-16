@@ -546,21 +546,21 @@
             content.innerHTML = `
                 <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
-                    <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                    <select id="propType" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
                         ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
                     </select>
                 </div>
 
                 <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
-                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
                 </div>
 
                 <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Size:</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
+                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#ff7700] transition-colors">
                     </div>
                 </div>
 
@@ -575,7 +575,7 @@
             const obj = canvas.getActiveObject();
             if (!obj || obj.elementType !== 'booth') return;
 
-            const newLabel = document.getElementById('propLabel').value.trim();
+            const newLabel = obj.elementLabel || 'Booth'; // Keep existing label
             const newType = document.getElementById('propType').value;
             const newPrice = parseFloat(document.getElementById('propPrice').value) || 0;
             const newWidth = parseInt(document.getElementById('propWidth').value) || 120;

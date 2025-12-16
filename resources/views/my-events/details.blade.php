@@ -408,6 +408,8 @@ $paidBookingRows[] = [
             @endif
         </div>
     </div>
+
 </body>
+@include('components.footer')
 
 </html>

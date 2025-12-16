@@ -86,12 +86,6 @@
         </section>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            @if(session('status'))
-            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800 text-sm">
-                {{ session('status') }}
-            </div>
-            @endif
-
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                 <div>
                     <p class="text-sm text-gray-600">View, edit, and publish the events you manage.</p>
