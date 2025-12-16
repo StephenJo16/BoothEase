@@ -545,11 +545,6 @@
 
             content.innerHTML = `
                 <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Name:</label>
-                    <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                </div>
-
-                <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
                     <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                         ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
@@ -624,23 +619,6 @@
 
         canvas.on('selection:cleared', function() {
             updatePropertiesPanel(null);
-        });
-
-        canvas.on('mouse:dblclick', function(options) {
-            if (options.target && options.target.type === 'group') {
-                const group = options.target;
-                const textObject = group.getObjects('text')[0];
-
-                if (textObject) {
-                    const newText = prompt('Enter new label:', textObject.text);
-                    if (newText !== null && newText.trim() !== '') {
-                        textObject.set('text', newText.trim());
-                        group.set('elementLabel', newText.trim());
-                        canvas.renderAll();
-                        updatePropertiesPanel(group);
-                    }
-                }
-            }
         });
 
         async function saveLayout() {
