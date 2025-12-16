@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BoothController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\PaymentController;
 
 use App\Models\User;
 use App\Models\Event;
@@ -211,3 +212,5 @@ Route::get('/api/subdistricts', function (Request $request) {
         ->get(['id', 'name']);
     return response()->json($subdistricts);
 });
+
+Route::post('/payment/notification', [PaymentController::class, 'handleNotification'])->name('payment.notification');

@@ -172,12 +172,12 @@
                 <div class="lg:col-span-1 xl:col-span-1">
                     <div class="sticky top-5 space-y-6">
                         <!-- Properties Card -->
-                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
                             <h3 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b-2 border-slate-200 flex items-center">
                                 <i class="fas fa-cog mr-2 text-[#ff7700]"></i>
                                 Properties
                             </h3>
-                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 overflow-hidden text-sm">
+                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 text-sm">
                                 Select a booth to edit its properties
                             </div>
 
@@ -563,11 +563,6 @@
 
             content.innerHTML = `
                 <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Name:</label>
-                    <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                </div>
-
-                <div class="mb-4">
                     <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
                     <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                         ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
@@ -580,10 +575,16 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size:</label>
+                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size (cm):</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                        <div class="relative">
+                            <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1064,25 +1065,6 @@
 
         canvas.on('selection:cleared', function() {
             updatePropertiesPanel(null);
-        });
-
-
-
-        canvas.on('mouse:dblclick', function(options) {
-            if (options.target && options.target.type === 'group') {
-                const group = options.target;
-                const textObject = group.getObjects('text')[0];
-
-                if (textObject) {
-                    const newText = prompt('Enter new label:', textObject.text);
-                    if (newText !== null && newText.trim() !== '') {
-                        textObject.set('text', newText.trim());
-                        group.set('elementLabel', newText.trim());
-                        updatePropertiesPanel(group);
-                        canvas.renderAll();
-                    }
-                }
-            }
         });
 
         async function loadExistingLayout() {
