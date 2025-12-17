@@ -88,7 +88,9 @@
                 </label>
             </div>
             @endif
-            @elseif($type === 'status')
+            @endif
+            
+            @if($type === 'status')
             <!-- Status Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
                 Filter by Status
@@ -115,7 +117,9 @@
                 <span class="text-sm text-gray-700">{{ $statusLabel }}</span>
             </label>
             @endforeach
-            @elseif($type === 'event-status' || $type === 'combined')
+            @endif
+            
+            @if($type === 'event-status' || $type === 'combined')
             <!-- Event Status Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
                 Filter by Status
