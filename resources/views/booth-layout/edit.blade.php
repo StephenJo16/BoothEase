@@ -550,64 +550,87 @@
                 return;
             }
 
-            if (!obj || obj.elementType !== 'booth') {
-                content.innerHTML = '<div class="text-slate-500 italic text-center py-10">Select a booth to edit its properties</div>';
+            if (!obj || (obj.elementType !== 'booth' && obj.elementType !== 'custom')) {
+                content.innerHTML = '<div class="text-slate-500 italic text-center py-10">Select a booth or custom element to edit its properties</div>';
                 return;
             }
 
             const width = Math.round(obj.originalWidth || obj.width);
             const height = Math.round(obj.originalHeight || obj.height);
-            const type = obj.boothType || 'Standard';
-            const price = obj.boothPrice || 0;
-            const label = obj.elementLabel || 'Booth';
+            const label = obj.elementLabel || (obj.elementType === 'booth' ? 'Booth' : 'Custom');
+            
+            let html = '';
 
-            content.innerHTML = `
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
-                    <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                        ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
-                    </select>
-                </div>
+            if (obj.elementType === 'custom') {
+                 html += `
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Label:</label>
+                        <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                    </div>
+                 `;
+            }
 
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
-                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                </div>
+            if (obj.elementType === 'booth') {
+                const type = obj.boothType || 'Standard';
+                const price = obj.boothPrice || 0;
+                html += `
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
+                        <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size (cm):</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="relative">
-                            <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
-                        </div>
-                        <div class="relative">
-                            <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
+                        <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Size (cm):</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="relative">
+                                <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                `;
+            }
 
+            html += `
                 <button class="w-full px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="applyProperties()">
                     <i class="fas fa-check"></i>
                     Apply Changes
                 </button>
             `;
 
-
+            content.innerHTML = html;
         }
 
         function applyProperties() {
             const obj = canvas.getActiveObject();
-            if (!obj || obj.elementType !== 'booth') {
+            if (!obj || (obj.elementType !== 'booth' && obj.elementType !== 'custom')) {
                 return;
             }
 
-            const newLabel = obj.elementLabel || 'Booth';
-            const newType = document.getElementById('propType')?.value || 'Standard';
-            const newPrice = parseFloat(document.getElementById('propPrice')?.value) || 0;
-            const newWidth = parseInt(document.getElementById('propWidth')?.value, 10) || 120;
-            const newHeight = parseInt(document.getElementById('propHeight')?.value, 10) || 80;
+            const labelInput = document.getElementById('propLabel');
+            const newLabel = labelInput ? labelInput.value : (obj.elementLabel || (obj.elementType === 'booth' ? 'Booth' : 'Custom'));
+            
+            let newWidth, newHeight;
+            const widthInput = document.getElementById('propWidth');
+            
+            if (widthInput) {
+                newWidth = parseInt(widthInput.value, 10) || 120;
+                newHeight = parseInt(document.getElementById('propHeight').value, 10) || 80;
+            } else {
+                newWidth = obj.getScaledWidth();
+                newHeight = obj.getScaledHeight();
+            }
 
             // Store current position and angle
             const currentLeft = obj.left;
@@ -615,30 +638,37 @@
             const currentAngle = obj.angle;
             const currentId = ensureObjectId(obj);
 
-            // Create a new booth with updated properties
-            const newBooth = createElement('booth', currentLeft, currentTop, newLabel, {
+            let customProps = {
                 width: newWidth,
-                height: newHeight,
-                boothType: newType,
-                price: newPrice
-            });
+                height: newHeight
+            };
+
+            if (obj.elementType === 'booth') {
+                const newType = document.getElementById('propType')?.value || 'Standard';
+                const newPrice = parseFloat(document.getElementById('propPrice')?.value) || 0;
+                customProps.boothType = newType;
+                customProps.price = newPrice;
+            }
+
+            // Create a new element with updated properties
+            const newElement = createElement(obj.elementType, currentLeft, currentTop, newLabel, customProps);
 
             // Restore position and angle
-            newBooth.set({
+            newElement.set({
                 left: currentLeft,
                 top: currentTop,
                 angle: currentAngle,
                 __internalId: currentId
             });
 
-            // Replace the old booth with the new one
+            // Replace the old element with the new one
             canvas.remove(obj);
-            canvas.add(newBooth);
-            canvas.setActiveObject(newBooth);
+            canvas.add(newElement);
+            canvas.setActiveObject(newElement);
             canvas.renderAll();
 
             // Update the properties panel to reflect the new object
-            updatePropertiesPanel(newBooth);
+            updatePropertiesPanel(newElement);
         }
 
         function exportJSON() {
