@@ -48,6 +48,12 @@ class UpdateBookingStatuses extends Command
                 $booking->booth->save();
             }
 
+            // Cancel associated payment if it exists and is not completed
+            if ($booking->payment && $booking->payment->payment_status !== 'completed') {
+                $booking->payment->payment_status = 'cancelled';
+                $booking->payment->save();
+            }
+
             $cancelledCount++;
         }
 

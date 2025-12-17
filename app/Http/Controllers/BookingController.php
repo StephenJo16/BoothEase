@@ -444,13 +444,29 @@ class BookingController extends Controller
         $now = now();
 
         // Cancel unpaid bookings that have been confirmed for more than 3 hours
-        Booking::where('status', 'confirmed')
+        $bookingsToCancel = Booking::with(['booth', 'payment'])
+            ->where('status', 'confirmed')
             ->whereNotNull('confirmed_at')
             ->where('confirmed_at', '<=', $now->copy()->subHours(3))
             ->whereDoesntHave('payment', function ($query) {
                 $query->where('payment_status', 'completed');
             })
-            ->update(['status' => 'cancelled']);
+            ->get();
+
+        foreach ($bookingsToCancel as $booking) {
+            $booking->status = 'cancelled';
+            $booking->save();
+
+            if ($booking->booth) {
+                $booking->booth->status = 'available';
+                $booking->booth->save();
+            }
+
+            if ($booking->payment && $booking->payment->payment_status !== 'completed') {
+                $booking->payment->payment_status = 'cancelled';
+                $booking->payment->save();
+            }
+        }
 
         // Update bookings to 'ongoing' status when event has started
         Booking::whereHas('booth.event', function ($query) use ($now) {
