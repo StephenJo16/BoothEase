@@ -102,7 +102,7 @@ $rows[] = [
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Requests</h1>
-                        <p class="text-gray-600">{{ $event->title }} • {{ $event->start_time->format('d') }} - {{ $event->end_time->format('d M Y') }}</p>
+                        <p class="text-gray-600">{{ $event->title }} • {{ $event->start_time->isSameDay($event->end_time) ? $event->start_time->format('d M Y') : $event->start_time->format('d') . ' - ' . $event->end_time->format('d M Y') }}</p>
                     </div>
                     <div class="flex items-center gap-3">
                     </div>

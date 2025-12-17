@@ -236,7 +236,7 @@
             } else { // event_organizer
                 organizerTab.classList.add('active');
                 businessNameInput.placeholder = 'Organization Name';
-                if (categoryPlaceholder) categoryPlaceholder.textContent = 'Event Category';
+                if (categoryPlaceholder) categoryPlaceholder.textContent = 'Choose a Business Category';
                 userTypeInput.value = 'event_organizer';
             }
         }

@@ -58,7 +58,7 @@ $rows[] = [
 'class' => 'text-gray-700'
 ],
 [
-'content' => $booth->size ? $booth->size : '—',
+'content' => $booth->size ? $booth->size . ' cm' : '—',
 'class' => 'text-gray-700'
 ],
 [

@@ -51,12 +51,12 @@
     </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen flex flex-col">
     @include('components.navbar')
 
 
     <!-- FAQ Content -->
-    <div class="flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="flex-grow flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-4xl w-full">
             <div class="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
                 <div class="mb-8">
@@ -159,6 +159,8 @@
         </div>
     </div>
 
+    @include('components.footer')
+
     <!-- FAQ JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -191,8 +193,7 @@
             });
         });
     </script>
-    <!-- Footer -->
-    @include('components.footer')
+
 </body>
 
 </html>

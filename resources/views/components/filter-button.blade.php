@@ -53,7 +53,7 @@
                 </div>
                 @endif
 
-                @if(!empty($cities))
+                @if(!empty($cities) || !empty($provinces))
                 <div>
                     <label class="block text-xs text-gray-600 mb-1">City</label>
                     <select
@@ -179,6 +179,40 @@
                 chevron.classList.remove('rotate-180');
             }
         });
+
+        // Dynamic City Loading
+        const provinceSelect = document.querySelector('select[name="province_id"]');
+        const citySelect = document.querySelector('select[name="city_id"]');
+
+        if (provinceSelect && citySelect) {
+            provinceSelect.addEventListener('change', function() {
+                const provinceId = this.value;
+
+                // Clear current options
+                citySelect.innerHTML = '<option value="">All Cities</option>';
+
+                if (provinceId) {
+                    // Disable while loading
+                    citySelect.disabled = true;
+
+                    fetch(`/api/cities?province_id=${provinceId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                citySelect.appendChild(option);
+                            });
+                            citySelect.disabled = false;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching cities:', error);
+                            citySelect.disabled = false;
+                        });
+                }
+            });
+        }
     });
 
     function clearFilters() {

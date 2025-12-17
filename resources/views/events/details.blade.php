@@ -35,10 +35,10 @@ $tabs = [
 // Define table headers
 $headers = [
 ['title' => 'Booth', 'class' => 'w-24'],
-['title' => 'Size', 'class' => 'w-16'],
-['title' => 'Type', 'class' => 'w-32'],
+['title' => 'Size', 'class' => 'w-24'],
+['title' => 'Type', 'class' => 'w-26'],
 ['title' => 'Price', 'class' => 'w-24'],
-['title' => 'Status', 'class' => 'w-20'],
+['title' => 'Status', 'class' => 'w-16'],
 ];
 
 // Transform booths data into rows format
@@ -54,7 +54,7 @@ $rows[] = [
 'class' => 'font-medium text-gray-900'
 ],
 [
-'content' => $booth->size ?? 'N/A',
+'content' => $booth->size ? $booth->size . ' cm' : 'N/A',
 'class' => 'text-gray-600'
 ],
 [
