@@ -37,11 +37,14 @@
                         :selectedCategories="$filters['categories'] ?? []"
                         :selectedStatuses="$filters['statuses'] ?? []"
                         :provinces="$allProvinces"
-                        :cities="collect()" />
+                        :cities="$allCities"
+                        :selectedProvinceId="$filters['province_id'] ?? ''"
+                        :selectedCityId="$filters['city_id'] ?? ''"
+                        :refundable="$filters['refundable'] ?? ''" />
                 </form>
 
                 <!-- Active Filters Display -->
-                @if(!empty($filters['categories'] ?? []) || !empty($filters['statuses'] ?? []))
+                @if(!empty($filters['categories'] ?? []) || !empty($filters['statuses'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? '') || ($filters['refundable'] ?? ''))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
@@ -76,6 +79,43 @@
                         </button>
                     </span>
                     @endforeach
+
+                    @if($filters['province_id'] ?? '')
+                    @php
+                    $province = $allProvinces->find($filters['province_id']);
+                    @endphp
+                    @if($province)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        Province: {{ $province->name }}
+                        <button type="button" data-remove-filter="province_id" class="hover:cursor-pointer ml-2 hover:text-purple-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+                    @endif
+
+                    @if($filters['city_id'] ?? '')
+                    @php
+                    $city = $allCities->find($filters['city_id']);
+                    @endphp
+                    @if($city)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        City: {{ $city->name }}
+                        <button type="button" data-remove-filter="city_id" class="hover:cursor-pointer ml-2 hover:text-purple-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+                    @endif
+
+                    @if($filters['refundable'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Refundable Only
+                        <button type="button" data-remove-filter="refundable" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
 
                     <a href="{{ route('my-events.index') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
                         Clear all filters
@@ -218,6 +258,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('filter-form');
+
+            // Handle removing individual filters
+            document.querySelectorAll('[data-remove-filter]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterName = this.getAttribute('data-remove-filter');
+                    const input = form.querySelector(`[name="${filterName}"]`);
+                    if (input) {
+                        input.value = '';
+                        form.submit();
+                    }
+                });
+            });
 
             // Handle removing individual category filters
             document.querySelectorAll('[data-remove-category]').forEach(button => {

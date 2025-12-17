@@ -308,6 +308,9 @@ class EventController extends Controller
         $search = $request->input('search');
         $categories = $request->input('categories', []);
         $statuses = $request->input('statuses', []);
+        $provinceId = $request->input('province_id');
+        $cityId = $request->input('city_id');
+        $refundable = $request->input('refundable');
 
         // Build query with filters
         $query = Event::with([
@@ -351,6 +354,21 @@ class EventController extends Controller
             $query->whereIn('status', $statuses);
         }
 
+        // Province filter
+        if ($provinceId) {
+            $query->where('province_id', $provinceId);
+        }
+
+        // City filter
+        if ($cityId) {
+            $query->where('city_id', $cityId);
+        }
+
+        // Refundable filter
+        if ($refundable) {
+            $query->where('refundable', true);
+        }
+
         $events = $query->latest('created_at')->paginate(9);
 
         // Get all categories for filter dropdown
@@ -359,14 +377,21 @@ class EventController extends Controller
         // Get all provinces for filter dropdown
         $allProvinces = Province::orderBy('name')->get();
 
+        // Get cities based on selected province
+        $allCities = $provinceId ? City::where('province_id', $provinceId)->orderBy('name')->get() : collect();
+
         return view('my-events.index', [
             'events' => $events,
             'allCategories' => $allCategories,
             'allProvinces' => $allProvinces,
+            'allCities' => $allCities,
             'filters' => [
                 'search' => $search,
                 'categories' => $categories,
                 'statuses' => $statuses,
+                'province_id' => $provinceId,
+                'city_id' => $cityId,
+                'refundable' => $refundable,
             ],
         ]);
     }
