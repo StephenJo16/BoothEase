@@ -125,18 +125,23 @@ $colorSchemes = [
                     $availableBooths = $event->booths->where('status', 'available')->count();
                     $minPrice = $event->booths->min('price');
                     @endphp
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative w-full md:w-80">
-                        <div class="h-48 bg-gradient-to-br {{ $scheme['gradientFrom'] }} {{ $scheme['gradientTo'] }} relative">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative w-full md:w-80 flex flex-col h-full">
+                        <div class="h-48 relative">
+                            @if($event->image_path)
+                            <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                            @else
+                            <div class="w-full h-full bg-gradient-to-br {{ $scheme['gradientFrom'] }} {{ $scheme['gradientTo'] }}"></div>
+                            @endif
                             <span class="absolute top-3 right-3 bg-white bg-opacity-90 {{ $scheme['categoryColor'] }} text-xs font-semibold px-2 py-1 rounded-full">
                                 {{ $event->category->name ?? 'General' }}
                             </span>
                         </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
-                            <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                    <span>{{ $event->display_location ?? 'Location TBA' }}</span>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">{{ $event->title }}</h3>
+                            <div class="space-y-2 text-sm text-gray-600 mb-4 flex-grow">
+                                <div class="flex items-start">
+                                    <i class="fas fa-map-marker-alt mr-2 text-[#ff7700] mt-1"></i>
+                                    <span class="line-clamp-2">{{ $event->display_location ?? 'Location TBA' }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
@@ -153,7 +158,7 @@ $colorSchemes = [
                                 </div>
                                 @endif
                             </div>
-                            <a href="{{ route('login') }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
+                            <a href="{{ route('login') }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center mt-auto">
                                 View Details
                             </a>
                         </div>
