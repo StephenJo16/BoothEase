@@ -218,7 +218,7 @@
         const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
         const initialEventId = "{{ request('event_id', '') }}";
 
-        const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice'];
+        const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice', 'lockScalingX', 'lockScalingY'];
 
         const canvas = new fabric.Canvas('layoutCanvas', {
             backgroundColor: '#ffffff',
@@ -874,6 +874,15 @@
             if (floorLayouts[currentFloorNumber]) {
                 // Load from memory if available
                 canvas.loadFromJSON(floorLayouts[currentFloorNumber], function() {
+                    // Re-apply locks for booths
+                    canvas.getObjects().forEach(obj => {
+                        if (obj.elementType === 'booth') {
+                            obj.set({
+                                lockScalingX: true,
+                                lockScalingY: true
+                            });
+                        }
+                    });
                     canvas.renderAll();
                     updateCountersFromCanvas();
                 });
@@ -894,6 +903,15 @@
                         if (data.layout) {
                             isLoadingLayout = true;
                             canvas.loadFromJSON(data.layout, function() {
+                                // Re-apply locks for booths
+                                canvas.getObjects().forEach(obj => {
+                                    if (obj.elementType === 'booth') {
+                                        obj.set({
+                                            lockScalingX: true,
+                                            lockScalingY: true
+                                        });
+                                    }
+                                });
                                 canvas.renderAll();
                                 updateCountersFromCanvas();
                                 isLoadingLayout = false;
@@ -1099,6 +1117,15 @@
 
                 await new Promise(resolve => {
                     canvas.loadFromJSON(data.layout, () => {
+                        // Re-apply locks for booths
+                        canvas.getObjects().forEach(obj => {
+                            if (obj.elementType === 'booth') {
+                                obj.set({
+                                    lockScalingX: true,
+                                    lockScalingY: true
+                                });
+                            }
+                        });
                         canvas.renderAll();
                         resolve();
                     }, (revived, serialized) => {

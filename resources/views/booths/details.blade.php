@@ -18,7 +18,11 @@ if ($event->start_time && $event->end_time) {
 $start = $event->start_time;
 $end = $event->end_time;
 $eventDuration = floor($start->diffInDays($end)) + 1;
+if ($eventDuration == 1) {
+$eventDates = $start->format('F d, Y') . ' (1 day)';
+} else {
 $eventDates = $start->format('F d') . ' - ' . $end->format('d, Y') . ' (' . $eventDuration . ' days)';
+}
 }
 
 $totalAmount = $booth->price;
@@ -98,7 +102,7 @@ $userPhone = $digits;
                                 </span>
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 font-medium">
                                     <i class="fas fa-ruler-combined mr-2"></i>
-                                    {{ $booth->size ?? 'Size not specified' }}
+                                    {{ $booth->size ? $booth->size . ' cm' : 'Size not specified' }}
                                 </span>
                             </div>
                         </div>
@@ -106,7 +110,7 @@ $userPhone = $digits;
                             <div class="text-sm text-slate-600 mb-1">Price</div>
                             <div class="text-3xl font-bold text-[#ff7700]">{{ formatRupiah($booth->price) }}</div>
                             @if($eventDuration > 0)
-                            <div class="text-xs text-slate-500 mt-1">for {{ $eventDuration }} days</div>
+                            <div class="text-xs text-slate-500 mt-1">for {{ $eventDuration }} {{ Str::plural('day', $eventDuration) }}</div>
                             @endif
                         </div>
                     </div>
@@ -286,13 +290,13 @@ $userPhone = $digits;
                                 <input type="checkbox" id="agreeTerms" required
                                     class="mt-1 mr-3 w-5 h-5 accent-[#ff7700] focus:ring-[#ff7700] border-slate-300 rounded">
                                 <span class="text-sm text-slate-700">
-                                    I agree to the 
+                                    I agree to the
                                     @if($event->terms_and_conditions)
-                                        <a href="{{ $event->terms_and_conditions }}" target="_blank" rel="noopener noreferrer" class="text-[#ff7700] hover:underline font-medium">
-                                            Terms and Conditions <i class="fas fa-external-link-alt text-xs ml-1"></i>
-                                        </a>
+                                    <a href="{{ $event->terms_and_conditions }}" target="_blank" rel="noopener noreferrer" class="text-[#ff7700] hover:underline font-medium">
+                                        Terms and Conditions <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                                    </a>
                                     @else
-                                        <span class="text-[#ff7700] font-medium">Terms and Conditions</span>
+                                    <span class="text-[#ff7700] font-medium">Terms and Conditions</span>
                                     @endif
                                     of the event.
                                 </span>
@@ -335,7 +339,7 @@ $userPhone = $digits;
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-700">Size</span>
-                                        <span class="font-semibold text-slate-900">{{ $booth->size ?? 'N/A' }}</span>
+                                        <span class="font-semibold text-slate-900">{{ $booth->size ? $booth->size . ' cm' : 'N/A' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -351,7 +355,7 @@ $userPhone = $digits;
                                     @if($eventDates)
                                     <div class="text-sm">
                                         <div class="text-slate-700 mb-1">Duration</div>
-                                        <div class="font-semibold text-slate-900">{{ $eventDuration }} days</div>
+                                        <div class="font-semibold text-slate-900">{{ $eventDuration }} {{ Str::plural('day', $eventDuration) }}</div>
                                     </div>
                                     @endif
                                     @if($event->venue || $event->display_location)

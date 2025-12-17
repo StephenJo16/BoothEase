@@ -224,7 +224,7 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
         const saveEndpoint = "{{ route('booth-layout.save') }}";
         const eventId = "{{ $eventId ?? '' }}";
-        const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice'];
+        const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice', 'lockScalingX', 'lockScalingY'];
         const canvas = new fabric.Canvas('layoutCanvas', {
             backgroundColor: '#ffffff',
             selection: true
@@ -855,6 +855,15 @@
             if (floorLayouts[currentFloorNumber]) {
                 // Load from memory if available
                 canvas.loadFromJSON(floorLayouts[currentFloorNumber], function() {
+                    // Re-apply locks for booths
+                    canvas.getObjects().forEach(obj => {
+                        if (obj.elementType === 'booth') {
+                            obj.set({
+                                lockScalingX: true,
+                                lockScalingY: true
+                            });
+                        }
+                    });
                     canvas.renderAll();
                 });
             } else {
@@ -872,6 +881,15 @@
                         const data = await response.json();
                         if (data.layout) {
                             canvas.loadFromJSON(data.layout, function() {
+                                // Re-apply locks for booths
+                                canvas.getObjects().forEach(obj => {
+                                    if (obj.elementType === 'booth') {
+                                        obj.set({
+                                            lockScalingX: true,
+                                            lockScalingY: true
+                                        });
+                                    }
+                                });
                                 canvas.renderAll();
                             });
                             floorLayouts[currentFloorNumber] = data.layout;

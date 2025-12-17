@@ -105,7 +105,7 @@ $eventDuration = getEventDuration($event);
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Size</h4>
-                                <p class="text-lg font-semibold text-gray-900">{{ $booth->size ?? 'Not specified' }}</p>
+                                <p class="text-lg font-semibold text-gray-900">{{ $booth->size ? $booth->size . ' cm' : 'Not specified' }}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Category</h4>

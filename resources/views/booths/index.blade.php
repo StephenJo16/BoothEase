@@ -300,7 +300,7 @@
             // Populate booth details
             document.getElementById('boothName').textContent = booth.name ?? 'N/A';
             document.getElementById('boothType').textContent = booth.type ?? 'Standard';
-            document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
+            document.getElementById('boothSize').textContent = booth.size ? booth.size + ' cm' : 'N/A';
             document.getElementById('boothPrice').textContent = formatRupiah(booth.price ?? 0);
 
             // Show floor information
