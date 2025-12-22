@@ -44,8 +44,13 @@ class BookingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->whereHas('booth.event', function ($eventQuery) use ($search) {
                     $eventQuery->where('title', 'like', '%' . $search . '%')
-                        ->orWhereJsonContains('location->venue', $search)
-                        ->orWhereJsonContains('location->city', $search);
+                        ->orWhere('venue', 'like', '%' . $search . '%')
+                        ->orWhereHas('city', function ($cityQuery) use ($search) {
+                            $cityQuery->where('name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('province', function ($provinceQuery) use ($search) {
+                            $provinceQuery->where('name', 'like', '%' . $search . '%');
+                        });
                 })
                     ->orWhereHas('booth', function ($boothQuery) use ($search) {
                         $boothQuery->where('name', 'like', '%' . $search . '%');
