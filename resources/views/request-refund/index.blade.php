@@ -88,7 +88,7 @@ $dateDisplay = formatEventDate($event);
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Account Number <span class="text-red-500">*</span></label>
                                 <input type="text" name="account_number" value="{{ old('account_number') }}" required
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_number') border-red-500 @enderror"
-                                    placeholder="Enter account number">
+                                    placeholder="Enter account number" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Booking Invoice <span class="text-red-500">*</span>
@@ -96,7 +96,7 @@ $dateDisplay = formatEventDate($event);
                                 <div class="relative">
                                     <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf,.jpg,.jpeg,.png" required>
                                     <button type="button" id="uploadButton"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                        class="w-full px-3 py-2 border rounded-lg text-left text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('document') @else border-gray-300 @enderror">
                                         Choose File
                                     </button>
 
@@ -124,6 +124,9 @@ $dateDisplay = formatEventDate($event);
                                             </button>
                                         </div>
                                     </div>
+                                    @error('document')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -225,21 +228,6 @@ $dateDisplay = formatEventDate($event);
                     </div>
                 </div>
             </div>
-
-            <!-- Important Information -->
-            <div class="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-red-800 mb-2">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    Important Information
-                </h3>
-                <ul class="text-sm text-red-700 space-y-1">
-                    <li>• Refund processing may take 5-10 business days after approval</li>
-                    <li>• Processing fees are non-refundable and will be deducted from your refund amount</li>
-                    <li>• Cancellations made less than 7 days before the event may incur additional penalties</li>
-                    <li>• All refund requests are subject to event organizer approval</li>
-                    <li>• You will receive email updates regarding the status of your refund request</li>
-                </ul>
-            </div>
         </div>
     </div>
 
@@ -272,6 +260,7 @@ $dateDisplay = formatEventDate($event);
         // Handle file selection
         fileInput.addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
+                this.setCustomValidity('');
                 const file = e.target.files[0];
 
                 // Update file info
@@ -281,6 +270,14 @@ $dateDisplay = formatEventDate($event);
                 // Hide upload button and show preview
                 uploadButton.classList.add('hidden');
                 filePreview.classList.remove('hidden');
+
+                // Remove error styling and message
+                uploadButton.classList.remove('border-red-500');
+                uploadButton.classList.add('border-gray-300');
+                const errorMsg = uploadButton.parentElement.querySelector('.file-upload-error');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
             }
         });
 
@@ -298,27 +295,45 @@ $dateDisplay = formatEventDate($event);
             fileSize.textContent = '';
         });
 
-        // Form submission validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // Check if file is uploaded
-            if (fileInput.files.length === 0) {
-                e.preventDefault();
+        // Handle invalid file input
+        fileInput.addEventListener('invalid', function(e) {
+            e.preventDefault();
+            this.setCustomValidity('Please upload the booking invoice.');
 
-                // Show error message
-                alert('Please upload the booking invoice before submitting the refund request.');
+            // Add red border to upload button
+            uploadButton.classList.add('border-red-500');
+            uploadButton.classList.remove('border-gray-300');
 
-                // Add red border to upload button
-                uploadButton.classList.add('border-red-500');
-                uploadButton.classList.remove('border-gray-300');
-
-                // Scroll to the upload section
-                uploadButton.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-
-                return false;
+            // Create or update error message
+            let errorMsg = uploadButton.parentElement.querySelector('.file-upload-error');
+            if (!errorMsg) {
+                errorMsg = document.createElement('p');
+                errorMsg.className = 'mt-1 text-sm text-red-600 file-upload-error';
+                errorMsg.textContent = 'Please upload the booking invoice before submitting the refund request.';
+                uploadButton.parentElement.appendChild(errorMsg);
             }
+
+            // Scroll to the upload section
+            uploadButton.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        });
+
+        // Prevent double submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            // If button is already disabled, prevent submission
+            if (submitBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
         });
     </script>
 </body>
