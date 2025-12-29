@@ -18,6 +18,15 @@
     @include('components.navbar')
 
     <div class="pt-2">
+        {{-- Display general error messages --}}
+        @if ($errors->has('error'))
+        <div class="max-w-md mx-auto mt-4">
+            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
+                <strong class="font-medium">Error:</strong>
+                <span class="block sm:inline">{{ $errors->first('error') }}</span>
+            </div>
+        </div>
+        @endif
 
         <div class="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full">

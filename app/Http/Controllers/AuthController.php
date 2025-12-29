@@ -7,6 +7,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
@@ -64,17 +65,40 @@ class AuthController extends Controller
             return redirect()->route('signup')->withErrors($validator)->withInput();
         }
 
-        $role = Role::where('name', $request->user_type)->firstOrFail();
+        // Find role with case-insensitive search and better error handling
+        $roleName = $request->user_type;
+        $role = Role::whereRaw('LOWER(name) = ?', [strtolower($roleName)])->first();
 
-        $user = User::create([
-            'role_id' => $role->id,
-            'category_id' => $request->category_id,
-            'display_name' => $request->full_name,
-            'name' => $request->business_name,
-            'email' => $request->email,
-            'phone_number' => $normalizedPhone,
-            'password' => Hash::make($request->password),
-        ]);
+        if (!$role) {
+            // Fallback: try exact match or default to tenant role
+            $role = Role::where('name', $roleName)
+                ->orWhere('name', ucfirst($roleName))
+                ->orWhere('name', ucwords(str_replace('_', ' ', $roleName)))
+                ->first();
+
+            if (!$role) {
+                return redirect()->route('signup')
+                    ->withErrors(['user_type' => 'Invalid user type selected.'])
+                    ->withInput();
+            }
+        }
+
+        try {
+            $user = User::create([
+                'role_id' => $role->id,
+                'category_id' => $request->category_id,
+                'display_name' => $request->full_name,
+                'name' => $request->business_name,
+                'email' => $request->email,
+                'phone_number' => $normalizedPhone,
+                'password' => Hash::make($request->password),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Signup failed: ' . $e->getMessage());
+            return redirect()->route('signup')
+                ->withErrors(['error' => 'Registration failed. Please try again or contact support.'])
+                ->withInput();
+        }
 
         Auth::login($user);
 
