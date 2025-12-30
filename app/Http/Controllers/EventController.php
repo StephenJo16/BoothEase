@@ -173,11 +173,13 @@ class EventController extends Controller
 
         $event->load([
             'category',
-            'user',
-            'booths' => function ($query) {
-                $query->orderBy('name');
-            }
+            'user'
         ]);
+
+        // Paginate booths
+        $perPage = request('perPage', 5);
+        $booths = $event->booths()->orderByRaw('LENGTH(name), name')->paginate($perPage);
+        $event->setRelation('booths', $booths);
 
         // Load all ratings for the organizer (across all events)
         $organizerRatings = \App\Models\Rating::with(['rater', 'ratee', 'event'])

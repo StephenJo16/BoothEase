@@ -33,8 +33,8 @@ $headers = [
 ];
 
 // Paginate booths
-$perPage = (int) request('perPage', 10);
-$paginatedBooths = $event->booths()->paginate($perPage)->withQueryString();
+$perPage = (int) request('perPage', 5);
+$paginatedBooths = $event->booths()->orderByRaw('LENGTH(name), name')->paginate($perPage)->withQueryString();
 
 // Transform booths data into rows format
 $rows = [];
@@ -350,7 +350,7 @@ $paidBookingRows[] = [
                 </aside>
             </div>
 
-            <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+            <section id="booth-layout-section" class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900">Booth Layout</h2>
@@ -374,7 +374,7 @@ $paidBookingRows[] = [
                     'tableClass' => 'min-w-full text-sm',
                     'containerClass' => 'overflow-x-auto'
                     ])
-                    <x-pagination :paginator="$paginatedBooths" />
+                    <x-pagination :paginator="$paginatedBooths" scrollTarget="booth-layout-section" />
                     @else
                     <div class="px-4 py-6 text-center text-gray-500">
                         No booth layout has been configured for this event yet.

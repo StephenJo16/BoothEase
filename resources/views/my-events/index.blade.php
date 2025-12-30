@@ -183,8 +183,7 @@
                     <div class="border-b border-gray-100 px-5 py-4">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <h3 class="text-base font-semibold text-gray-900">{{ $event->title }}</h3>
-                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ $category }}</p>
+                                <h3 class="text-base font-semibold text-gray-900 line-clamp-2">{{ $event->title }}</h3>
                             </div>
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $badge['class'] }}">
                                 {{ $badge['label'] }}

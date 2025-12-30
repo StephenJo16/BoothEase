@@ -144,6 +144,17 @@ $rows[] = [
                                     </div>
                                     @endif
 
+                                    <!-- Registration Deadline -->
+                                    @if($event->registration_deadline)
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
+                                        <div class="flex items-center text-sm text-gray-600">
+                                            <i class="fas fa-calendar-check mr-2 text-[#ff7700]"></i>
+                                            <span>{{ \Carbon\Carbon::parse($event->registration_deadline)->format('M d, Y H:i') }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     <!-- Location -->
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -167,6 +178,7 @@ $rows[] = [
 
                             <!-- Booths Tab -->
                             <div id="booths" class="tab-content p-6">
+                                <div id="booths-section"></div>
                                 <div class="mb-4 flex justify-between items-center">
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-900 mb-2">Available Booths</h3>
@@ -190,6 +202,16 @@ $rows[] = [
                                     'rows' => $rows,
                                     ])
                                 </div>
+
+                                {{-- Pagination --}}
+                                @if(method_exists($event->booths, 'hasPages'))
+                                <x-pagination
+                                    :paginator="$event->booths"
+                                    :perPageOptions="[5, 10, 15, 20]"
+                                    :showPerPageSelector="true"
+                                    :showInfo="true"
+                                    scrollTarget="booths-section" />
+                                @endif
                                 @else
                                 <div class="text-center py-8 text-gray-500">
                                     <i class="fas fa-store text-4xl mb-2"></i>
@@ -393,6 +415,17 @@ $rows[] = [
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
                                     <div class="relative">
                                         <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 rounded-lg text-sm" readonly>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Registration Deadline -->
+                                @if($event->registration_deadline)
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-calendar-check mr-2 text-[#ff7700]"></i>
+                                        <span>{{ \Carbon\Carbon::parse($event->registration_deadline)->format('d M, Y H:i') }}</span>
                                     </div>
                                 </div>
                                 @endif
