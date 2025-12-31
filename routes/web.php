@@ -95,11 +95,23 @@ Route::middleware(['auth', 'role:tenant'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:event_organizer'])->group(function () {
-    Route::get('/my-events/details', function () {
+    Route::get('/my-events/details', function (Request $request) {
+        if ($request->has('event_id')) {
+            $event = Event::findOrFail($request->query('event_id'));
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('my-events.details');
     })->name('my-event-details');
 
-    Route::get('/my-events/edit', function () {
+    Route::get('/my-events/edit', function (Request $request) {
+        if ($request->has('event_id')) {
+            $event = Event::findOrFail($request->query('event_id'));
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('my-events.edit');
     })->name('my-event-edit');
 
@@ -172,27 +184,47 @@ Route::middleware('auth')->group(function () {
     Route::get('/events/{event}/attendants/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkOrganizerRating'])->name('attendant.rating.check');
 });
 
-
-// Public booth layout view
-Route::get('/booth-layout/view', function (Request $request) {
-    return view('booth-layout.view', [
-        'eventId' => $request->query('event_id'),
-    ]);
-})->name('booth-layout.view');
 Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');
 Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
 
 // Protected booth layout editing (Organizer only)
 Route::middleware(['auth', 'role:event_organizer'])->group(function () {
     Route::get('/booth-layout', function (Request $request) {
+        $eventId = $request->query('event_id');
+        if ($eventId) {
+            $event = Event::findOrFail($eventId);
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('booth-layout.index', [
-            'eventId' => $request->query('event_id'),
+            'eventId' => $eventId,
         ]);
     })->name('booth-layout');
 
-    Route::get('/booth-layout/edit', function () {
+    Route::get('/booth-layout/edit', function (Request $request) {
+        $eventId = $request->query('event_id');
+        if ($eventId) {
+            $event = Event::findOrFail($eventId);
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('booth-layout.edit');
     })->name('booth-layout.edit');
+
+    Route::get('/booth-layout/view', function (Request $request) {
+        $eventId = $request->query('event_id');
+        if ($eventId) {
+            $event = Event::findOrFail($eventId);
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
+        return view('booth-layout.view', [
+            'eventId' => $eventId,
+        ]);
+    })->name('booth-layout.view');
 
     Route::post('/booth-layout/save', [BoothController::class, 'store'])->name('booth-layout.save');
     Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
