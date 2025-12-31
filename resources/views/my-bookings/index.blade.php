@@ -268,8 +268,9 @@
             </div>
 
             <!-- Pagination -->
+            <div id="bookings-section"></div>
             @if($bookings->hasPages() || $bookings->total() > 5)
-            <x-pagination :paginator="$bookings" />
+            <x-pagination :paginator="$bookings" scrollTarget="bookings-section" />
             @endif
 
         </div>

@@ -20,16 +20,16 @@
 $roleMap = [1 => 'Admin', 2 => 'Tenant', 3 => 'Event Organizer'];
 $roleLabel = $roleMap[$user->role_id] ?? 'Member';
 $roleBadgeClasses = match($user->role_id) {
-    1 => 'bg-purple-100 text-purple-800',
-    2 => 'bg-blue-100 text-blue-800',
-    3 => 'bg-green-100 text-green-800',
-    default => 'bg-gray-100 text-gray-800',
+1 => 'bg-purple-100 text-purple-800',
+2 => 'bg-blue-100 text-blue-800',
+3 => 'bg-green-100 text-green-800',
+default => 'bg-gray-100 text-gray-800',
 };
 @endphp
 
 <body class="bg-gray-50 min-h-screen">
 
-    {{-- 
+    {{--
         [FIX] MENAMBAHKAN NOTIFIKASI UNTUK VALIDATION ERROR
         Menangkap $errors validasi Laravel secara manual di sini agar muncul pop-up merah
         ketika validasi password gagal.
@@ -73,6 +73,7 @@ $roleBadgeClasses = match($user->role_id) {
             transform: translateX(50px);
             animation: slideInFade 5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
+
         .notification-popup .icon-box {
             display: flex;
             align-items: center;
@@ -85,22 +86,37 @@ $roleBadgeClasses = match($user->role_id) {
             color: white;
             font-size: 14px;
         }
-        .notification-popup .text-content { flex: 1; }
+
+        .notification-popup .text-content {
+            flex: 1;
+        }
+
         .notification-popup .title {
             font-weight: 700;
             font-size: 15px;
             margin: 0 0 2px 0;
             line-height: 1.4;
         }
+
         .notification-popup .message {
             font-size: 14px;
             color: #6B7280;
             margin: 0;
             line-height: 1.4;
         }
-        .notification-popup.error { border-left: 4px solid #EF4444; }
-        .notification-popup.error .icon-box { background: #EF4444; }
-        .notification-popup.error .title { color: #EF4444; }
+
+        .notification-popup.error {
+            border-left: 4px solid #EF4444;
+        }
+
+        .notification-popup.error .icon-box {
+            background: #EF4444;
+        }
+
+        .notification-popup.error .title {
+            color: #EF4444;
+        }
+
         .notification-popup.error .progress-bar {
             background-color: #EF4444;
             position: absolute;
@@ -111,15 +127,37 @@ $roleBadgeClasses = match($user->role_id) {
             opacity: 0.3;
             animation: progress 4.5s linear forwards;
         }
+
         @keyframes slideInFade {
-            0% { opacity: 0; transform: translateX(100%); }
-            10% { opacity: 1; transform: translateX(0); }
-            90% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 0; transform: translateX(100%); }
+            0% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            10% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            90% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
         }
+
         @keyframes progress {
-            0% { width: 100%; }
-            100% { width: 0%; }
+            0% {
+                width: 100%;
+            }
+
+            100% {
+                width: 0%;
+            }
         }
     </style>
     @endif
@@ -154,6 +192,9 @@ $roleBadgeClasses = match($user->role_id) {
                             <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Full Name</label>
                             <div class="w-full sm:w-2/3">
                                 <input id="full_name" name="full_name" value="{{ old('full_name', $user->display_name) }}" class=" profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]" readonly>
+                                @error('full_name')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -162,6 +203,9 @@ $roleBadgeClasses = match($user->role_id) {
                             </label>
                             <div class="w-full sm:w-2/3">
                                 <input id="business_name" name="business_name" value="{{ old('business_name', $user->name) }}" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]" readonly>
+                                @error('business_name')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -178,6 +222,9 @@ $roleBadgeClasses = match($user->role_id) {
                                     <input id="mobile_number" name="mobile_number" value="{{ old('mobile_number', preg_replace('/^\+?62/', '', $user->phone_number)) }}" class="profile-input hidden flex-1 w-full border-0 rounded-r-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-0" readonly>
                                     <span id="mobile-display" class="flex-1 px-3 py-3 text-gray-900">{{ preg_replace('/^\+?62\s*/', '', $user->phone_number ? formatPhoneNumber($user->phone_number) : 'N/A') }}</span>
                                 </div>
+                                @error('mobile_number')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -197,6 +244,9 @@ $roleBadgeClasses = match($user->role_id) {
                                         <i class="fa-solid fa-chevron-down text-xs"></i>
                                     </div>
                                 </div>
+                                @error('category_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -347,8 +397,13 @@ $roleBadgeClasses = match($user->role_id) {
 
             // [FIX] Auto-open password form jika ada error validasi terkait password
             // Ini agar user langsung bisa memperbaiki input tanpa klik tombol lagi
-            @if($errors->has('current_password') || $errors->has('new_password'))
-                togglePasswordChange();
+            @if($errors - > has('current_password') || $errors - > has('new_password'))
+            togglePasswordChange();
+            @endif
+
+            // [FIX] Auto-open edit mode if there are profile validation errors
+            @if($errors - > has('full_name') || $errors - > has('business_name') || $errors - > has('mobile_number') || $errors - > has('category_id'))
+            toggleEditMode();
             @endif
         });
     </script>

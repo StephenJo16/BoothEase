@@ -26,16 +26,17 @@ $deadlineFormatted = $event->registration_deadline ? $event->registration_deadli
 
 // Define table headers
 $headers = [
-['title' => 'Booth Name', 'class' => 'text-left'],
+['title' => 'Floor no.', 'class' => 'text-left'],
+['title' => 'Booth', 'class' => 'text-left'],
+['title' => 'Size', 'class' => 'text-left'],
 ['title' => 'Type', 'class' => 'text-left'],
 ['title' => 'Price', 'class' => 'text-left'],
-['title' => 'Size', 'class' => 'text-left'],
 ['title' => 'Status', 'class' => 'text-left'],
 ];
 
 // Paginate booths
-$perPage = (int) request('perPage', 10);
-$paginatedBooths = $event->booths()->paginate($perPage)->withQueryString();
+$perPage = (int) request('perPage', 5);
+$paginatedBooths = $event->booths()->orderByRaw('LENGTH(name), name')->paginate($perPage)->withQueryString();
 
 // Transform booths data into rows format
 $rows = [];
@@ -46,8 +47,16 @@ $rows[] = [
 'rowClass' => 'hover:bg-gray-50',
 'cells' => [
 [
+'content' => $booth->floor_number ?? '—',
+'class' => 'text-gray-700'
+],
+[
 'content' => $booth->name ?? '—',
 'class' => 'font-medium text-gray-900'
+],
+[
+'content' => $booth->size ? $booth->size . ' cm' : '—',
+'class' => 'text-gray-700'
 ],
 [
 'content' => ucfirst($booth->type ?? '—'),
@@ -55,10 +64,6 @@ $rows[] = [
 ],
 [
 'content' => formatRupiah($booth->price ?? 0),
-'class' => 'text-gray-700'
-],
-[
-'content' => $booth->size ? $booth->size . ' cm' : '—',
 'class' => 'text-gray-700'
 ],
 [
@@ -351,7 +356,7 @@ $paidBookingRows[] = [
                 </aside>
             </div>
 
-            <section class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+            <section id="booth-layout-section" class="mt-8 rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900">Booth Layout</h2>
@@ -359,11 +364,11 @@ $paidBookingRows[] = [
                     </div>
                     @if($boothCount > 0)
                     <a href="{{ route('booth-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                        View Booths
+                        View Layout
                     </a>
                     @elseif($boothCount === 0)
                     <a href="{{ route('booth-layout', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                        Add Booths
+                        Add Layout
                     </a>
                     @endif
                 </div>
@@ -375,7 +380,7 @@ $paidBookingRows[] = [
                     'tableClass' => 'min-w-full text-sm',
                     'containerClass' => 'overflow-x-auto'
                     ])
-                    <x-pagination :paginator="$paginatedBooths" />
+                    <x-pagination :paginator="$paginatedBooths" scrollTarget="booth-layout-section" />
                     @else
                     <div class="px-4 py-6 text-center text-gray-500">
                         No booth layout has been configured for this event yet.

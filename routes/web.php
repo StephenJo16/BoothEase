@@ -88,29 +88,31 @@ Route::get('/events/{event}/booths', [EventController::class, 'showBooths'])->na
 
 Route::get('/booths/{booth}/details', [EventController::class, 'showBoothDetails'])->name('booths.details');
 
-Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
+Route::middleware(['auth', 'role:tenant'])->group(function () {
+    Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
+    Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
+    Route::get('/my-bookings/{booking}/invoice', [BookingController::class, 'downloadInvoice'])->name('booking.invoice');
+});
 
-Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
+Route::middleware(['auth', 'role:event_organizer'])->group(function () {
+    Route::get('/my-events/details', function () {
+        return view('my-events.details');
+    })->name('my-event-details');
 
-Route::get('/my-bookings/{booking}/invoice', [BookingController::class, 'downloadInvoice'])->name('booking.invoice')->middleware('auth');
+    Route::get('/my-events/edit', function () {
+        return view('my-events.edit');
+    })->name('my-event-edit');
 
-Route::get('/my-events/details', function () {
-    return view('my-events.details');
-})->name('my-event-details');
-
-Route::get('/my-events/edit', function () {
-    return view('my-events.edit');
-})->name('my-event-edit');
-
-Route::middleware('auth')->prefix('my-events')->name('my-events.')->group(function () {
-    Route::get('/', [EventController::class, 'index'])->name('index');
-    Route::get('/create', [EventController::class, 'create'])->name('create');
-    Route::post('/', [EventController::class, 'store'])->name('store');
-    Route::get('/{event}', [EventController::class, 'show'])->name('show');
-    Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
-    Route::put('/{event}', [EventController::class, 'update'])->name('update');
-    Route::post('/{event}/publish', [EventController::class, 'publish'])->name('publish');
-    Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+    Route::prefix('my-events')->name('my-events.')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->name('index');
+        Route::get('/create', [EventController::class, 'create'])->name('create');
+        Route::post('/', [EventController::class, 'store'])->name('store');
+        Route::get('/{event}', [EventController::class, 'show'])->name('show');
+        Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
+        Route::put('/{event}', [EventController::class, 'update'])->name('update');
+        Route::post('/{event}/publish', [EventController::class, 'publish'])->name('publish');
+        Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+    });
 });
 
 Route::middleware('auth')->group(function () {
@@ -171,17 +173,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::get('/booth-layout', function (Request $request) {
-    return view('booth-layout.index', [
-        'eventId' => $request->query('event_id'),
-    ]);
-})->name('booth-layout');
-
-Route::get('/booth-layout/edit', function () {
-    return view('booth-layout.edit');
-})->name('booth-layout.edit');
-
-Route::post('/booth-layout/save', [BoothController::class, 'store'])->name('booth-layout.save');
+// Public booth layout view
 Route::get('/booth-layout/view', function (Request $request) {
     return view('booth-layout.view', [
         'eventId' => $request->query('event_id'),
@@ -189,7 +181,22 @@ Route::get('/booth-layout/view', function (Request $request) {
 })->name('booth-layout.view');
 Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');
 Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
-Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
+
+// Protected booth layout editing (Organizer only)
+Route::middleware(['auth', 'role:event_organizer'])->group(function () {
+    Route::get('/booth-layout', function (Request $request) {
+        return view('booth-layout.index', [
+            'eventId' => $request->query('event_id'),
+        ]);
+    })->name('booth-layout');
+
+    Route::get('/booth-layout/edit', function () {
+        return view('booth-layout.edit');
+    })->name('booth-layout.edit');
+
+    Route::post('/booth-layout/save', [BoothController::class, 'store'])->name('booth-layout.save');
+    Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
+});
 
 // Location API routes for cascading dropdowns
 Route::get('/api/cities', function (Request $request) {

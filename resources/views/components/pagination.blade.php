@@ -37,6 +37,7 @@
 'perPageOptions' => [5, 10, 25, 50, 100], // Optional: per page options
 'showPerPageSelector' => true, // Optional: show/hide per page selector
 'showInfo' => true, // Optional: show/hide "Showing X to Y of Z entries"
+'scrollTarget' => null, // Optional: ID of element to scroll to after pagination
 ])
 
 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
@@ -75,7 +76,7 @@
                     <i class="fa-solid fa-angle-left"></i>
                 </span>
                 @else
-                <a href="{{ $paginator->previousPageUrl() }}" class="relative inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-[#ff7700] hover:text-white transition-colors duration-200">
+                <a href="{{ $paginator->previousPageUrl() }}{{ $scrollTarget ? '#' . $scrollTarget : '' }}" class="relative inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-[#ff7700] hover:text-white transition-colors duration-200">
                     <i class="fa-solid fa-angle-left"></i>
                 </a>
                 @endif
@@ -93,7 +94,7 @@
                     {{ $page }}
                 </span>
                 @elseif ($page == 1 || $page == $lastPage || abs($page - $currentPage) <= 2)
-                    <a href="{{ $url }}" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200">
+                    <a href="{{ $url }}{{ $scrollTarget ? '#' . $scrollTarget : '' }}" class="bg-white border-gray-200 text-gray-600 hover:bg-[#ff7700] hover:text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200">
                     {{ $page }}
                     </a>
                     @elseif (abs($page - $currentPage) == 3)
@@ -105,7 +106,7 @@
 
                     {{-- Next Page Link --}}
                     @if ($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" class="relative inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-[#ff7700] hover:text-white transition-colors duration-200">
+                    <a href="{{ $paginator->nextPageUrl() }}{{ $scrollTarget ? '#' . $scrollTarget : '' }}" class="relative inline-flex items-center px-3 py-2 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-[#ff7700] hover:text-white transition-colors duration-200">
                         <i class="fa-solid fa-angle-right"></i>
                     </a>
                     @else
