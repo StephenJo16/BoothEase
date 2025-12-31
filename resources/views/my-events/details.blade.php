@@ -25,10 +25,11 @@ $deadlineFormatted = $event->registration_deadline ? $event->registration_deadli
 
 // Define table headers
 $headers = [
-['title' => 'Booth Name', 'class' => 'text-left'],
+['title' => 'Floor no.', 'class' => 'text-left'],
+['title' => 'Booth', 'class' => 'text-left'],
+['title' => 'Size', 'class' => 'text-left'],
 ['title' => 'Type', 'class' => 'text-left'],
 ['title' => 'Price', 'class' => 'text-left'],
-['title' => 'Size', 'class' => 'text-left'],
 ['title' => 'Status', 'class' => 'text-left'],
 ];
 
@@ -45,8 +46,16 @@ $rows[] = [
 'rowClass' => 'hover:bg-gray-50',
 'cells' => [
 [
+'content' => $booth->floor_number ?? '—',
+'class' => 'text-gray-700'
+],
+[
 'content' => $booth->name ?? '—',
 'class' => 'font-medium text-gray-900'
+],
+[
+'content' => $booth->size ? $booth->size . ' cm' : '—',
+'class' => 'text-gray-700'
 ],
 [
 'content' => ucfirst($booth->type ?? '—'),
@@ -54,10 +63,6 @@ $rows[] = [
 ],
 [
 'content' => formatRupiah($booth->price ?? 0),
-'class' => 'text-gray-700'
-],
-[
-'content' => $booth->size ? $booth->size . ' cm' : '—',
 'class' => 'text-gray-700'
 ],
 [
@@ -358,11 +363,11 @@ $paidBookingRows[] = [
                     </div>
                     @if($boothCount > 0)
                     <a href="{{ route('booth-layout.view', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                        View Booths
+                        View Layout
                     </a>
                     @elseif($boothCount === 0)
                     <a href="{{ route('booth-layout', ['event_id' => $event->id]) }}" class="inline-flex items-center rounded-lg bg-[#ff7700] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e66600]">
-                        Add Booths
+                        Add Layout
                     </a>
                     @endif
                 </div>

@@ -144,7 +144,17 @@ $rows[] = [
                     <div class="flex flex-wrap gap-4 text-sm text-slate-600">
                         <div class="flex items-center">
                             <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                            <span>{{ $event && $event->start_time ? $event->start_time->format('d M Y') : 'TBA' }} - {{ $event && $event->end_time ? $event->end_time->format('d M Y') : 'TBA' }}</span>
+                            <span>
+                                @if($event && $event->start_time)
+                                {{ $event->start_time->format('d M Y') }}
+                                {{-- Only show end date if it exists AND is different from start date --}}
+                                @if($event->end_time && $event->start_time->format('d M Y') !== $event->end_time->format('d M Y'))
+                                - {{ $event->end_time->format('d M Y') }}
+                                @endif
+                                @else
+                                TBA
+                                @endif
+                            </span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>

@@ -33,6 +33,7 @@ $tabs = [
 
 // Define table headers
 $headers = [
+['title' => 'Floor no.', 'class' => 'w-24'],
 ['title' => 'Booth', 'class' => 'w-24'],
 ['title' => 'Size', 'class' => 'w-24'],
 ['title' => 'Type', 'class' => 'w-26'],
@@ -48,6 +49,10 @@ $boothStatus = getBoothStatusDisplay($booth->status);
 $rows[] = [
 'rowClass' => 'h-20',
 'cells' => [
+[
+'content' => $booth->floor_number ?? 'N/A',
+'class' => 'text-gray-600'
+],
 [
 'content' => $booth->name ?? 'N/A',
 'class' => 'font-medium text-gray-900'
@@ -186,7 +191,7 @@ $rows[] = [
                                     </div>
                                     @if($isRegistrationOpen)
                                     <a href="{{ auth()->check() ? '/events/' . $event->id . '/booths' : '/login' }}" class="bg-[#ff7700] hover:bg-[#e66600] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
-                                        View Booths
+                                        View Layout
                                     </a>
                                     @else
                                     <div class="bg-gray-100 text-gray-600 font-medium py-2 px-6 rounded-lg">

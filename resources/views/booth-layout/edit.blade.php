@@ -79,10 +79,6 @@
                 <div class="flex-1">
                     <h4 class="text-sm font-semibold text-slate-700 mb-3">Floor Actions</h4>
                     <div class="flex flex-wrap gap-3">
-                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all hover:shadow-md flex items-center gap-2" onclick="renameCurrentFloor()">
-                            <i class="fas fa-edit"></i>
-                            Rename Floor
-                        </button>
                         <button id="deleteFloorBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all hover:shadow-md flex items-center gap-2" onclick="deleteCurrentFloor()" style="display: none;">
                             <i class="fas fa-trash"></i>
                             Delete Floor
@@ -201,9 +197,9 @@
                                 <li>Select a booth to edit its properties in this panel</li>
                                 <li>Double-click any element to edit its label</li>
                                 <li>Drag elements to position them</li>
+                                <li>Elements align with nearby objects (orange guides appear)</li>
                                 <li>Use Zoom buttons or mouse wheel to zoom</li>
                                 <li>Click and drag empty space to pan</li>
-                                <li>Shortcuts: Ctrl+D (duplicate), Delete (remove)</li>
                             </ul>
                         </div>
                     </div>
@@ -224,6 +220,13 @@
             backgroundColor: '#ffffff',
             selection: true
         });
+
+        // Snapping configuration
+        const SNAP_THRESHOLD = 10; // Distance in pixels to trigger snapping
+        const ANGLE_SNAP_THRESHOLD = 10; // Degrees to snap to cardinal directions (smaller = less aggressive)
+        const SNAP_ANGLES = [0, 90, 180, 270]; // Cardinal angles for wall snapping
+        let alignmentLines = []; // Store alignment guide lines
+        let isSnapping = false; // Prevent snapping feedback loops
 
 
         // Custom rotate icon - modern circular arrow design
@@ -335,7 +338,7 @@
                 textColor: '#000000',
                 defaultLabel: 'Wall',
                 width: 150, // Default wall length
-                height: 4 // Wall thickness
+                height: 8 // Wall thickness
             },
             custom: {
                 color: '#ffffff',
@@ -468,7 +471,9 @@
                     elementType: 'wall',
                     elementLabel: customLabel || `${config.defaultLabel} ${elementCounters[type]++}`,
                     originalWidth: width,
-                    originalHeight: height
+                    originalHeight: height,
+                    snapAngle: 90,
+                    snapThreshold: ANGLE_SNAP_THRESHOLD
                 });
 
                 line.setControlsVisibility({
@@ -558,11 +563,11 @@
             const width = Math.round(obj.originalWidth || obj.width);
             const height = Math.round(obj.originalHeight || obj.height);
             const label = obj.elementLabel || (obj.elementType === 'booth' ? 'Booth' : 'Custom');
-            
+
             let html = '';
 
             if (obj.elementType === 'custom') {
-                 html += `
+                html += `
                     <div class="mb-4">
                         <label class="block mb-2 text-slate-700 font-medium text-sm">Label:</label>
                         <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
@@ -620,10 +625,10 @@
 
             const labelInput = document.getElementById('propLabel');
             const newLabel = labelInput ? labelInput.value : (obj.elementLabel || (obj.elementType === 'booth' ? 'Booth' : 'Custom'));
-            
+
             let newWidth, newHeight;
             const widthInput = document.getElementById('propWidth');
-            
+
             if (widthInput) {
                 newWidth = parseInt(widthInput.value, 10) || 120;
                 newHeight = parseInt(document.getElementById('propHeight').value, 10) || 80;
@@ -904,12 +909,30 @@
             if (floorLayouts[currentFloorNumber]) {
                 // Load from memory if available
                 canvas.loadFromJSON(floorLayouts[currentFloorNumber], function() {
-                    // Re-apply locks for booths
+                    // Re-apply locks and controls for specific element types
                     canvas.getObjects().forEach(obj => {
                         if (obj.elementType === 'booth') {
                             obj.set({
                                 lockScalingX: true,
                                 lockScalingY: true
+                            });
+                        } else if (obj.elementType === 'wall') {
+                            // Restore wall control visibility
+                            obj.setControlsVisibility({
+                                mt: false,
+                                mb: false,
+                                ml: true,
+                                mr: true,
+                                tl: false,
+                                tr: false,
+                                bl: false,
+                                br: false,
+                                mtr: true
+                            });
+                            // Apply snapping properties
+                            obj.set({
+                                snapAngle: 90,
+                                snapThreshold: ANGLE_SNAP_THRESHOLD
                             });
                         }
                     });
@@ -933,12 +956,30 @@
                         if (data.layout) {
                             isLoadingLayout = true;
                             canvas.loadFromJSON(data.layout, function() {
-                                // Re-apply locks for booths
+                                // Re-apply locks and controls for specific element types
                                 canvas.getObjects().forEach(obj => {
                                     if (obj.elementType === 'booth') {
                                         obj.set({
                                             lockScalingX: true,
                                             lockScalingY: true
+                                        });
+                                    } else if (obj.elementType === 'wall') {
+                                        // Restore wall control visibility
+                                        obj.setControlsVisibility({
+                                            mt: false,
+                                            mb: false,
+                                            ml: true,
+                                            mr: true,
+                                            tl: false,
+                                            tr: false,
+                                            bl: false,
+                                            br: false,
+                                            mtr: true
+                                        });
+                                        // Apply snapping properties
+                                        obj.set({
+                                            snapAngle: 90,
+                                            snapThreshold: ANGLE_SNAP_THRESHOLD
                                         });
                                     }
                                 });
@@ -1147,12 +1188,30 @@
 
                 await new Promise(resolve => {
                     canvas.loadFromJSON(data.layout, () => {
-                        // Re-apply locks for booths
+                        // Re-apply locks and controls for specific element types
                         canvas.getObjects().forEach(obj => {
                             if (obj.elementType === 'booth') {
                                 obj.set({
                                     lockScalingX: true,
                                     lockScalingY: true
+                                });
+                            } else if (obj.elementType === 'wall') {
+                                // Restore wall control visibility
+                                obj.setControlsVisibility({
+                                    mt: false,
+                                    mb: false,
+                                    ml: true,
+                                    mr: true,
+                                    tl: false,
+                                    tr: false,
+                                    bl: false,
+                                    br: false,
+                                    mtr: true
+                                });
+                                // Apply snapping properties
+                                obj.set({
+                                    snapAngle: 90,
+                                    snapThreshold: ANGLE_SNAP_THRESHOLD
                                 });
                             }
                         });
@@ -1279,6 +1338,173 @@
                 canvas.defaultCursor = 'default';
                 canvas.renderAll();
             }
+        });
+
+        // Snapping helper functions
+        function clearAlignmentLines() {
+            alignmentLines.forEach(line => canvas.remove(line));
+            alignmentLines = [];
+        }
+
+        function drawAlignmentLine(x1, y1, x2, y2) {
+            const line = new fabric.Line([x1, y1, x2, y2], {
+                stroke: '#ff7700',
+                strokeWidth: 1,
+                strokeDashArray: [5, 5],
+                selectable: false,
+                evented: false,
+                opacity: 0.8
+            });
+            canvas.add(line);
+            alignmentLines.push(line);
+        }
+
+        function getObjectEdges(obj) {
+            const matrix = obj.calcTransformMatrix();
+            const tl = fabric.util.transformPoint({
+                x: -obj.width / 2,
+                y: -obj.height / 2
+            }, matrix);
+            const tr = fabric.util.transformPoint({
+                x: obj.width / 2,
+                y: -obj.height / 2
+            }, matrix);
+            const bl = fabric.util.transformPoint({
+                x: -obj.width / 2,
+                y: obj.height / 2
+            }, matrix);
+            const br = fabric.util.transformPoint({
+                x: obj.width / 2,
+                y: obj.height / 2
+            }, matrix);
+
+            const left = Math.min(tl.x, tr.x, bl.x, br.x);
+            const right = Math.max(tl.x, tr.x, bl.x, br.x);
+            const top = Math.min(tl.y, tr.y, bl.y, br.y);
+            const bottom = Math.max(tl.y, tr.y, bl.y, br.y);
+
+            return {
+                left,
+                right,
+                top,
+                bottom,
+                centerX: (left + right) / 2,
+                centerY: (top + bottom) / 2,
+                points: {
+                    tl,
+                    tr,
+                    bl,
+                    br
+                }
+            };
+        }
+
+        // Object moving with snapping
+        canvas.on('object:moving', function(e) {
+            const obj = e.target;
+
+            // Prevent feedback loops
+            if (isSnapping) return;
+
+            clearAlignmentLines();
+
+            // Skip snapping if not a wall or booth
+            if (!obj.elementType) return;
+
+            const movingEdges = getObjectEdges(obj);
+
+            let bestSnapX = null;
+            let minDiffX = SNAP_THRESHOLD;
+
+            let bestSnapY = null;
+            let minDiffY = SNAP_THRESHOLD;
+
+            canvas.getObjects().forEach(target => {
+                if (target === obj || !target.elementType || target === canvas.getActiveObject()) return;
+
+                const targetEdges = getObjectEdges(target);
+
+                // Horizontal snapping
+                const diffLeft = targetEdges.left - movingEdges.left;
+                if (Math.abs(diffLeft) < minDiffX) {
+                    minDiffX = Math.abs(diffLeft);
+                    bestSnapX = {
+                        val: diffLeft,
+                        line: targetEdges.left
+                    };
+                }
+
+                const diffRight = targetEdges.right - movingEdges.right;
+                if (Math.abs(diffRight) < minDiffX) {
+                    minDiffX = Math.abs(diffRight);
+                    bestSnapX = {
+                        val: diffRight,
+                        line: targetEdges.right
+                    };
+                }
+
+                const diffCenterX = targetEdges.centerX - movingEdges.centerX;
+                if (Math.abs(diffCenterX) < minDiffX) {
+                    minDiffX = Math.abs(diffCenterX);
+                    bestSnapX = {
+                        val: diffCenterX,
+                        line: targetEdges.centerX
+                    };
+                }
+
+                // Vertical snapping
+                const diffTop = targetEdges.top - movingEdges.top;
+                if (Math.abs(diffTop) < minDiffY) {
+                    minDiffY = Math.abs(diffTop);
+                    bestSnapY = {
+                        val: diffTop,
+                        line: targetEdges.top
+                    };
+                }
+
+                const diffBottom = targetEdges.bottom - movingEdges.bottom;
+                if (Math.abs(diffBottom) < minDiffY) {
+                    minDiffY = Math.abs(diffBottom);
+                    bestSnapY = {
+                        val: diffBottom,
+                        line: targetEdges.bottom
+                    };
+                }
+
+                const diffCenterY = targetEdges.centerY - movingEdges.centerY;
+                if (Math.abs(diffCenterY) < minDiffY) {
+                    minDiffY = Math.abs(diffCenterY);
+                    bestSnapY = {
+                        val: diffCenterY,
+                        line: targetEdges.centerY
+                    };
+                }
+            });
+
+            if (bestSnapX) {
+                obj.left += bestSnapX.val;
+                drawAlignmentLine(bestSnapX.line, 0, bestSnapX.line, canvas.height);
+            }
+
+            if (bestSnapY) {
+                obj.top += bestSnapY.val;
+                drawAlignmentLine(0, bestSnapY.line, canvas.width, bestSnapY.line);
+            }
+
+            if (bestSnapX || bestSnapY) {
+                obj.setCoords();
+            }
+        });
+
+
+
+        // Clear alignment lines when object is released
+        canvas.on('object:modified', function() {
+            setTimeout(() => clearAlignmentLines(), 100);
+        });
+
+        canvas.on('selection:cleared', function() {
+            clearAlignmentLines();
         });
         window.addEventListener('load', async function() {
             const pageLoader = document.getElementById('pageLoader');
