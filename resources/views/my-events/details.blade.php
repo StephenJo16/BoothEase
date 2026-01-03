@@ -35,7 +35,7 @@ $headers = [
 
 // Paginate booths
 $perPage = (int) request('perPage', 5);
-$paginatedBooths = $event->booths()->orderByRaw('LENGTH(name), name')->paginate($perPage)->withQueryString();
+$paginatedBooths = $event->booths()->orderBy('floor_number')->orderByRaw('LENGTH(name), name')->paginate($perPage)->withQueryString();
 
 // Transform booths data into rows format
 $rows = [];
