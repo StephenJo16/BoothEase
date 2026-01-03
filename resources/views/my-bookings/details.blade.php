@@ -135,6 +135,17 @@ $eventDuration = getEventDuration($event);
                             </div>
                         </div>
                         @endif
+
+                        @if($booking->product_picture)
+                        <!-- Product Pictures Section -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Product Pictures</h4>
+                            <a href="{{ asset('storage/' . $booking->product_picture) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-[#ff7700] hover:bg-gray-100 hover:text-[#e66600] transition-colors">
+                                <i class="fas fa-file-pdf mr-2"></i>
+                                View Product Pictures
+                            </a>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Booth Layout -->

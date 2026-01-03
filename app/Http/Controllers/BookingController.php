@@ -180,6 +180,14 @@ class BookingController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
+            // Handle product picture upload
+            if ($request->hasFile('product_picture')) {
+                $file = $request->file('product_picture');
+                $fileName = 'product_picture_' . $booking->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('product_pictures', $fileName, 'public');
+                $booking->update(['product_picture' => $filePath]);
+            }
+
             // Update booth status to pending (will become 'booked' after payment)
             $booth->update(['status' => 'pending']);
 

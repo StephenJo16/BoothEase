@@ -191,9 +191,6 @@ default => 'bg-gray-100 text-gray-800',
                             <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Full Name</label>
                             <div class="w-full sm:w-2/3">
                                 <input id="full_name" name="full_name" value="{{ old('full_name', $user->display_name) }}" class=" profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]" readonly>
-                                @error('full_name')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -202,9 +199,6 @@ default => 'bg-gray-100 text-gray-800',
                             </label>
                             <div class="w-full sm:w-2/3">
                                 <input id="business_name" name="business_name" value="{{ old('business_name', $user->name) }}" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700]" readonly>
-                                @error('business_name')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -221,9 +215,6 @@ default => 'bg-gray-100 text-gray-800',
                                     <input id="mobile_number" name="mobile_number" value="{{ old('mobile_number', preg_replace('/^\+?62/', '', $user->phone_number)) }}" class="profile-input hidden flex-1 w-full border-0 rounded-r-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-0" readonly>
                                     <span id="mobile-display" class="flex-1 px-3 py-3 text-gray-900">{{ preg_replace('/^\+?62\s*/', '', $user->phone_number ? formatPhoneNumber($user->phone_number) : 'N/A') }}</span>
                                 </div>
-                                @error('mobile_number')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -231,21 +222,7 @@ default => 'bg-gray-100 text-gray-800',
                                 {{ $user->role_id === 3 ? 'Event Category' : 'Business Category' }}
                             </label>
                             <div class="w-full sm:w-2/3">
-                                <div class="relative">
-                                    <select id="category_id" name="category_id" class="profile-select block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-[#ff7700] appearance-none" disabled>
-                                        @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}" @selected($user->category_id == $category->id)>
-                                            {{ $category->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
-                                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                                    </div>
-                                </div>
-                                @error('category_id')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                                <input id="category_name" value="{{ $user->category->name ?? 'N/A' }}" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900" readonly>
                             </div>
                         </div>
 
@@ -394,16 +371,6 @@ default => 'bg-gray-100 text-gray-800',
 
         document.addEventListener('DOMContentLoaded', function() {
 
-            // [FIX] Auto-open password form jika ada error validasi terkait password
-            // Ini agar user langsung bisa memperbaiki input tanpa klik tombol lagi
-            @if($errors - > has('current_password') || $errors - > has('new_password'))
-            togglePasswordChange();
-            @endif
-
-            // [FIX] Auto-open edit mode if there are profile validation errors
-            @if($errors - > has('full_name') || $errors - > has('business_name') || $errors - > has('mobile_number') || $errors - > has('category_id'))
-            toggleEditMode();
-            @endif
         });
     </script>
 

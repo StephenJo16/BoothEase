@@ -27,6 +27,7 @@ class StoreBookingRequest extends FormRequest
             'business_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
+            'product_picture' => 'required|file|mimes:pdf|max:5120',
             'notes' => 'nullable|string|max:1000',
         ];
     }
@@ -44,6 +45,10 @@ class StoreBookingRequest extends FormRequest
             'email.required' => 'Email address is required.',
             'email.email' => 'Please provide a valid email address.',
             'phone.required' => 'Phone number is required.',
+            'product_picture.required' => 'Product pictures are required.',
+            'product_picture.file' => 'Product pictures must be a file.',
+            'product_picture.mimes' => 'Product pictures must be a PDF file.',
+            'product_picture.max' => 'Product pictures must not exceed 5MB.',
         ];
     }
 }

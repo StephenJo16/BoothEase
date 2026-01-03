@@ -208,7 +208,7 @@ $userPhone = $digits;
                         Your Information
                     </h2>
 
-                    <form id="bookingForm" method="POST" action="{{ route('bookings.store') }}" class="space-y-5">
+                    <form id="bookingForm" method="POST" action="{{ route('bookings.store') }}" enctype="multipart/form-data" class="space-y-5">
                         @csrf
                         <input type="hidden" name="booth_id" value="{{ $booth->id }}">
 
@@ -269,6 +269,45 @@ $userPhone = $digits;
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
+                        </div>
+
+                        <!-- Product Picture Upload -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Pictures <span class="text-red-500">*</span>
+                            </label>
+                            <p class="text-xs text-slate-600 mb-2">Upload a PDF containing pictures of your products (max 5MB)</p>
+                            <div class="relative">
+                                <input type="file" name="product_picture" id="productPictureUpload" class="hidden" accept=".pdf" required>
+                                <button type="button" id="productUploadButton"
+                                    class="w-full px-4 py-3 border-2 border-dashed {{ $errors->has('product_picture') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm text-slate-600 hover:border-[#ff7700] hover:text-[#ff7700] transition-colors duration-200 flex items-center justify-center gap-2">
+                                    <i class="fas fa-cloud-upload-alt text-lg"></i>
+                                    <span>Click to upload product pictures (PDF only)</span>
+                                </button>
+
+                                <!-- File Preview (Initially Hidden) -->
+                                <div id="productFilePreview" class="hidden w-full px-4 py-3 border-2 border-green-500 rounded-lg bg-green-50 flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-file-pdf text-red-600 text-lg"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p id="productFileName" class="text-sm font-medium text-gray-900 truncate"></p>
+                                            <p id="productFileSize" class="text-xs text-gray-500"></p>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="removeProductFile" class="flex-shrink-0 ml-3 text-red-600 hover:text-red-800 transition-colors">
+                                        <i class="fas fa-times-circle text-xl"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            @error('product_picture')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <p id="productPictureError" class="mt-1 text-sm text-red-600 hidden">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                Please upload product pictures before submitting your booking request.
+                            </p>
                         </div>
 
                         <!-- Additional Notes -->
@@ -447,9 +486,123 @@ $userPhone = $digits;
             phoneInput.addEventListener('blur', applyFormattedPhone);
         }
 
+        // Product Picture Upload Functionality
+        const productFileInput = document.getElementById('productPictureUpload');
+        const productUploadButton = document.getElementById('productUploadButton');
+        const productFilePreview = document.getElementById('productFilePreview');
+        const productFileName = document.getElementById('productFileName');
+        const productFileSize = document.getElementById('productFileSize');
+        const removeProductFileBtn = document.getElementById('removeProductFile');
+        const productPictureError = document.getElementById('productPictureError');
+
+        // Handle upload button click
+        if (productUploadButton) {
+            productUploadButton.addEventListener('click', function() {
+                productFileInput.click();
+            });
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Handle file selection
+        if (productFileInput) {
+            productFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    this.setCustomValidity('');
+                    const file = e.target.files[0];
+
+                    // Update file info
+                    productFileName.textContent = file.name;
+                    productFileSize.textContent = formatFileSize(file.size);
+
+                    // Hide upload button and show preview
+                    productUploadButton.classList.add('hidden');
+                    productFilePreview.classList.remove('hidden');
+
+                    // Remove error styling and message
+                    productUploadButton.classList.remove('border-red-500');
+                    productUploadButton.classList.add('border-slate-300');
+                    if (productPictureError) {
+                        productPictureError.classList.add('hidden');
+                    }
+                }
+            });
+
+            // Handle invalid file input
+            productFileInput.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                this.setCustomValidity('Please upload product pictures.');
+
+                // Add red border to upload button
+                productUploadButton.classList.add('border-red-500');
+                productUploadButton.classList.remove('border-slate-300');
+
+                // Show error message
+                if (productPictureError) {
+                    productPictureError.classList.remove('hidden');
+                }
+
+                // Scroll to the upload section
+                productUploadButton.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            });
+        }
+
+        // Handle file removal
+        if (removeProductFileBtn) {
+            removeProductFileBtn.addEventListener('click', function() {
+                // Clear file input
+                productFileInput.value = '';
+
+                // Show upload button and hide preview
+                productUploadButton.classList.remove('hidden');
+                productFilePreview.classList.add('hidden');
+
+                // Clear file info
+                productFileName.textContent = '';
+                productFileSize.textContent = '';
+
+                // Hide error message
+                if (productPictureError) {
+                    productPictureError.classList.add('hidden');
+                }
+            });
+        }
+
         // Simple form handling - let Laravel handle validation
         if (bookingForm) {
-            bookingForm.addEventListener('submit', function() {
+            bookingForm.addEventListener('submit', function(e) {
+                // Check if product picture is uploaded
+                if (!productFileInput.files || productFileInput.files.length === 0) {
+                    e.preventDefault();
+                    
+                    // Show error message
+                    if (productPictureError) {
+                        productPictureError.classList.remove('hidden');
+                    }
+                    
+                    // Add red border to upload button
+                    productUploadButton.classList.add('border-red-500');
+                    productUploadButton.classList.remove('border-slate-300');
+                    
+                    // Scroll to the upload section
+                    productUploadButton.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    
+                    return false;
+                }
+
                 if (phoneInput) {
                     phoneInput.value = phoneInput.value.replace(/\D+/g, '');
                 }
