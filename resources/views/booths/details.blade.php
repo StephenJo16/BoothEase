@@ -286,7 +286,7 @@ $userPhone = $digits;
                                 </button>
 
                                 <!-- File Preview (Initially Hidden) -->
-                                <div id="productFilePreview" class="hidden w-full px-4 py-3 border-2 border-green-500 rounded-lg bg-green-50 flex items-center justify-between">
+                                <div id="productFilePreview" class="w-full px-4 py-3 border-2 border-green-500 rounded-lg bg-green-50 flex items-center justify-between">
                                     <div class="flex items-center gap-3 flex-1 min-w-0">
                                         <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                                             <i class="fas fa-file-pdf text-red-600 text-lg"></i>
@@ -584,22 +584,22 @@ $userPhone = $digits;
                 // Check if product picture is uploaded
                 if (!productFileInput.files || productFileInput.files.length === 0) {
                     e.preventDefault();
-                    
+
                     // Show error message
                     if (productPictureError) {
                         productPictureError.classList.remove('hidden');
                     }
-                    
+
                     // Add red border to upload button
                     productUploadButton.classList.add('border-red-500');
                     productUploadButton.classList.remove('border-slate-300');
-                    
+
                     // Scroll to the upload section
                     productUploadButton.scrollIntoView({
                         behavior: 'smooth',
                         block: 'center'
                     });
-                    
+
                     return false;
                 }
 
