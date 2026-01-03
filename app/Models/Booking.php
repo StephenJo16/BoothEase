@@ -28,6 +28,7 @@ class Booking extends Model
         'booking_date',
         'total_price',
         'notes',
+        'product_picture',
         'confirmed_at',
         'rejection_reason',
         'rejected_at',
