@@ -113,17 +113,8 @@ $totalRatings = $tenantRatings->count();
                         </div>
                         @endif
                         @if($booking->product_picture)
+
                         <!-- Product Pictures Section -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Product Pictures</label>
-                            <a href="{{ asset('storage/' . $booking->product_picture) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-[#ff7700] hover:bg-gray-100 hover:text-[#e66600] transition-colors">
-                                <i class="fas fa-file-pdf mr-2"></i>
-                                View Product Pictures
-                            </a>
-                        </div>
-                        @endif
-                        <!-- Product Pictures -->
-                        @if($booking->product_picture)
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Product Pictures</label>
                             <a href="{{ asset('storage/' . $booking->product_picture) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-[#ff7700] hover:bg-gray-100 hover:text-[#e66600] transition-colors">
