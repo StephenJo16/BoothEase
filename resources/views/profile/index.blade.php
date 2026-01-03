@@ -223,7 +223,7 @@ default => 'bg-gray-100 text-gray-800',
                                 {{ $user->role_id === 3 ? 'Event Category' : 'Business Category' }}
                             </label>
                             <div class="w-full sm:w-2/3">
-                                <input id="category_name" value="{{ $user->category->name ?? 'N/A' }}" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900" readonly>
+                                <span id="category_name" class="block px-3 py-3 text-gray-900">{{ $user->category->name ?? 'N/A' }}</span>
                             </div>
                         </div>
 
