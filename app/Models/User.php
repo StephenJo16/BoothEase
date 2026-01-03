@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name', // Dari form: business_name
         'display_name', // Dari form: full_name
         'email',
+        'email_verified_at',
         'phone_number', // Gabungan country_code + phone_number
         'password',
         'provider',
@@ -81,6 +83,16 @@ class User extends Authenticatable
     public function ratingsReceived()
     {
         return $this->hasMany(Rating::class, 'ratee_id');
+    }
+
+    /**
+     * Determine if the user has verified their email address.
+     *
+     * @return bool
+     */
+    public function hasVerifiedEmail()
+    {
+        return ! is_null($this->email_verified_at) || ! is_null($this->provider);
     }
 
     /**

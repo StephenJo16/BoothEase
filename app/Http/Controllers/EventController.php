@@ -12,11 +12,17 @@ use App\Models\Subdistrict;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
     public function publicIndex(Request $request)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         // Update event statuses before loading
         $this->updateEventStatuses();
 
@@ -166,6 +172,11 @@ class EventController extends Controller
 
     public function publicShow(Event $event)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         // Only show published, ongoing, or completed events (not draft or finalized)
         if (!in_array($event->status, [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED])) {
             abort(404, 'Event not found or not available');
@@ -243,6 +254,11 @@ class EventController extends Controller
 
     public function showBooths(Event $event)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         // Only show published events
         if ($event->status !== Event::STATUS_PUBLISHED) {
             abort(404, 'Event not found or not available');
@@ -282,6 +298,11 @@ class EventController extends Controller
 
     public function showBoothDetails($boothId)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         $booth = \App\Models\Booth::with(['event.category', 'event.user'])
             ->findOrFail($boothId);
 

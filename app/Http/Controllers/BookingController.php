@@ -204,6 +204,11 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
+        // Check if user is authorized to view this booking
+        if (Auth::id() !== $booking->user_id) {
+            abort(403, 'Unauthorized access to this booking.');
+        }
+
         // Update booking statuses before loading
         $this->updateBookingStatuses();
 

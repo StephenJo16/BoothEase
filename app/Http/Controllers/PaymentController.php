@@ -292,6 +292,11 @@ class PaymentController extends Controller
      */
     public function success(Booking $booking)
     {
+        // Check if booking belongs to authenticated user
+        if ($booking->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to booking');
+        }
+
         // Update payment status when user is redirected after successful payment
         // This is a fallback in case the webhook doesn't arrive immediately
         if ($booking->payment && $booking->payment->payment_status !== 'completed') {
@@ -308,6 +313,11 @@ class PaymentController extends Controller
      */
     public function pending(Booking $booking)
     {
+        // Check if booking belongs to authenticated user
+        if ($booking->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to booking');
+        }
+
         // Check payment status
         if ($booking->payment) {
             $this->verifyPaymentStatus($booking->payment);
@@ -385,6 +395,11 @@ class PaymentController extends Controller
      */
     public function error(Booking $booking)
     {
+        // Check if booking belongs to authenticated user
+        if ($booking->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to booking');
+        }
+
         return redirect()->route('my-booking-details', $booking->id)
             ->with('error', 'Payment failed. Please try again.');
     }

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Verified;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookingController;
@@ -40,6 +41,8 @@ Route::get('/', function () {
     return view('landingpage.index', compact('topEvents'));
 })->name('home');
 
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+
 // --- GRUP ROUTE UNTUK USER YANG BELUM LOGIN (GUEST) ---
 Route::middleware('guest')->group(function () {
     // Menampilkan halaman signup
@@ -58,11 +61,39 @@ Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect'])->
 Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('google.callback');
 
 
+// Email Verification Notice
+Route::get('/email/verify', function () {
+    return view('verify-email.index');
+})->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = User::findOrFail($id);
+
+    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403);
+    }
+
+    if (! $user->hasVerifiedEmail()) {
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+    }
+
+    Auth::login($user);
+
+    return redirect('/events')->with('success', 'Email verified successfully!');
+})->middleware(['signed'])->name('verification.verify');
+
 // --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---   
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     // GET route as fallback for expired CSRF tokens
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
+
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('message', 'Verification link sent!');
+    })->middleware('throttle:6,1')->name('verification.send');
 
     Route::get('/profile', [UserController::class, 'show'])->name('profile');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
@@ -88,18 +119,30 @@ Route::get('/events/{event}/booths', [EventController::class, 'showBooths'])->na
 
 Route::get('/booths/{booth}/details', [EventController::class, 'showBoothDetails'])->name('booths.details');
 
-Route::middleware(['auth', 'role:tenant'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:tenant'])->group(function () {
     Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
     Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
     Route::get('/my-bookings/{booking}/invoice', [BookingController::class, 'downloadInvoice'])->name('booking.invoice');
 });
 
-Route::middleware(['auth', 'role:event_organizer'])->group(function () {
-    Route::get('/my-events/details', function () {
+Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function () {
+    Route::get('/my-events/details', function (Request $request) {
+        if ($request->has('event_id')) {
+            $event = Event::findOrFail($request->query('event_id'));
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('my-events.details');
     })->name('my-event-details');
 
-    Route::get('/my-events/edit', function () {
+    Route::get('/my-events/edit', function (Request $request) {
+        if ($request->has('event_id')) {
+            $event = Event::findOrFail($request->query('event_id'));
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('my-events.edit');
     })->name('my-event-edit');
 
@@ -115,12 +158,12 @@ Route::middleware(['auth', 'role:event_organizer'])->group(function () {
     });
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'create'])->name('request-refund');
     Route::post('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'store'])->name('refund-request.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events/{event}/refund-requests', [\App\Http\Controllers\RefundRequestController::class, 'index'])->name('refund-requests');
     Route::get('/events/{event}/refund-requests/{refundRequest}', [\App\Http\Controllers\RefundRequestController::class, 'show'])->name('refund-requests.show');
     Route::patch('/events/{event}/refund-requests/{refundRequest}/approve', [\App\Http\Controllers\RefundRequestController::class, 'approve'])->name('refund-requests.approve');
@@ -132,7 +175,7 @@ Route::get('/refund-requests/details', function () {
 })->name('refund-requests-details');
 
 // Booking requests routes (for event organizers)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events/{event}/booking-requests', [BookingController::class, 'bookingRequests'])
         ->name('booking-requests');
 
@@ -149,7 +192,7 @@ Route::middleware('auth')->group(function () {
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
 // Payment routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payment.create');
     Route::post('/bookings/{booking}/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])->name('payment.initiate');
     Route::post('/bookings/{booking}/payment/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payment.check-status');
@@ -162,7 +205,7 @@ Route::middleware('auth')->group(function () {
 Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
 
 // Rating routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'store'])->name('rating.store');
     Route::get('/bookings/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkRating'])->name('rating.check');
 
@@ -172,27 +215,47 @@ Route::middleware('auth')->group(function () {
     Route::get('/events/{event}/attendants/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkOrganizerRating'])->name('attendant.rating.check');
 });
 
-
-// Public booth layout view
-Route::get('/booth-layout/view', function (Request $request) {
-    return view('booth-layout.view', [
-        'eventId' => $request->query('event_id'),
-    ]);
-})->name('booth-layout.view');
 Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');
 Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
 
 // Protected booth layout editing (Organizer only)
-Route::middleware(['auth', 'role:event_organizer'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function () {
     Route::get('/booth-layout', function (Request $request) {
+        $eventId = $request->query('event_id');
+        if ($eventId) {
+            $event = Event::findOrFail($eventId);
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('booth-layout.index', [
-            'eventId' => $request->query('event_id'),
+            'eventId' => $eventId,
         ]);
     })->name('booth-layout');
 
-    Route::get('/booth-layout/edit', function () {
+    Route::get('/booth-layout/edit', function (Request $request) {
+        $eventId = $request->query('event_id');
+        if ($eventId) {
+            $event = Event::findOrFail($eventId);
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
         return view('booth-layout.edit');
     })->name('booth-layout.edit');
+
+    Route::get('/booth-layout/view', function (Request $request) {
+        $eventId = $request->query('event_id');
+        if ($eventId) {
+            $event = Event::findOrFail($eventId);
+            if ($event->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
+        return view('booth-layout.view', [
+            'eventId' => $eventId,
+        ]);
+    })->name('booth-layout.view');
 
     Route::post('/booth-layout/save', [BoothController::class, 'store'])->name('booth-layout.save');
     Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
