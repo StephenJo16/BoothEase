@@ -143,7 +143,7 @@ return $a->floor_number <=> $b->floor_number;
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
                                             <div class="relative">
-                                                <input type="text" value="{{ $dateDisplay }}" class="w-full py-2 text-sm" readonly>
+                                                <input type="text" value="{{ $dateDisplay }}" class="w-full py-2 text-sm border-0 focus:outline-none focus:ring-0" readonly>
                                                 <i class="fas fa-calendar-alt absolute right-1.5 top-2.5 text-gray-400"></i>
                                             </div>
                                         </div>
@@ -152,7 +152,7 @@ return $a->floor_number <=> $b->floor_number;
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
                                             <div class="relative">
-                                                <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 text-sm" readonly>
+                                                <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 text-sm border-0 focus:outline-none focus:ring-0" readonly>
                                             </div>
                                         </div>
                                         @endif
@@ -419,7 +419,7 @@ return $a->floor_number <=> $b->floor_number;
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
                                         <div class="relative">
-                                            <input type="text" value="{{ $dateDisplay }}" class="w-full py-2 rounded-lg text-sm" readonly>
+                                            <input type="text" value="{{ $dateDisplay }}" class="w-full py-2 rounded-lg text-sm border-0 focus:outline-none focus:ring-0" readonly>
                                         </div>
                                     </div>
 
@@ -427,7 +427,7 @@ return $a->floor_number <=> $b->floor_number;
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
                                         <div class="relative">
-                                            <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 rounded-lg text-sm" readonly>
+                                            <input type="text" value="{{ $timeDisplay }}" class="w-full py-2 rounded-lg text-sm border-0 focus:outline-none focus:ring-0" readonly>
                                         </div>
                                     </div>
                                     @endif

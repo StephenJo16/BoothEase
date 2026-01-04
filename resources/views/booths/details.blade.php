@@ -287,7 +287,7 @@ $userPhone = $digits;
                                 </button>
 
                                 <!-- File Preview (Initially Hidden) -->
-                                <div id="productFilePreview" class="w-full px-4 py-3 border-2 border-green-500 rounded-lg bg-green-50 flex items-center justify-between">
+                                <div id="productFilePreview" class="w-full px-4 py-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between">
                                     <div class="flex items-center gap-3 flex-1 min-w-0">
                                         <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                                             <i class="fas fa-file-pdf text-red-600 text-lg"></i>
