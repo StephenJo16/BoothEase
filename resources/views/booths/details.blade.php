@@ -277,20 +277,22 @@ $userPhone = $digits;
                             <label class="block text-sm font-semibold text-slate-700 mb-2">
                                 Product Pictures <span class="text-red-500">*</span>
                             </label>
-                            <p class="text-xs text-slate-600 mb-2">Upload a PDF containing pictures of your products (max 5MB)</p>
+                            <p class="text-xs text-slate-600 mb-2">Upload pictures of your products - PDF, JPEG, JPG, or PNG (max 5MB)</p>
                             <div class="relative">
-                                <input type="file" name="product_picture" id="productPictureUpload" class="hidden" accept=".pdf" required>
+                                <input type="file" name="product_picture" id="productPictureUpload" class="hidden" accept=".pdf,.jpeg,.jpg,.png" required>
                                 <button type="button" id="productUploadButton"
                                     class="w-full px-4 py-3 border-2 border-dashed {{ $errors->has('product_picture') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm text-slate-600 hover:border-[#ff7700] hover:text-[#ff7700] transition-colors duration-200 flex items-center justify-center gap-2">
                                     <i class="fas fa-cloud-upload-alt text-lg"></i>
-                                    <span>Click to upload product pictures (PDF only)</span>
+                                    <span>Click to upload product pictures (PDF, JPEG, JPG, PNG)</span>
                                 </button>
 
                                 <!-- File Preview (Initially Hidden) -->
-                                <div id="productFilePreview" class="w-full px-4 py-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between">
+                                <div id="productFilePreview" class="hidden w-full px-4 py-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between">
                                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                                        <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-file-pdf text-red-600 text-lg"></i>
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-6 h-6 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <p id="productFileName" class="text-sm font-medium text-gray-900 truncate"></p>
@@ -298,7 +300,9 @@ $userPhone = $digits;
                                         </div>
                                     </div>
                                     <button type="button" id="removeProductFile" class="flex-shrink-0 ml-3 text-red-600 hover:text-red-800 transition-colors">
-                                        <i class="fas fa-times-circle text-xl"></i>
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
