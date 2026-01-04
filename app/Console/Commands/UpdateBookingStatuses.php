@@ -67,6 +67,7 @@ class UpdateBookingStatuses extends Command
         $rejectedCount = 0;
         foreach ($bookingsToReject as $booking) {
             $booking->status = 'rejected';
+            $booking->rejection_reason = 'Your booking request was not accepted by the organizer before the event started.';
             $booking->save();
 
             if ($booking->booth) {
