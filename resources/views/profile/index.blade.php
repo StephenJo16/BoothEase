@@ -204,7 +204,7 @@ default => 'bg-gray-100 text-gray-800',
                         <div class="flex flex-col sm:flex-row sm:items-center">
                             <label class="text-sm font-medium text-gray-700 w-full sm:w-1/3 mb-2 sm:mb-0">Email</label>
                             <div class="w-full sm:w-2/3">
-                                <input id="email" value="{{ $user->email }}" class="profile-input block w-full border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 text-gray-900" readonly>
+                                <span id="category_name" class="block px-3 py-3 text-gray-900">{{ $user->email ?? 'N/A' }}</span>
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center">
@@ -223,6 +223,7 @@ default => 'bg-gray-100 text-gray-800',
                             </label>
                             <div class="w-full sm:w-2/3">
                                 <span id="category_name" class="block px-3 py-3 text-gray-900">{{ $user->category->name ?? 'N/A' }}</span>
+                                <input type="hidden" name="category_id" value="{{ $user->category_id }}">
                             </div>
                         </div>
 
