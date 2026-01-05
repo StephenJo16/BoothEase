@@ -364,6 +364,30 @@
             custom: 1
         };
 
+        // Function to find the lowest available number for a given element type
+        function getNextAvailableNumber(type) {
+            const defaultLabel = elementTypes[type].defaultLabel;
+            const existingNumbers = [];
+
+            // Get all objects of this type and extract their numbers
+            canvas.getObjects().forEach(obj => {
+                if (obj.elementType === type && obj.elementLabel) {
+                    const match = obj.elementLabel.match(new RegExp(`${defaultLabel}\\s+(\\d+)`));
+                    if (match) {
+                        existingNumbers.push(parseInt(match[1], 10));
+                    }
+                }
+            });
+
+            // Find the lowest available number starting from 1
+            let number = 1;
+            while (existingNumbers.includes(number)) {
+                number++;
+            }
+
+            return number;
+        }
+
         let isLoadingLayout = false;
         let objectIdCounter = 1;
 
@@ -412,7 +436,8 @@
 
         function createElement(type, left = 100, top = 100, customLabel = null, customProps = {}) {
             const config = elementTypes[type];
-            const label = customLabel || `${config.defaultLabel} ${elementCounters[type]++}`;
+            // Use custom label if provided, otherwise find the next available number
+            const label = customLabel || `${config.defaultLabel} ${getNextAvailableNumber(type)}`;
 
             const width = customProps.width || config.width;
             const height = customProps.height || config.height;

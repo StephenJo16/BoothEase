@@ -94,15 +94,15 @@ $dateDisplay = formatEventDate($event);
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Booking Invoice <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf" required>
                                     <button type="button" id="uploadButton"
-                                        class="w-full px-4 py-3 border-2 border-dashed @error('document') border-red-500 @else border-gray-300 @enderror rounded-lg text-sm text-gray-600 hover:border-[#ff7700] hover:text-[#ff7700] transition-colors duration-200 flex items-center justify-center gap-2">
+                                        class="w-full px-3 py-1 border-2 border-dashed @error('document') border-red-500 @else border-gray-300 @enderror rounded-lg text-sm text-gray-600 hover:border-[#ff7700] hover:text-[#ff7700] transition-colors duration-200 flex items-center justify-center gap-2">
                                         <i class="fas fa-cloud-upload-alt text-lg"></i>
-                                        <span>Click to upload invoice (PDF, JPEG, JPG, PNG)</span>
+                                        <span>Click to upload invoice</span>
                                     </button>
 
                                     <!-- File Preview -->
-                                    <div id="filePreview" class="hidden w-full px-4 py-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between">
+                                    <div id="filePreview" class="hidden w-full px-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between">
                                         <div class="flex items-center gap-3 flex-1 min-w-0">
                                             <div class="flex-shrink-0">
                                                 <svg class="w-6 h-6 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
@@ -132,7 +132,7 @@ $dateDisplay = formatEventDate($event);
                             <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason <span class="text-red-500">*</span></label>
                             <textarea rows="4" name="reason" required
                                 class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none @error('reason') border-red-500 @enderror"
-                                placeholder="Please explain why you need a refund...">{{ old('reason') }}</textarea>
+                                placeholder="Please explain why you need a refund... (at least 10 characters)">{{ old('reason') }}</textarea>
                             @error('reason')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -258,6 +258,21 @@ $dateDisplay = formatEventDate($event);
             if (e.target.files.length > 0) {
                 this.setCustomValidity('');
                 const file = e.target.files[0];
+                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+
+                // Validate file type
+                if (file.type !== 'application/pdf') {
+                    alert('Please upload a PDF file only.');
+                    fileInput.value = '';
+                    return;
+                }
+
+                // Validate file size
+                if (file.size > maxSize) {
+                    alert('File size must not exceed 5MB. Your file is ' + formatFileSize(file.size));
+                    fileInput.value = '';
+                    return;
+                }
 
                 // Update file info
                 fileName.textContent = file.name;
@@ -305,7 +320,7 @@ $dateDisplay = formatEventDate($event);
             if (!errorMsg) {
                 errorMsg = document.createElement('p');
                 errorMsg.className = 'mt-1 text-sm text-red-600 file-upload-error';
-                errorMsg.textContent = 'Please upload the booking invoice before submitting the refund request.';
+                errorMsg.textContent = 'Please upload the booking invoice in the booking details page before submitting the refund request.';
                 uploadButton.parentElement.appendChild(errorMsg);
             }
 
