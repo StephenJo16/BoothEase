@@ -347,6 +347,9 @@ class EventController extends Controller
                 'booths',
                 'booths as booked_booths_count' => function ($query) {
                     $query->where('status', 'booked');
+                },
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
                 }
             ])
             ->ownedBy($request->user());

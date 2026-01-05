@@ -363,6 +363,10 @@ $userPhone = $digits;
                                         <span class="font-semibold text-slate-900">{{ $booth->name }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
+                                        <span class="text-slate-700">Floor no.</span>
+                                        <span class="font-semibold text-slate-900">{{ $booth->floor_number }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
                                         <span class="text-slate-700">Type</span>
                                         <span class="font-semibold text-slate-900">{{ ucfirst($booth->type ?? 'Standard') }}</span>
                                     </div>

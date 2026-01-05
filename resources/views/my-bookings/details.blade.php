@@ -98,10 +98,14 @@ $eventDuration = getEventDuration($event);
                     <!-- Booth Details -->
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Booth Details</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Name</h4>
                                 <p class="text-lg font-semibold text-gray-900">{{ $booth->name }}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Floor no.</h4>
+                                <p class="text-lg font-semibold text-gray-900">{{ $booth->floor_number ?? 'Not specified' }}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Size</h4>
@@ -279,12 +283,6 @@ $eventDuration = getEventDuration($event);
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Duration</span>
                                 <span class="font-medium">{{ $eventDuration }} Day{{ $eventDuration > 1 ? 's' : '' }}</span>
-                            </div>
-                            @endif
-                            @if($booth->type)
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Booth Type</span>
-                                <span class="font-medium">{{ ucfirst($booth->type) }}</span>
                             </div>
                             @endif
                             <div class="border-t pt-4">

@@ -68,8 +68,8 @@ $totalRatings = $tenantRatings->count();
                                 <div class="text-gray-900 font-medium">{{ $booking->booth->name ?? 'N/A' }}</div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Booth Type</label>
-                                <div class="text-gray-900">{{ ucfirst($booking->booth->type ?? 'N/A') }}</div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Floor no.</label>
+                                <div class="text-gray-900">{{ $booking->booth->floor_number ?? 'N/A' }}</div>
                             </div>
                         </div>
 
@@ -282,6 +282,10 @@ $totalRatings = $tenantRatings->count();
                         <div class="flex justify-between">
                             <span class="text-gray-600">Booth</span>
                             <span class="font-medium">{{ $booking->booth->name ?? 'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Floor no.</span>
+                            <span class="font-medium">{{ $booking->booth->floor_number ?? 'N/A' }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Booth Type</span>
