@@ -98,10 +98,14 @@ $eventDuration = getEventDuration($event);
                     <!-- Booth Details -->
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Booth Details</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Name</h4>
                                 <p class="text-lg font-semibold text-gray-900">{{ $booth->name }}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Floor no.</h4>
+                                <p class="text-lg font-semibold text-gray-900">{{ $booth->floor_number ?? 'Not specified' }}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Size</h4>
@@ -137,13 +141,44 @@ $eventDuration = getEventDuration($event);
                         @endif
 
                         @if($booking->product_picture)
+                        @php
+                        $productPictures = json_decode($booking->product_picture, true) ?: [];
+                        @endphp
+
                         <!-- Product Pictures Section -->
                         <div class="mt-6 pt-6 border-t border-gray-200">
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">Product Pictures</h4>
-                            <a href="{{ asset('storage/' . $booking->product_picture) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-[#ff7700] hover:bg-gray-100 hover:text-[#e66600] transition-colors">
-                                <i class="fas fa-file-pdf mr-2"></i>
-                                View Product Pictures
-                            </a>
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Product Pictures ({{ count($productPictures) }})</h4>
+                            <div class="space-y-3">
+                                @foreach($productPictures as $index => $picture)
+                                @php
+                                $fileName = basename($picture);
+                                $filePath = storage_path('app/public/' . $picture);
+                                $fileSize = file_exists($filePath) ? filesize($filePath) : 0;
+                                $fileSizeFormatted = $fileSize > 0 ? number_format($fileSize / 1024, 2) . ' KB' : 'Unknown';
+                                @endphp
+                                <div class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 hover:border-[#ff7700] transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Image Thumbnail -->
+                                        <div class="flex-shrink-0">
+                                            <div class="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
+                                                <img src="{{ asset('storage/' . $picture) }}" alt="Product {{ $index + 1 }}" class="w-full h-full object-cover">
+                                            </div>
+                                        </div>
+
+                                        <!-- File Info -->
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $fileName }}</p>
+                                            <p class="text-xs text-gray-500">{{ $fileSizeFormatted }}</p>
+                                        </div>
+
+                                        <!-- View Button -->
+                                        <a href="{{ asset('storage/' . $picture) }}" target="_blank" class="flex-shrink-0 ml-3 text-[#ff7700] hover:text-[#cc5f00] transition-colors">
+                                            <i class="fas fa-external-link-alt text-lg"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
                         </div>
                         @endif
                     </div>
@@ -248,12 +283,6 @@ $eventDuration = getEventDuration($event);
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Duration</span>
                                 <span class="font-medium">{{ $eventDuration }} Day{{ $eventDuration > 1 ? 's' : '' }}</span>
-                            </div>
-                            @endif
-                            @if($booth->type)
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Booth Type</span>
-                                <span class="font-medium">{{ ucfirst($booth->type) }}</span>
                             </div>
                             @endif
                             <div class="border-t pt-4">

@@ -195,7 +195,8 @@ $booth = $booking->booth;
                             }
                         });
                     } else {
-                        alert('Failed to initialize payment. Please try again.');
+                        const errorMessage = data.message || 'Failed to initialize payment. Please try again.';
+                        alert(errorMessage);
                         button.disabled = false;
                         button.innerHTML = '<i class="fas fa-lock mr-2"></i>Proceed to Secure Payment';
                     }

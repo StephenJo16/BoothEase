@@ -27,7 +27,8 @@ class StoreBookingRequest extends FormRequest
             'business_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
-            'product_picture' => 'required|file|mimes:pdf|max:5120',
+            'product_pictures' => 'required|array|min:1|max:3',
+            'product_pictures.*' => 'required|image|mimes:jpg,jpeg,png|max:5120',
             'notes' => 'nullable|string|max:1000',
         ];
     }
@@ -45,10 +46,13 @@ class StoreBookingRequest extends FormRequest
             'email.required' => 'Email address is required.',
             'email.email' => 'Please provide a valid email address.',
             'phone.required' => 'Phone number is required.',
-            'product_picture.required' => 'Product pictures are required.',
-            'product_picture.file' => 'Product pictures must be a file.',
-            'product_picture.mimes' => 'Product pictures must be a PDF file.',
-            'product_picture.max' => 'Product pictures must not exceed 5MB.',
+            'product_pictures.required' => 'At least one product picture is required.',
+            'product_pictures.min' => 'At least one product picture is required.',
+            'product_pictures.max' => 'You can upload a maximum of 3 product pictures.',
+            'product_pictures.*.required' => 'Each product picture is required.',
+            'product_pictures.*.image' => 'Product pictures must be images.',
+            'product_pictures.*.mimes' => 'Product pictures must be JPG, JPEG, or PNG files.',
+            'product_pictures.*.max' => 'Each product picture must not exceed 5MB.',
         ];
     }
 }

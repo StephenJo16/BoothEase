@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Configure Booths</title>
+    <title>Edit Booths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,7 +21,7 @@
         }
 
         .floor-item.active {
-            background: #ff7700;
+            background: linear-gradient(to right, #ff7700, #ff9933);
             color: white;
             box-shadow: 0 4px 6px -1px rgba(255, 119, 0, 0.3), 0 2px 4px -1px rgba(255, 119, 0, 0.2);
         }
@@ -42,15 +42,6 @@
             background: white;
             border-radius: 0 2px 2px 0;
         }
-
-        .floor-item-actions {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .floor-item:hover .floor-item-actions {
-            opacity: 1;
-        }
     </style>
 </head>
 
@@ -63,7 +54,7 @@
     </div>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
-        @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events.index')])
+        @include('components.back-button', ['text' => 'Back to Event Details', 'url' => request('event_id') ? route('my-events.show', ['event' => request('event_id')]) : route('my-events.index')])
 
         <!-- Floor Selector Card -->
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-6">
@@ -170,6 +161,7 @@
                     <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
                         <canvas id="layoutCanvas" width="860" height="600"></canvas>
                     </div>
+
                 </div>
 
                 <!-- Sidebar -->
@@ -219,8 +211,11 @@
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
         const saveEndpoint = "{{ route('booth-layout.save') }}";
-        const eventId = "{{ $eventId ?? '' }}";
+        const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
+        const initialEventId = "{{ request('event_id', '') }}";
+
         const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice', 'lockScalingX', 'lockScalingY'];
+
         const canvas = new fabric.Canvas('layoutCanvas', {
             backgroundColor: '#ffffff',
             selection: true
@@ -233,6 +228,7 @@
         let alignmentLines = []; // Store alignment guide lines
         let isSnapping = false; // Prevent snapping feedback loops
 
+
         // Custom rotate icon - modern circular arrow design
         const rotateImg = document.createElement('img');
         rotateImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
@@ -244,6 +240,7 @@
                       fill="#ff7700" stroke="#ff7700" stroke-width="1" stroke-linejoin="round"/>
             </svg>
         `);
+
 
         // Set custom rotation control icon
         fabric.Object.prototype.controls.mtr = new fabric.Control({
@@ -263,6 +260,11 @@
             cornerSize: 32
         });
 
+        // Variables for panning
+        let isPanning = false;
+        let lastPosX = 0;
+        let lastPosY = 0;
+
         // Floor management variables
         let currentFloorNumber = 1;
         let currentFloorName = 'Floor 1';
@@ -272,11 +274,6 @@
             booth_count: 0
         }];
         let floorLayouts = {}; // Store layouts for each floor
-
-        // Variables for panning
-        let isPanning = false;
-        let lastPosX = 0;
-        let lastPosY = 0;
 
         const elementTypes = {
             booth: {
@@ -340,8 +337,8 @@
                 strokeColor: '#000000',
                 textColor: '#000000',
                 defaultLabel: 'Wall',
-                width: 150,
-                height: 8
+                width: 150, // Default wall length
+                height: 8 // Wall thickness
             },
             custom: {
                 color: '#ffffff',
@@ -366,6 +363,46 @@
             wall: 1,
             custom: 1
         };
+
+        // Function to find the lowest available number for a given element type
+        function getNextAvailableNumber(type) {
+            const defaultLabel = elementTypes[type].defaultLabel;
+            const existingNumbers = [];
+
+            // Get all objects of this type and extract their numbers
+            canvas.getObjects().forEach(obj => {
+                if (obj.elementType === type && obj.elementLabel) {
+                    const match = obj.elementLabel.match(new RegExp(`${defaultLabel}\\s+(\\d+)`));
+                    if (match) {
+                        existingNumbers.push(parseInt(match[1], 10));
+                    }
+                }
+            });
+
+            // Find the lowest available number starting from 1
+            let number = 1;
+            while (existingNumbers.includes(number)) {
+                number++;
+            }
+
+            return number;
+        }
+
+        let isLoadingLayout = false;
+        let objectIdCounter = 1;
+
+        function resetCounters() {
+            Object.keys(elementCounters).forEach(key => {
+                elementCounters[key] = 1;
+            });
+        }
+
+        function ensureObjectId(obj) {
+            if (!obj.__internalId) {
+                obj.__internalId = `el-${objectIdCounter++}`;
+            }
+            return obj.__internalId;
+        }
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, match => {
@@ -395,7 +432,8 @@
 
         function createElement(type, left = 100, top = 100, customLabel = null, customProps = {}) {
             const config = elementTypes[type];
-            const label = customLabel || `${config.defaultLabel} ${elementCounters[type]++}`;
+            // Use custom label if provided, otherwise find the next available number
+            const label = customLabel || `${config.defaultLabel} ${getNextAvailableNumber(type)}`;
 
             const width = customProps.width || config.width;
             const height = customProps.height || config.height;
@@ -403,8 +441,8 @@
             const rect = new fabric.Rect({
                 left: 0,
                 top: 0,
-                width: width,
-                height: height,
+                width,
+                height,
                 fill: config.color,
                 stroke: config.strokeColor,
                 strokeWidth: 2,
@@ -431,27 +469,6 @@
                 originY: 'center',
                 fontWeight: 'bold'
             });
-
-            const groupItems = [rect, text];
-
-            if (type === 'booth') {
-                const boothType = customProps.boothType || 'Standard';
-                const price = customProps.price || 0;
-
-                const infoText = new fabric.Text(
-                    `${boothType} - ${formatRupiah(price)}`, {
-                        left: width / 2,
-                        top: height / 2 + 10, // Position for second line
-                        fontSize: 11,
-                        fontFamily: 'Arial',
-                        fill: config.textColor,
-                        textAlign: 'center',
-                        originX: 'center',
-                        originY: 'center'
-                    }
-                );
-                groupItems.push(infoText);
-            }
 
             if (type === 'wall') {
                 const width = customProps.width || config.width;
@@ -495,9 +512,29 @@
                 return line;
             }
 
+            const groupItems = [rect, text];
+
+            if (type === 'booth') {
+                const boothType = customProps.boothType || 'Standard';
+                const price = customProps.price || 0;
+
+                const infoText = new fabric.Text(`${boothType} - ${formatRupiah(price)}`, {
+                    left: width / 2,
+                    top: height / 2 + 10, // Position for second line
+                    fontSize: 11,
+                    fontFamily: 'Arial',
+                    fill: config.textColor,
+                    textAlign: 'center',
+                    originX: 'center',
+                    originY: 'center'
+                });
+
+                groupItems.push(infoText);
+            }
+
             const elementGroup = new fabric.Group(groupItems, {
-                left: left,
-                top: top,
+                left,
+                top,
                 cornerColor: config.strokeColor,
                 cornerSize: 8,
                 transparentCorners: false,
@@ -515,6 +552,8 @@
                 boothType: customProps.boothType || 'Standard',
                 boothPrice: customProps.price || 0
             });
+
+            ensureObjectId(elementGroup);
 
             return elementGroup;
         }
@@ -570,7 +609,7 @@
 
                     <div class="mb-4">
                         <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
-                        <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                        <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                     </div>
 
                     <div class="mb-4">
@@ -595,6 +634,7 @@
                     Apply Changes
                 </button>
             `;
+
             content.innerHTML = html;
         }
 
@@ -622,7 +662,7 @@
             const currentLeft = obj.left;
             const currentTop = obj.top;
             const currentAngle = obj.angle;
-            const currentId = obj.__internalId; // Use existing ID if available
+            const currentId = ensureObjectId(obj);
 
             let customProps = {
                 width: newWidth,
@@ -657,23 +697,16 @@
             updatePropertiesPanel(newElement);
         }
 
-        canvas.on('selection:created', function(e) {
-            updatePropertiesPanel(e.selected[0]);
-        });
-
-        canvas.on('selection:updated', function(e) {
-            updatePropertiesPanel(e.selected[0]);
-        });
-
-        canvas.on('selection:cleared', function() {
-            updatePropertiesPanel(null);
-        });
+        function exportJSON() {
+            const canvasData = canvas.toJSON(trackedProperties);
+            return JSON.stringify(canvasData, null, 2);
+        }
 
         async function saveLayout() {
             const statusElement = document.getElementById('saveStatus');
             const saveBtn = document.getElementById('saveLayoutBtn');
 
-            if (!eventId) {
+            if (!initialEventId) {
                 statusElement.textContent = 'No event ID available. Please create an event first.';
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
@@ -707,7 +740,7 @@
                     }
 
                     const payload = {
-                        event_id: parseInt(eventId, 10),
+                        event_id: parseInt(initialEventId, 10),
                         floor_number: floorNumber,
                         floor_name: floorName,
                         layout_json: JSON.stringify(layoutData),
@@ -742,7 +775,7 @@
 
                 // Show result
                 if (totalSaved > 0) {
-                    statusElement.textContent = `Successfully saved ${totalSaved} floor${totalSaved > 1 ? 's' : ''}!`;
+                    statusElement.textContent = `Successfully saved ${totalSaved} floor${totalSaved > 1 ? 's' : ''}`;
                     statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
                 } else {
                     statusElement.textContent = 'No floors with booths to save. Add at least one booth to any floor.';
@@ -770,10 +803,10 @@
 
         // Load all floors for the event
         async function loadFloors() {
-            if (!eventId) return;
+            if (!initialEventId) return;
 
             try {
-                const response = await fetch(`{{ url('booth-layout/floors') }}/${eventId}`, {
+                const response = await fetch(`{{ url('booth-layout/floors') }}/${initialEventId}`, {
                     headers: {
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
@@ -897,7 +930,7 @@
             if (floorLayouts[currentFloorNumber]) {
                 // Load from memory if available
                 canvas.loadFromJSON(floorLayouts[currentFloorNumber], function() {
-                    // Re-apply locks for booths
+                    // Re-apply locks and controls for specific element types
                     canvas.getObjects().forEach(obj => {
                         if (obj.elementType === 'booth') {
                             obj.set({
@@ -905,6 +938,18 @@
                                 lockScalingY: true
                             });
                         } else if (obj.elementType === 'wall') {
+                            // Restore wall control visibility
+                            obj.setControlsVisibility({
+                                mt: false,
+                                mb: false,
+                                ml: true,
+                                mr: true,
+                                tl: false,
+                                tr: false,
+                                bl: false,
+                                br: false,
+                                mtr: true
+                            });
                             // Apply snapping properties
                             obj.set({
                                 snapAngle: 90,
@@ -913,11 +958,13 @@
                         }
                     });
                     canvas.renderAll();
+                    updateCountersFromCanvas();
                 });
             } else {
                 // Load from server
                 try {
-                    const response = await fetch(`{{ url('booth-layout/data') }}/${eventId}?floor_number=${currentFloorNumber}`, {
+                    const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(initialEventId));
+                    const response = await fetch(`${endpoint}?floor_number=${currentFloorNumber}`, {
                         headers: {
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest',
@@ -928,8 +975,9 @@
                     if (response.ok) {
                         const data = await response.json();
                         if (data.layout) {
+                            isLoadingLayout = true;
                             canvas.loadFromJSON(data.layout, function() {
-                                // Re-apply locks for booths
+                                // Re-apply locks and controls for specific element types
                                 canvas.getObjects().forEach(obj => {
                                     if (obj.elementType === 'booth') {
                                         obj.set({
@@ -937,6 +985,18 @@
                                             lockScalingY: true
                                         });
                                     } else if (obj.elementType === 'wall') {
+                                        // Restore wall control visibility
+                                        obj.setControlsVisibility({
+                                            mt: false,
+                                            mb: false,
+                                            ml: true,
+                                            mr: true,
+                                            tl: false,
+                                            tr: false,
+                                            bl: false,
+                                            br: false,
+                                            mtr: true
+                                        });
                                         // Apply snapping properties
                                         obj.set({
                                             snapAngle: 90,
@@ -945,15 +1005,19 @@
                                     }
                                 });
                                 canvas.renderAll();
+                                updateCountersFromCanvas();
+                                isLoadingLayout = false;
                             });
                             floorLayouts[currentFloorNumber] = data.layout;
                         }
                     } else {
                         // Floor doesn't exist in database yet, start with empty canvas
                         console.log(`Floor ${currentFloorNumber} not found in database, starting with empty canvas`);
+                        resetCounters();
                     }
                 } catch (error) {
                     console.error('Error loading floor layout:', error);
+                    resetCounters();
                 }
             }
 
@@ -968,52 +1032,39 @@
         // Add a new floor
         function addNewFloor() {
             const newFloorNumber = Math.max(...allFloors.map(f => f.floor_number), 0) + 1;
-            const floorName = prompt('Enter name for the new floor:', `Floor ${newFloorNumber}`);
+            const floorName = `Floor ${newFloorNumber}`;
 
-            if (floorName && floorName.trim() !== '') {
-                // Save current floor before switching
-                floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
+            // Save current floor before switching
+            floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
 
-                // Add new floor to the list
-                allFloors.push({
-                    floor_number: newFloorNumber,
-                    floor_name: floorName.trim(),
-                    booth_count: 0
-                });
+            // Add new floor to the list
+            allFloors.push({
+                floor_number: newFloorNumber,
+                floor_name: floorName,
+                booth_count: 0
+            });
 
-                // Switch to the new floor
-                currentFloorNumber = newFloorNumber;
-                currentFloorName = floorName.trim();
+            // Switch to the new floor
+            currentFloorNumber = newFloorNumber;
+            currentFloorName = floorName;
 
-                // Clear canvas for new floor
-                canvas.clear();
-                canvas.backgroundColor = '#ffffff';
-                Object.keys(elementCounters).forEach(type => {
-                    elementCounters[type] = 1;
-                });
-                canvas.renderAll();
+            // Clear canvas for new floor
+            canvas.clear();
+            canvas.backgroundColor = '#ffffff';
+            Object.keys(elementCounters).forEach(type => {
+                elementCounters[type] = 1;
+            });
+            canvas.renderAll();
 
-                updateFloorSelector();
+            updateFloorSelector();
 
-                alert(`New floor "${floorName.trim()}" created. Add booths and save the layout.`);
-            }
+            alert(`New floor "${floorName}" created. Add booths and save the layout.`);
         }
 
         // Rename current floor
         function renameCurrentFloor() {
-            const newName = prompt('Enter new name for this floor:', currentFloorName);
-
-            if (newName && newName.trim() !== '' && newName.trim() !== currentFloorName) {
-                currentFloorName = newName.trim();
-
-                const floorIndex = allFloors.findIndex(f => f.floor_number === currentFloorNumber);
-                if (floorIndex !== -1) {
-                    allFloors[floorIndex].floor_name = currentFloorName;
-                }
-
-                updateFloorSelector();
-                alert(`Floor renamed to "${currentFloorName}". Remember to save the layout.`);
-            }
+            alert('Floor names cannot be changed.');
+            return;
         }
 
         // Delete current floor
@@ -1028,7 +1079,7 @@
             }
 
             try {
-                const response = await fetch(`{{ url('booth-layout/floors') }}/${eventId}/${currentFloorNumber}`, {
+                const response = await fetch(`{{ url('booth-layout/floors') }}/${initialEventId}/${currentFloorNumber}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
@@ -1070,11 +1121,139 @@
             if (pageLoader) pageLoader.classList.remove('hidden');
 
             // Load existing floors on page load
-            loadFloors().finally(() => {
-                // Hide loader after loading
-                if (pageLoader) pageLoader.classList.add('hidden');
-            });
+            loadFloors();
+            // Note: loader will be hidden in window load event after layout is fully loaded
         });
+
+
+        function updateCountersFromCanvas() {
+            resetCounters();
+            canvas.getObjects().forEach(obj => {
+                if (!obj.elementType || !(obj.elementType in elementCounters)) {
+                    return;
+                }
+
+                ensureObjectId(obj);
+
+                const label = obj.elementLabel || '';
+                const numberMatch = label.match(/(\d+)\s*$/);
+                if (numberMatch) {
+                    const candidate = parseInt(numberMatch[1], 10) + 1;
+                    elementCounters[obj.elementType] = Math.max(elementCounters[obj.elementType], candidate);
+                } else {
+                    elementCounters[obj.elementType] = Math.max(elementCounters[obj.elementType], 2);
+                }
+            });
+        }
+
+
+
+
+
+
+        canvas.on('selection:created', function(e) {
+            updatePropertiesPanel(e.selected[0]);
+        });
+
+        canvas.on('selection:updated', function(e) {
+            updatePropertiesPanel(e.selected[0]);
+        });
+
+        canvas.on('selection:cleared', function() {
+            updatePropertiesPanel(null);
+        });
+
+        async function loadExistingLayout() {
+            if (!initialEventId) {
+                return false;
+            }
+
+            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(initialEventId));
+
+            try {
+                console.log('Loading existing layout for event ID:', initialEventId);
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.log('No existing layout found, starting with sample elements');
+                    return false;
+                }
+
+                const data = await response.json();
+                if (!data.layout) {
+                    console.log('No layout data found, starting with sample elements');
+                    return false;
+                }
+
+                console.log('Loading saved layout with', data.layout.objects?.length || 0, 'objects');
+                isLoadingLayout = true;
+                canvas.clear();
+                canvas.backgroundColor = '#ffffff';
+
+                await new Promise(resolve => {
+                    canvas.loadFromJSON(data.layout, () => {
+                        // Re-apply locks and controls for specific element types
+                        canvas.getObjects().forEach(obj => {
+                            if (obj.elementType === 'booth') {
+                                obj.set({
+                                    lockScalingX: true,
+                                    lockScalingY: true
+                                });
+                            } else if (obj.elementType === 'wall') {
+                                // Restore wall control visibility
+                                obj.setControlsVisibility({
+                                    mt: false,
+                                    mb: false,
+                                    ml: true,
+                                    mr: true,
+                                    tl: false,
+                                    tr: false,
+                                    bl: false,
+                                    br: false,
+                                    mtr: true
+                                });
+                                // Apply snapping properties
+                                obj.set({
+                                    snapAngle: 90,
+                                    snapThreshold: ANGLE_SNAP_THRESHOLD
+                                });
+                            }
+                        });
+                        canvas.renderAll();
+                        resolve();
+                    }, (revived, serialized) => {
+                        if (revived && revived.type === 'group') {
+                            ensureObjectId(revived);
+                        }
+                    });
+                });
+
+                canvas.getObjects().forEach(obj => {
+                    ensureObjectId(obj);
+                });
+
+                isLoadingLayout = false;
+                updateCountersFromCanvas();
+                updatePropertiesPanel(null);
+
+                zoomToFit();
+
+                const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
+                console.log('Layout loaded successfully with', boothCount, 'booths');
+                return true;
+            } catch (error) {
+                console.error('Load layout error:', error);
+                return false;
+            }
+        }
+
+
+
+
 
         function clearCanvas() {
             if (confirm('Are you sure you want to clear the canvas?')) {
@@ -1089,6 +1268,49 @@
         }
 
         // Zoom functions
+        function zoomToFit() {
+            const objects = canvas.getObjects();
+            if (objects.length === 0) {
+                canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+                return;
+            }
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            
+            objects.forEach(obj => {
+                const bound = obj.getBoundingRect();
+                if (bound.left < minX) minX = bound.left;
+                if (bound.top < minY) minY = bound.top;
+                if (bound.left + bound.width > maxX) maxX = bound.left + bound.width;
+                if (bound.top + bound.height > maxY) maxY = bound.top + bound.height;
+            });
+            
+            const contentWidth = maxX - minX;
+            const contentHeight = maxY - minY;
+            const contentCenterX = minX + contentWidth / 2;
+            const contentCenterY = minY + contentHeight / 2;
+            
+            const padding = 50;
+            const availableWidth = canvas.width - (padding * 2);
+            const availableHeight = canvas.height - (padding * 2);
+            
+            let zoom = Math.min(
+                availableWidth / contentWidth,
+                availableHeight / contentHeight
+            );
+            
+            // Limit zoom level
+            zoom = Math.min(Math.max(zoom, 0.1), 1); // Max zoom 1 (100%), min zoom 0.1
+            
+            canvas.setZoom(zoom);
+            
+            const vpt = canvas.viewportTransform;
+            vpt[4] = (canvas.width / 2) - (contentCenterX * zoom);
+            vpt[5] = (canvas.height / 2) - (contentCenterY * zoom);
+            
+            canvas.requestRenderAll();
+        }
+
         function zoomIn() {
             let zoom = canvas.getZoom();
             zoom += 0.1;
@@ -1337,6 +1559,21 @@
         canvas.on('selection:cleared', function() {
             clearAlignmentLines();
         });
+        window.addEventListener('load', async function() {
+            const pageLoader = document.getElementById('pageLoader');
+
+            // First try to load existing layout if event ID is provided
+            const layoutLoaded = await loadExistingLayout();
+
+            // If no layout was loaded, show sample elements
+            if (!layoutLoaded) {
+                // Canvas will be blank
+                canvas.renderAll();
+            }
+
+            // Hide loader after everything is loaded
+            if (pageLoader) pageLoader.classList.add('hidden');
+        });
 
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
@@ -1344,13 +1581,11 @@
                 const activeObj = canvas.getActiveObject();
                 if (activeObj && activeObj.elementType) {
                     activeObj.clone(function(cloned) {
-                        const type = cloned.elementType;
                         cloned.set({
-                            left: activeObj.left + 20,
-                            top: activeObj.top + 20,
-                            elementLabel: `${elementTypes[type].defaultLabel} ${elementCounters[type]++}`
+                            left: cloned.left + 20,
+                            top: cloned.top + 20
                         });
-
+                        ensureObjectId(cloned);
                         canvas.add(cloned);
                         canvas.setActiveObject(cloned);
                         canvas.renderAll();

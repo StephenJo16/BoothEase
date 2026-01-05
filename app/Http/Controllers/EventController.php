@@ -189,7 +189,7 @@ class EventController extends Controller
 
         // Paginate booths
         $perPage = request('perPage', 5);
-        $booths = $event->booths()->orderByRaw('LENGTH(name), name')->paginate($perPage);
+        $booths = $event->booths()->orderBy('floor_number')->orderByRaw('LENGTH(name), name')->paginate($perPage);
         $event->setRelation('booths', $booths);
 
         // Load all ratings for the organizer (across all events)
@@ -347,6 +347,9 @@ class EventController extends Controller
                 'booths',
                 'booths as booked_booths_count' => function ($query) {
                     $query->where('status', 'booked');
+                },
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
                 }
             ])
             ->ownedBy($request->user());

@@ -228,21 +228,8 @@ Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function 
                 abort(403);
             }
         }
-        return view('booth-layout.index', [
-            'eventId' => $eventId,
-        ]);
+        return view('booth-layout.index');
     })->name('booth-layout');
-
-    Route::get('/booth-layout/edit', function (Request $request) {
-        $eventId = $request->query('event_id');
-        if ($eventId) {
-            $event = Event::findOrFail($eventId);
-            if ($event->user_id !== Auth::id()) {
-                abort(403);
-            }
-        }
-        return view('booth-layout.edit');
-    })->name('booth-layout.edit');
 
     Route::get('/booth-layout/view', function (Request $request) {
         $eventId = $request->query('event_id');

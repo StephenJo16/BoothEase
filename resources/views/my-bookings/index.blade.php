@@ -179,8 +179,8 @@
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h4>
                                 <p class="text-sm text-gray-900 font-medium">{{ $booking->booth->name }}</p>
-                                @if($booking->booth->type)
-                                <p class="text-xs text-gray-600">{{ ucfirst($booking->booth->type) }} Type</p>
+                                @if($booking->booth->floor_number)
+                                <p class="text-xs text-gray-600">Floor {{ $booking->booth->floor_number }}</p>
                                 @endif
                             </div>
 

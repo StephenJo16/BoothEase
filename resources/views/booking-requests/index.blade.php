@@ -28,6 +28,7 @@ $headers=[
 ['title' => 'Tenant', 'class' => 'w-40'],
 ['title' => 'Contact Person', 'class' => 'w-32'],
 ['title' => 'Booth', 'class' => 'w-20'],
+['title' => 'Floor no.', 'class' => 'w-20'],
 ['title' => 'Price', 'class' => 'w-28'],
 ['title' => 'Request Date', 'class' => 'w-28'],
 ['title' => 'Status', 'class' => 'w-24'],
@@ -63,6 +64,10 @@ $rows[] = [
 ],
 [
 'content' => $booking->booth->name ?? 'N/A',
+'class' => 'font-medium text-gray-900 text-sm'
+],
+[
+'content' => $booking->booth->floor_number ?? 'N/A',
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [

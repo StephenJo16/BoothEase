@@ -152,6 +152,7 @@
                 $boothTypes = $event->booths->pluck('type')->unique()->count();
                 $boothTotal = $event->booths_count ?? 0;
                 $bookedBooths = $event->booked_booths_count ?? 0;
+                $availableBooths = $event->available_booths_count ?? 0;
 
                 // Format event dates and times using helper functions
                 $dateDisplay = formatEventDate($event);
@@ -217,7 +218,7 @@
                                 @if($boothTotal > 0)
                                 <div class="mt-2 flex items-center justify-between">
                                     <span>Availability</span>
-                                    <span class="font-semibold">{{ $boothTotal - $bookedBooths }}/{{ $boothTotal }}</span>
+                                    <span class="font-semibold">{{ $availableBooths }}/{{ $boothTotal }}</span>
                                 </div>
                                 @endif
                             </div>

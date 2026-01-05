@@ -64,21 +64,39 @@ class PaymentController extends Controller
                 ? 'https://app.midtrans.com/snap/v1/transactions'
                 : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
 
+            // Ensure amount is valid before proceeding
+            if ($booking->total_price <= 0) {
+                Log::error('Invalid booking amount: ' . $booking->total_price);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid booking amount. Please contact support.'
+                ], 400);
+            }
+
+            // Ensure amount is integer to avoid decimal issues (Midtrans requires integer)
+            $amount = (int) round($booking->total_price);
+
+            // Midtrans minimum is 1 (assuming IDR)
+            if ($amount < 1) {
+                Log::error('Amount too small after rounding: ' . $amount . ' from ' . $booking->total_price);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment amount is too small. Please contact support.'
+                ], 400);
+            }
+
             // Create or update payment record
             $payment = Payment::updateOrCreate(
                 ['booking_id' => $booking->id],
                 [
                     'payment_method' => 'midtrans',
                     'payment_status' => 'pending',
-                    'amount' => $booking->total_price,
+                    'amount' => $amount,
                 ]
             );
 
             // Prepare transaction details for Midtrans
             $orderId = 'BOOKING-' . $booking->id . '-' . time();
-
-            // Ensure amount is integer to avoid decimal issues
-            $amount = (int) round($booking->total_price);
 
             // Truncate item name to 50 characters (Midtrans limit)
             $itemName = 'Booth ' . $booking->booth->name . ' - ' . $booking->booth->event->title;
@@ -125,10 +143,12 @@ class PaymentController extends Controller
                     'client_key' => config('services.midtrans.client_key'),
                 ]);
             } else {
-                Log::error('Midtrans Snap API Error: ' . $response->body());
+                $errorMessage = $response->body();
+                Log::error('Midtrans Snap API Error: ' . $errorMessage);
+                Log::error('Transaction details sent: ' . json_encode($transactionDetails));
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to initialize payment gateway'
+                    'message' => 'Failed to initialize payment gateway. Please try again or contact support.'
                 ], 500);
             }
         } catch (\Exception $e) {
