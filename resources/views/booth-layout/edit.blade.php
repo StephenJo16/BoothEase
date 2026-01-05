@@ -404,10 +404,6 @@
             return obj.__internalId;
         }
 
-
-
-
-
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, match => {
                 switch (match) {
@@ -1036,52 +1032,39 @@
         // Add a new floor
         function addNewFloor() {
             const newFloorNumber = Math.max(...allFloors.map(f => f.floor_number), 0) + 1;
-            const floorName = prompt('Enter name for the new floor:', `Floor ${newFloorNumber}`);
+            const floorName = `Floor ${newFloorNumber}`;
 
-            if (floorName && floorName.trim() !== '') {
-                // Save current floor before switching
-                floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
+            // Save current floor before switching
+            floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
 
-                // Add new floor to the list
-                allFloors.push({
-                    floor_number: newFloorNumber,
-                    floor_name: floorName.trim(),
-                    booth_count: 0
-                });
+            // Add new floor to the list
+            allFloors.push({
+                floor_number: newFloorNumber,
+                floor_name: floorName,
+                booth_count: 0
+            });
 
-                // Switch to the new floor
-                currentFloorNumber = newFloorNumber;
-                currentFloorName = floorName.trim();
+            // Switch to the new floor
+            currentFloorNumber = newFloorNumber;
+            currentFloorName = floorName;
 
-                // Clear canvas for new floor
-                canvas.clear();
-                canvas.backgroundColor = '#ffffff';
-                Object.keys(elementCounters).forEach(type => {
-                    elementCounters[type] = 1;
-                });
-                canvas.renderAll();
+            // Clear canvas for new floor
+            canvas.clear();
+            canvas.backgroundColor = '#ffffff';
+            Object.keys(elementCounters).forEach(type => {
+                elementCounters[type] = 1;
+            });
+            canvas.renderAll();
 
-                updateFloorSelector();
+            updateFloorSelector();
 
-                alert(`New floor "${floorName.trim()}" created. Add booths and save the layout.`);
-            }
+            alert(`New floor "${floorName}" created. Add booths and save the layout.`);
         }
 
         // Rename current floor
         function renameCurrentFloor() {
-            const newName = prompt('Enter new name for this floor:', currentFloorName);
-
-            if (newName && newName.trim() !== '' && newName.trim() !== currentFloorName) {
-                currentFloorName = newName.trim();
-
-                const floorIndex = allFloors.findIndex(f => f.floor_number === currentFloorNumber);
-                if (floorIndex !== -1) {
-                    allFloors[floorIndex].floor_name = currentFloorName;
-                }
-
-                updateFloorSelector();
-                alert(`Floor renamed to "${currentFloorName}". Remember to save the layout.`);
-            }
+            alert('Floor names cannot be changed.');
+            return;
         }
 
         // Delete current floor
