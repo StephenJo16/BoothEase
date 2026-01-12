@@ -71,6 +71,14 @@ class RatingController extends Controller
      */
     public function checkRating(Booking $booking)
     {
+        // Check if booking belongs to authenticated user
+        if ($booking->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
+
         $rating = Rating::where('event_id', $booking->booth->event_id)
             ->where('rater_id', Auth::id())
             ->first();
@@ -147,6 +155,14 @@ class RatingController extends Controller
     {
         $booking = Booking::findOrFail($bookingId);
         $event = $booking->booth->event;
+
+        // Validate that the event belongs to the authenticated user (organizer)
+        if ($event->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
 
         $rating = Rating::where('event_id', $event->id)
             ->where('rater_id', Auth::id())

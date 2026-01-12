@@ -44,8 +44,13 @@ class BookingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->whereHas('booth.event', function ($eventQuery) use ($search) {
                     $eventQuery->where('title', 'like', '%' . $search . '%')
-                        ->orWhereJsonContains('location->venue', $search)
-                        ->orWhereJsonContains('location->city', $search);
+                        ->orWhere('venue', 'like', '%' . $search . '%')
+                        ->orWhereHas('city', function ($cityQuery) use ($search) {
+                            $cityQuery->where('name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('province', function ($provinceQuery) use ($search) {
+                            $provinceQuery->where('name', 'like', '%' . $search . '%');
+                        });
                 })
                     ->orWhereHas('booth', function ($boothQuery) use ($search) {
                         $boothQuery->where('name', 'like', '%' . $search . '%');
@@ -175,6 +180,17 @@ class BookingController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
+            // Handle product pictures upload (multiple files)
+            if ($request->hasFile('product_pictures')) {
+                $filePaths = [];
+                foreach ($request->file('product_pictures') as $index => $file) {
+                    $fileName = 'product_picture_' . $booking->id . '_' . time() . '_' . $index . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('product_pictures', $fileName, 'public');
+                    $filePaths[] = $filePath;
+                }
+                $booking->update(['product_picture' => json_encode($filePaths)]);
+            }
+
             // Update booth status to pending (will become 'booked' after payment)
             $booth->update(['status' => 'pending']);
 
@@ -199,6 +215,11 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
+        // Check if user is authorized to view this booking
+        if (Auth::id() !== $booking->user_id) {
+            abort(403, 'Unauthorized access to this booking.');
+        }
+
         // Update booking statuses before loading
         $this->updateBookingStatuses();
 
@@ -444,13 +465,29 @@ class BookingController extends Controller
         $now = now();
 
         // Cancel unpaid bookings that have been confirmed for more than 3 hours
-        Booking::where('status', 'confirmed')
+        $bookingsToCancel = Booking::with(['booth', 'payment'])
+            ->where('status', 'confirmed')
             ->whereNotNull('confirmed_at')
             ->where('confirmed_at', '<=', $now->copy()->subHours(3))
             ->whereDoesntHave('payment', function ($query) {
                 $query->where('payment_status', 'completed');
             })
-            ->update(['status' => 'cancelled']);
+            ->get();
+
+        foreach ($bookingsToCancel as $booking) {
+            $booking->status = 'cancelled';
+            $booking->save();
+
+            if ($booking->booth) {
+                $booking->booth->status = 'available';
+                $booking->booth->save();
+            }
+
+            if ($booking->payment && $booking->payment->payment_status !== 'completed') {
+                $booking->payment->payment_status = 'cancelled';
+                $booking->payment->save();
+            }
+        }
 
         // Update bookings to 'ongoing' status when event has started
         Booking::whereHas('booth.event', function ($query) use ($now) {

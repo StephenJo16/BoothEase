@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
@@ -64,30 +66,44 @@ class AuthController extends Controller
             return redirect()->route('signup')->withErrors($validator)->withInput();
         }
 
-        $role = Role::where('name', $request->user_type)->firstOrFail();
+        // Find role with case-insensitive search and better error handling
+        $roleName = $request->user_type;
+        $role = Role::whereRaw('LOWER(name) = ?', [strtolower($roleName)])->first();
 
-        $user = User::create([
-            'role_id' => $role->id,
-            'category_id' => $request->category_id,
-            'display_name' => $request->full_name,
-            'name' => $request->business_name,
-            'email' => $request->email,
-            'phone_number' => $normalizedPhone,
-            'password' => Hash::make($request->password),
-        ]);
+        if (!$role) {
+            // Fallback: try exact match or default to tenant role
+            $role = Role::where('name', $roleName)
+                ->orWhere('name', ucfirst($roleName))
+                ->orWhere('name', ucwords(str_replace('_', ' ', $roleName)))
+                ->first();
 
-        Auth::login($user);
-
-        // UPDATED: Menambahkan pesan selamat datang setelah sign up
-        $welcomeMessage = 'Registration successful. Welcome, ' . $user->display_name . '!';
-
-        if ($user->role->name === 'tenant') {
-            return redirect()->route('events')->with('success', $welcomeMessage);
-        } elseif ($user->role->name === 'event_organizer') {
-            return redirect()->route('my-events.index')->with('success', $welcomeMessage);
+            if (!$role) {
+                return redirect()->route('signup')
+                    ->withErrors(['user_type' => 'Invalid user type selected.'])
+                    ->withInput();
+            }
         }
 
-        return redirect()->route('events')->with('success', $welcomeMessage);
+        try {
+            $user = User::create([
+                'role_id' => $role->id,
+                'category_id' => $request->category_id,
+                'display_name' => $request->full_name,
+                'name' => $request->business_name,
+                'email' => $request->email,
+                'phone_number' => $normalizedPhone,
+                'password' => Hash::make($request->password),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Signup failed: ' . $e->getMessage());
+            return redirect()->route('signup')
+                ->withErrors(['error' => 'Registration failed. Please try again or contact support.'])
+                ->withInput();
+        }
+
+        event(new Registered($user));
+
+        return redirect()->route('verification.notice')->with('message', 'Registration successful! Please check your email to verify your account.');
     }
 
     // --- SIGN IN ---
@@ -104,9 +120,18 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $request->session()->regenerate();
-
             $user = Auth::user();
+
+            if (empty($user->email_verified_at)) {
+                /** @var \App\Models\User $user */
+                $user->sendEmailVerificationNotification();
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return redirect()->route('verification.notice')->with('message', 'Your email is not verified. A verification link has been sent to your email.');
+            }
+
+            $request->session()->regenerate();
 
             // Check if OAuth user needs to complete profile
             if ($user->provider && (!$user->phone_number || !$user->category_id)) {
@@ -229,6 +254,10 @@ class AuthController extends Controller
                 'avatar' => $google->getAvatar(),
             ]);
 
+            // Mark email as verified directly on the model
+            $user->email_verified_at = now();
+            $user->save();
+
             // Eager load the role relationship for newly created users
             $user->load('role');
         } else {
@@ -237,6 +266,11 @@ class AuthController extends Controller
                 'provider_id' => $google->getId(),
                 'avatar' => $google->getAvatar(),
             ]);
+
+            if (empty($user->email_verified_at)) {
+                $user->email_verified_at = now();
+                $user->save();
+            }
 
             // Ensure role relationship is loaded
             if (!$user->relationLoaded('role')) {
@@ -248,7 +282,7 @@ class AuthController extends Controller
 
         $welcomeMessage = 'Successfully logged in with Google. Welcome, ' . $user->display_name . '!';
 
-        $needsOnboarding = empty($user->phone_number) || empty($user->category_id);
+        $needsOnboarding = is_null($user->phone_number) || is_null($user->category_id);
         if ($needsOnboarding) {
             return redirect()->route('onboarding.show')->with('success', 'Welcome! Please complete your profile.');
         }

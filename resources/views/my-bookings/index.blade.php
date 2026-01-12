@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 </head>
 
 @php
@@ -178,8 +179,8 @@
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Booth Details</h4>
                                 <p class="text-sm text-gray-900 font-medium">{{ $booking->booth->name }}</p>
-                                @if($booking->booth->type)
-                                <p class="text-xs text-gray-600">{{ ucfirst($booking->booth->type) }} Type</p>
+                                @if($booking->booth->floor_number)
+                                <p class="text-xs text-gray-600">Floor {{ $booking->booth->floor_number }}</p>
                                 @endif
                             </div>
 
@@ -267,8 +268,9 @@
             </div>
 
             <!-- Pagination -->
+            <div id="bookings-section"></div>
             @if($bookings->hasPages() || $bookings->total() > 5)
-            <x-pagination :paginator="$bookings" />
+            <x-pagination :paginator="$bookings" scrollTarget="bookings-section" />
             @endif
 
         </div>

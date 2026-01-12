@@ -38,29 +38,6 @@ $dateDisplay = formatEventDate($event);
                 <p class="text-gray-600">Booking ID: ID-{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</p>
             </div>
 
-            <!-- Success/Error Messages -->
-            @if (session('success'))
-            <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg" role="alert">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span>{{ session('success') }}</span>
-                </div>
-            </div>
-            @endif
-
-            @if (session('error'))
-            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                    </svg>
-                    <span>{{ session('error') }}</span>
-                </div>
-            </div>
-            @endif
-
             @if ($errors->any())
             <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
                 <div class="flex items-start">
@@ -111,42 +88,41 @@ $dateDisplay = formatEventDate($event);
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Account Number <span class="text-red-500">*</span></label>
                                 <input type="text" name="account_number" value="{{ old('account_number') }}" required
                                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent @error('account_number') border-red-500 @enderror"
-                                    placeholder="Enter account number">
+                                    placeholder="Enter account number" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Booking Invoice <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    <input type="file" name="document" id="fileUpload" class="hidden" accept=".pdf" required>
                                     <button type="button" id="uploadButton"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-left text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                                        Choose File
+                                        class="w-full px-3 py-1 border-2 border-dashed @error('document') border-red-500 @else border-gray-300 @enderror rounded-lg text-sm text-gray-600 hover:border-[#ff7700] hover:text-[#ff7700] transition-colors duration-200 flex items-center justify-center gap-2">
+                                        <i class="fas fa-cloud-upload-alt text-lg"></i>
+                                        <span>Click to upload invoice</span>
                                     </button>
 
                                     <!-- File Preview -->
-                                    <div id="filePreview" class="hidden mt-2 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center space-x-2 flex-1 min-w-0">
-                                                <!-- File Icon -->
-                                                <div class="flex-shrink-0">
-                                                    <svg class="w-6 h-6 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-                                                    </svg>
-                                                </div>
-                                                <!-- File Info -->
-                                                <div class="flex-1 min-w-0">
-                                                    <p id="fileName" class="text-sm font-medium text-gray-900 truncate"></p>
-                                                    <p id="fileSize" class="text-xs text-gray-500"></p>
-                                                </div>
-                                            </div>
-                                            <!-- Delete Button -->
-                                            <button type="button" id="removeFile" class="flex-shrink-0 ml-2 text-red-500 hover:text-red-700 transition-colors">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <div id="filePreview" class="hidden w-full px-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between">
+                                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                                            <div class="flex-shrink-0">
+                                                <svg class="w-6 h-6 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
                                                 </svg>
-                                            </button>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p id="fileName" class="text-sm font-medium text-gray-900 truncate"></p>
+                                                <p id="fileSize" class="text-xs text-gray-500"></p>
+                                            </div>
                                         </div>
+                                        <button type="button" id="removeFile" class="flex-shrink-0 ml-3 text-red-600 hover:text-red-800 transition-colors">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
                                     </div>
+                                    @error('document')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -156,7 +132,7 @@ $dateDisplay = formatEventDate($event);
                             <label class="block text-sm font-medium text-gray-700 mb-2">Refund Reason <span class="text-red-500">*</span></label>
                             <textarea rows="4" name="reason" required
                                 class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent resize-none @error('reason') border-red-500 @enderror"
-                                placeholder="Please explain why you need a refund...">{{ old('reason') }}</textarea>
+                                placeholder="Please explain why you need a refund... (at least 10 characters)">{{ old('reason') }}</textarea>
                             @error('reason')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -248,21 +224,6 @@ $dateDisplay = formatEventDate($event);
                     </div>
                 </div>
             </div>
-
-            <!-- Important Information -->
-            <div class="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-red-800 mb-2">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    Important Information
-                </h3>
-                <ul class="text-sm text-red-700 space-y-1">
-                    <li>• Refund processing may take 5-10 business days after approval</li>
-                    <li>• Processing fees are non-refundable and will be deducted from your refund amount</li>
-                    <li>• Cancellations made less than 7 days before the event may incur additional penalties</li>
-                    <li>• All refund requests are subject to event organizer approval</li>
-                    <li>• You will receive email updates regarding the status of your refund request</li>
-                </ul>
-            </div>
         </div>
     </div>
 
@@ -295,7 +256,23 @@ $dateDisplay = formatEventDate($event);
         // Handle file selection
         fileInput.addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
+                this.setCustomValidity('');
                 const file = e.target.files[0];
+                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+
+                // Validate file type
+                if (file.type !== 'application/pdf') {
+                    alert('Please upload a PDF file only.');
+                    fileInput.value = '';
+                    return;
+                }
+
+                // Validate file size
+                if (file.size > maxSize) {
+                    alert('File size must not exceed 5MB. Your file is ' + formatFileSize(file.size));
+                    fileInput.value = '';
+                    return;
+                }
 
                 // Update file info
                 fileName.textContent = file.name;
@@ -304,6 +281,14 @@ $dateDisplay = formatEventDate($event);
                 // Hide upload button and show preview
                 uploadButton.classList.add('hidden');
                 filePreview.classList.remove('hidden');
+
+                // Remove error styling and message
+                uploadButton.classList.remove('border-red-500');
+                uploadButton.classList.add('border-gray-300');
+                const errorMsg = uploadButton.parentElement.querySelector('.file-upload-error');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
             }
         });
 
@@ -321,27 +306,45 @@ $dateDisplay = formatEventDate($event);
             fileSize.textContent = '';
         });
 
-        // Form submission validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // Check if file is uploaded
-            if (fileInput.files.length === 0) {
-                e.preventDefault();
+        // Handle invalid file input
+        fileInput.addEventListener('invalid', function(e) {
+            e.preventDefault();
+            this.setCustomValidity('Please upload the booking invoice.');
 
-                // Show error message
-                alert('Please upload the booking invoice before submitting the refund request.');
+            // Add red border to upload button
+            uploadButton.classList.add('border-red-500');
+            uploadButton.classList.remove('border-gray-300');
 
-                // Add red border to upload button
-                uploadButton.classList.add('border-red-500');
-                uploadButton.classList.remove('border-gray-300');
-
-                // Scroll to the upload section
-                uploadButton.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-
-                return false;
+            // Create or update error message
+            let errorMsg = uploadButton.parentElement.querySelector('.file-upload-error');
+            if (!errorMsg) {
+                errorMsg = document.createElement('p');
+                errorMsg.className = 'mt-1 text-sm text-red-600 file-upload-error';
+                errorMsg.textContent = 'Please upload the booking invoice in the booking details page before submitting the refund request.';
+                uploadButton.parentElement.appendChild(errorMsg);
             }
+
+            // Scroll to the upload section
+            uploadButton.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        });
+
+        // Prevent double submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+
+            // If button is already disabled, prevent submission
+            if (submitBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
         });
     </script>
 </body>

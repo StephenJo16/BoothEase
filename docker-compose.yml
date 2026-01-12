@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: laravel_app
+    restart: always
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    volumes:
+      - public_assets:/var/www/public
+      # 1. SHARE STORAGE (Write Access)
+      - laravel_storage:/var/www/storage
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - laravel
+
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: laravel_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+    volumes:
+      - public_assets:/var/www/public
+      # 2. SHARE STORAGE (Read Access)
+      - laravel_storage:/var/www/storage
+
+      # SSL MAPPINGS (Keep your existing ones)
+      - /home/azureuser/boothease_me_fullchain.crt:/etc/nginx/ssl/boothease_me_fullchain.crt
+      - /home/azureuser/boothease.key:/etc/nginx/ssl/boothease_me.key
+    networks:
+      - laravel
+
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: boothease
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - ./mysql_db_data:/var/lib/mysql
+    networks:
+      - laravel
+
+# 3. DEFINE THE VOLUME
+volumes:
+  public_assets:
+  laravel_storage:
+
+networks:
+  laravel:

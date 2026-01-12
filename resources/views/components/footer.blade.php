@@ -13,14 +13,14 @@
 {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> --}}
 
 {{-- KODE NOTIFIKASI MODERN --}}
-@if (session('success'))
+@if (session('success') || session('status'))
 <div class="notification-popup success">
     <div class="icon-box">
         <i class="fa-solid fa-check"></i>
     </div>
     <div class="text-content">
         <h4 class="title">Success!</h4>
-        <p class="message">{{ session('success') }}</p>
+        <p class="message">{{ session('success') ?: session('status') }}</p>
     </div>
     <div class="progress-bar"></div>
 </div>
@@ -100,7 +100,8 @@
 
     /* Success Theme */
     .notification-popup.success {
-        border-left: 4px solid #F97316; /* Orange Brand Color */
+        border-left: 4px solid #F97316;
+        /* Orange Brand Color */
     }
 
     .notification-popup.success .icon-box {
@@ -117,7 +118,8 @@
 
     /* Error Theme */
     .notification-popup.error {
-        border-left: 4px solid #EF4444; /* Red Color */
+        border-left: 4px solid #EF4444;
+        /* Red Color */
     }
 
     .notification-popup.error .icon-box {
@@ -150,14 +152,17 @@
             opacity: 0;
             transform: translateX(100%);
         }
+
         10% {
             opacity: 1;
             transform: translateX(0);
         }
+
         90% {
             opacity: 1;
             transform: translateX(0);
         }
+
         100% {
             opacity: 0;
             transform: translateX(100%);
@@ -165,7 +170,12 @@
     }
 
     @keyframes progress {
-        0% { width: 100%; }
-        100% { width: 0%; }
+        0% {
+            width: 100%;
+        }
+
+        100% {
+            width: 0%;
+        }
     }
 </style>

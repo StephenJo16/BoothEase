@@ -116,6 +116,23 @@ class BoothController extends Controller
 
     public function show(int $eventId): JsonResponse
     {
+        $event = Event::find($eventId);
+        if (!$event) {
+            return response()->json(['message' => 'Event not found'], 404);
+        }
+
+        // Check authorization: Owner or Published
+        $user = request()->user();
+        $isOwner = $user && $user->id === $event->user_id;
+        // Allow access if event is published OR user is owner
+        // Note: 'ongoing' and 'completed' events were once published, so they should be visible too if needed.
+        // Assuming public should see layout for published/ongoing/completed events.
+        $publicStatuses = [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED];
+        
+        if (!in_array($event->status, $publicStatuses) && !$isOwner) {
+             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $floorNumber = request()->input('floor_number', 1);
 
         $layout = EventLayout::where('event_id', $eventId)
@@ -128,7 +145,6 @@ class BoothController extends Controller
             ], 404);
         }
 
-        $event = Event::find($eventId);
         $booths = Booth::where('event_id', $eventId)
             ->where('floor_number', $floorNumber)
             ->orderBy('name')
@@ -157,6 +173,20 @@ class BoothController extends Controller
      */
     public function getFloors(int $eventId): JsonResponse
     {
+        $event = Event::find($eventId);
+        if (!$event) {
+            return response()->json(['message' => 'Event not found'], 404);
+        }
+
+        // Check authorization: Owner or Published
+        $user = request()->user();
+        $isOwner = $user && $user->id === $event->user_id;
+        $publicStatuses = [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED];
+        
+        if (!in_array($event->status, $publicStatuses) && !$isOwner) {
+             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $floors = EventLayout::where('event_id', $eventId)
             ->orderBy('floor_number')
             ->get(['id', 'floor_number', 'floor_name', 'booth_count', 'created_at', 'updated_at']);
@@ -172,6 +202,13 @@ class BoothController extends Controller
      */
     public function deleteFloor(int $eventId, int $floorNumber): JsonResponse
     {
+        $event = Event::findOrFail($eventId);
+        
+        // Ensure ownership
+        if ($event->user_id !== request()->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $layout = EventLayout::where('event_id', $eventId)
             ->where('floor_number', $floorNumber)
             ->first();

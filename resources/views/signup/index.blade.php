@@ -11,13 +11,23 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 </head>
 
 <body class="bg-gray-50 min-h-screen">
     @include('components.navbar')
 
     <div class="pt-2">
+        {{-- Display general error messages --}}
+        @if ($errors->has('error'))
+        <div class="max-w-md mx-auto mt-4">
+            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
+                <strong class="font-medium">Error:</strong>
+                <span class="block sm:inline">{{ $errors->first('error') }}</span>
+            </div>
+        </div>
+        @endif
 
         <div class="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div class="max-w-md w-full">
@@ -235,7 +245,7 @@
             } else { // event_organizer
                 organizerTab.classList.add('active');
                 businessNameInput.placeholder = 'Organization Name';
-                if (categoryPlaceholder) categoryPlaceholder.textContent = 'Event Category';
+                if (categoryPlaceholder) categoryPlaceholder.textContent = 'Choose a Business Category';
                 userTypeInput.value = 'event_organizer';
             }
         }

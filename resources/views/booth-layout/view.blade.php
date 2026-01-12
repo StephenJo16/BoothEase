@@ -144,7 +144,17 @@ $rows[] = [
                     <div class="flex flex-wrap gap-4 text-sm text-slate-600">
                         <div class="flex items-center">
                             <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
-                            <span>{{ $event && $event->start_time ? $event->start_time->format('d M Y') : 'TBA' }} - {{ $event && $event->end_time ? $event->end_time->format('d M Y') : 'TBA' }}</span>
+                            <span>
+                                @if($event && $event->start_time)
+                                {{ $event->start_time->format('d M Y') }}
+                                {{-- Only show end date if it exists AND is different from start date --}}
+                                @if($event->end_time && $event->start_time->format('d M Y') !== $event->end_time->format('d M Y'))
+                                - {{ $event->end_time->format('d M Y') }}
+                                @endif
+                                @else
+                                TBA
+                                @endif
+                            </span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
@@ -551,6 +561,8 @@ $rows[] = [
                     });
                 });
 
+                zoomToFit();
+
             } catch (error) {
                 console.error('Load layout error:', error);
                 updateActionButton(false);
@@ -614,7 +626,7 @@ $rows[] = [
         function handleLayoutAction() {
             const rawEventId = "{{ $eventId ?? '' }}";
             if (rawEventId) {
-                const targetBase = hasLayout ? "{{ route('booth-layout.edit') }}" : "{{ route('booth-layout') }}";
+                const targetBase = "{{ route('booth-layout') }}";
                 const targetUrl = targetBase + "?event_id=" + encodeURIComponent(rawEventId);
                 window.location.href = targetUrl;
             }
@@ -648,6 +660,49 @@ $rows[] = [
         });
 
         // Zoom functions
+        function zoomToFit() {
+            const objects = canvas.getObjects();
+            if (objects.length === 0) {
+                canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+                return;
+            }
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            
+            objects.forEach(obj => {
+                const bound = obj.getBoundingRect();
+                if (bound.left < minX) minX = bound.left;
+                if (bound.top < minY) minY = bound.top;
+                if (bound.left + bound.width > maxX) maxX = bound.left + bound.width;
+                if (bound.top + bound.height > maxY) maxY = bound.top + bound.height;
+            });
+            
+            const contentWidth = maxX - minX;
+            const contentHeight = maxY - minY;
+            const contentCenterX = minX + contentWidth / 2;
+            const contentCenterY = minY + contentHeight / 2;
+            
+            const padding = 50;
+            const availableWidth = canvas.width - (padding * 2);
+            const availableHeight = canvas.height - (padding * 2);
+            
+            let zoom = Math.min(
+                availableWidth / contentWidth,
+                availableHeight / contentHeight
+            );
+            
+            // Limit zoom level
+            zoom = Math.min(Math.max(zoom, 0.1), 1); // Max zoom 1 (100%), min zoom 0.1
+            
+            canvas.setZoom(zoom);
+            
+            const vpt = canvas.viewportTransform;
+            vpt[4] = (canvas.width / 2) - (contentCenterX * zoom);
+            vpt[5] = (canvas.height / 2) - (contentCenterY * zoom);
+            
+            canvas.requestRenderAll();
+        }
+
         function zoomIn() {
             let zoom = canvas.getZoom();
             zoom += 0.1;

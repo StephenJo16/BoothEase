@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Configure Booths</title>
+    <title>Edit Booths</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,7 +21,7 @@
         }
 
         .floor-item.active {
-            background: #ff7700;
+            background: linear-gradient(to right, #ff7700, #ff9933);
             color: white;
             box-shadow: 0 4px 6px -1px rgba(255, 119, 0, 0.3), 0 2px 4px -1px rgba(255, 119, 0, 0.2);
         }
@@ -42,15 +42,6 @@
             background: white;
             border-radius: 0 2px 2px 0;
         }
-
-        .floor-item-actions {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .floor-item:hover .floor-item-actions {
-            opacity: 1;
-        }
     </style>
 </head>
 
@@ -63,7 +54,7 @@
     </div>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
-        @include('components.back-button', ['text' => 'Back to My Events', 'url' => route('my-events.index')])
+        @include('components.back-button', ['text' => 'Back to Event Details', 'url' => request('event_id') ? route('my-events.show', ['event' => request('event_id')]) : route('my-events.index')])
 
         <!-- Floor Selector Card -->
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-6">
@@ -88,10 +79,6 @@
                 <div class="flex-1">
                     <h4 class="text-sm font-semibold text-slate-700 mb-3">Floor Actions</h4>
                     <div class="flex flex-wrap gap-3">
-                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all hover:shadow-md flex items-center gap-2" onclick="renameCurrentFloor()">
-                            <i class="fas fa-edit"></i>
-                            Rename Floor
-                        </button>
                         <button id="deleteFloorBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all hover:shadow-md flex items-center gap-2" onclick="deleteCurrentFloor()" style="display: none;">
                             <i class="fas fa-trash"></i>
                             Delete Floor
@@ -174,18 +161,19 @@
                     <div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-4 overflow-hidden">
                         <canvas id="layoutCanvas" width="860" height="600"></canvas>
                     </div>
+
                 </div>
 
                 <!-- Sidebar -->
                 <div class="lg:col-span-1 xl:col-span-1">
                     <div class="sticky top-5 space-y-6">
                         <!-- Properties Card -->
-                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
                             <h3 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b-2 border-slate-200 flex items-center">
                                 <i class="fas fa-cog mr-2 text-[#ff7700]"></i>
                                 Properties
                             </h3>
-                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 overflow-hidden text-sm">
+                            <div id="propertiesContent" class="text-slate-500 italic text-center py-6 text-sm">
                                 Select a booth to edit its properties
                             </div>
 
@@ -209,9 +197,9 @@
                                 <li>Select a booth to edit its properties in this panel</li>
                                 <li>Double-click any element to edit its label</li>
                                 <li>Drag elements to position them</li>
+                                <li>Elements align with nearby objects (orange guides appear)</li>
                                 <li>Use Zoom buttons or mouse wheel to zoom</li>
                                 <li>Click and drag empty space to pan</li>
-                                <li>Shortcuts: Ctrl+D (duplicate), Delete (remove)</li>
                             </ul>
                         </div>
                     </div>
@@ -223,12 +211,23 @@
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
         const saveEndpoint = "{{ route('booth-layout.save') }}";
-        const eventId = "{{ $eventId ?? '' }}";
-        const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice'];
+        const loadEndpointTemplate = "{{ route('booth-layout.data', ['event' => '__EVENT__']) }}";
+        const initialEventId = "{{ request('event_id', '') }}";
+
+        const trackedProperties = ['elementType', 'elementLabel', 'originalWidth', 'originalHeight', 'boothType', 'boothPrice', 'lockScalingX', 'lockScalingY'];
+
         const canvas = new fabric.Canvas('layoutCanvas', {
             backgroundColor: '#ffffff',
             selection: true
         });
+
+        // Snapping configuration
+        const SNAP_THRESHOLD = 10; // Distance in pixels to trigger snapping
+        const ANGLE_SNAP_THRESHOLD = 10; // Degrees to snap to cardinal directions (smaller = less aggressive)
+        const SNAP_ANGLES = [0, 90, 180, 270]; // Cardinal angles for wall snapping
+        let alignmentLines = []; // Store alignment guide lines
+        let isSnapping = false; // Prevent snapping feedback loops
+
 
         // Custom rotate icon - modern circular arrow design
         const rotateImg = document.createElement('img');
@@ -241,6 +240,7 @@
                       fill="#ff7700" stroke="#ff7700" stroke-width="1" stroke-linejoin="round"/>
             </svg>
         `);
+
 
         // Set custom rotation control icon
         fabric.Object.prototype.controls.mtr = new fabric.Control({
@@ -260,6 +260,11 @@
             cornerSize: 32
         });
 
+        // Variables for panning
+        let isPanning = false;
+        let lastPosX = 0;
+        let lastPosY = 0;
+
         // Floor management variables
         let currentFloorNumber = 1;
         let currentFloorName = 'Floor 1';
@@ -269,11 +274,6 @@
             booth_count: 0
         }];
         let floorLayouts = {}; // Store layouts for each floor
-
-        // Variables for panning
-        let isPanning = false;
-        let lastPosX = 0;
-        let lastPosY = 0;
 
         const elementTypes = {
             booth: {
@@ -337,8 +337,8 @@
                 strokeColor: '#000000',
                 textColor: '#000000',
                 defaultLabel: 'Wall',
-                width: 150,
-                height: 4
+                width: 150, // Default wall length
+                height: 8 // Wall thickness
             },
             custom: {
                 color: '#ffffff',
@@ -363,6 +363,46 @@
             wall: 1,
             custom: 1
         };
+
+        // Function to find the lowest available number for a given element type
+        function getNextAvailableNumber(type) {
+            const defaultLabel = elementTypes[type].defaultLabel;
+            const existingNumbers = [];
+
+            // Get all objects of this type and extract their numbers
+            canvas.getObjects().forEach(obj => {
+                if (obj.elementType === type && obj.elementLabel) {
+                    const match = obj.elementLabel.match(new RegExp(`${defaultLabel}\\s+(\\d+)`));
+                    if (match) {
+                        existingNumbers.push(parseInt(match[1], 10));
+                    }
+                }
+            });
+
+            // Find the lowest available number starting from 1
+            let number = 1;
+            while (existingNumbers.includes(number)) {
+                number++;
+            }
+
+            return number;
+        }
+
+        let isLoadingLayout = false;
+        let objectIdCounter = 1;
+
+        function resetCounters() {
+            Object.keys(elementCounters).forEach(key => {
+                elementCounters[key] = 1;
+            });
+        }
+
+        function ensureObjectId(obj) {
+            if (!obj.__internalId) {
+                obj.__internalId = `el-${objectIdCounter++}`;
+            }
+            return obj.__internalId;
+        }
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, match => {
@@ -392,7 +432,8 @@
 
         function createElement(type, left = 100, top = 100, customLabel = null, customProps = {}) {
             const config = elementTypes[type];
-            const label = customLabel || `${config.defaultLabel} ${elementCounters[type]++}`;
+            // Use custom label if provided, otherwise find the next available number
+            const label = customLabel || `${config.defaultLabel} ${getNextAvailableNumber(type)}`;
 
             const width = customProps.width || config.width;
             const height = customProps.height || config.height;
@@ -400,8 +441,8 @@
             const rect = new fabric.Rect({
                 left: 0,
                 top: 0,
-                width: width,
-                height: height,
+                width,
+                height,
                 fill: config.color,
                 stroke: config.strokeColor,
                 strokeWidth: 2,
@@ -429,27 +470,6 @@
                 fontWeight: 'bold'
             });
 
-            const groupItems = [rect, text];
-
-            if (type === 'booth') {
-                const boothType = customProps.boothType || 'Standard';
-                const price = customProps.price || 0;
-
-                const infoText = new fabric.Text(
-                    `${boothType} - ${formatRupiah(price)}`, {
-                        left: width / 2,
-                        top: height / 2 + 10, // Position for second line
-                        fontSize: 11,
-                        fontFamily: 'Arial',
-                        fill: config.textColor,
-                        textAlign: 'center',
-                        originX: 'center',
-                        originY: 'center'
-                    }
-                );
-                groupItems.push(infoText);
-            }
-
             if (type === 'wall') {
                 const width = customProps.width || config.width;
                 const height = customProps.height || config.height;
@@ -472,7 +492,9 @@
                     elementType: 'wall',
                     elementLabel: customLabel || `${config.defaultLabel} ${elementCounters[type]++}`,
                     originalWidth: width,
-                    originalHeight: height
+                    originalHeight: height,
+                    snapAngle: 90,
+                    snapThreshold: ANGLE_SNAP_THRESHOLD
                 });
 
                 line.setControlsVisibility({
@@ -490,9 +512,29 @@
                 return line;
             }
 
+            const groupItems = [rect, text];
+
+            if (type === 'booth') {
+                const boothType = customProps.boothType || 'Standard';
+                const price = customProps.price || 0;
+
+                const infoText = new fabric.Text(`${boothType} - ${formatRupiah(price)}`, {
+                    left: width / 2,
+                    top: height / 2 + 10, // Position for second line
+                    fontSize: 11,
+                    fontFamily: 'Arial',
+                    fill: config.textColor,
+                    textAlign: 'center',
+                    originX: 'center',
+                    originY: 'center'
+                });
+
+                groupItems.push(infoText);
+            }
+
             const elementGroup = new fabric.Group(groupItems, {
-                left: left,
-                top: top,
+                left,
+                top,
                 cornerColor: config.strokeColor,
                 cornerSize: 8,
                 transparentCorners: false,
@@ -510,6 +552,8 @@
                 boothType: customProps.boothType || 'Standard',
                 boothPrice: customProps.price || 0
             });
+
+            ensureObjectId(elementGroup);
 
             return elementGroup;
         }
@@ -532,122 +576,137 @@
                 return;
             }
 
-            if (!obj || obj.elementType !== 'booth') {
-                content.innerHTML = '<div class="text-slate-500 italic text-center py-10">Select a booth to edit its properties</div>';
+            if (!obj || (obj.elementType !== 'booth' && obj.elementType !== 'custom')) {
+                content.innerHTML = '<div class="text-slate-500 italic text-center py-10">Select a booth or custom element to edit its properties</div>';
                 return;
             }
 
             const width = Math.round(obj.originalWidth || obj.width);
             const height = Math.round(obj.originalHeight || obj.height);
-            const type = obj.boothType || 'Standard';
-            const price = obj.boothPrice || 0;
-            const label = obj.elementLabel || 'Booth';
+            const label = obj.elementLabel || (obj.elementType === 'booth' ? 'Booth' : 'Custom');
 
-            content.innerHTML = `
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Name:</label>
-                    <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                </div>
+            let html = '';
 
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
-                    <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                        ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
-                    <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block mb-2 text-slate-700 font-medium text-sm">Size:</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
-                        <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+            if (obj.elementType === 'custom') {
+                html += `
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Label:</label>
+                        <input type="text" id="propLabel" value="${escapeHtml(label)}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
                     </div>
-                </div>
+                 `;
+            }
 
+            if (obj.elementType === 'booth') {
+                const type = obj.boothType || 'Standard';
+                const price = obj.boothPrice || 0;
+                html += `
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Booth Type:</label>
+                        <select id="propType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                            ${boothTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Price:</label>
+                        <input type="number" id="propPrice" value="${price}" min="0" step="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2 text-slate-700 font-medium text-sm">Size (cm):</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="relative">
+                                <input type="number" id="propWidth" value="${width}" min="50" placeholder="Width" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="propHeight" value="${height}" min="50" placeholder="Height" class="w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff7700] focus:border-transparent">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
                 <button class="w-full px-4 py-3 bg-[#ff7700] hover:bg-[#e66600] text-white rounded-lg font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2" onclick="applyProperties()">
                     <i class="fas fa-check"></i>
                     Apply Changes
                 </button>
             `;
+
+            content.innerHTML = html;
         }
 
         function applyProperties() {
             const obj = canvas.getActiveObject();
-            if (!obj || obj.elementType !== 'booth') return;
+            if (!obj || (obj.elementType !== 'booth' && obj.elementType !== 'custom')) {
+                return;
+            }
 
-            const newLabel = document.getElementById('propLabel').value.trim();
-            const newType = document.getElementById('propType').value;
-            const newPrice = parseFloat(document.getElementById('propPrice').value) || 0;
-            const newWidth = parseInt(document.getElementById('propWidth').value) || 120;
-            const newHeight = parseInt(document.getElementById('propHeight').value) || 80;
+            const labelInput = document.getElementById('propLabel');
+            const newLabel = labelInput ? labelInput.value : (obj.elementLabel || (obj.elementType === 'booth' ? 'Booth' : 'Custom'));
 
+            let newWidth, newHeight;
+            const widthInput = document.getElementById('propWidth');
+
+            if (widthInput) {
+                newWidth = parseInt(widthInput.value, 10) || 120;
+                newHeight = parseInt(document.getElementById('propHeight').value, 10) || 80;
+            } else {
+                newWidth = obj.getScaledWidth();
+                newHeight = obj.getScaledHeight();
+            }
+
+            // Store current position and angle
             const currentLeft = obj.left;
             const currentTop = obj.top;
             const currentAngle = obj.angle;
+            const currentId = ensureObjectId(obj);
 
-            const newBooth = createElement(
-                'booth',
-                currentLeft,
-                currentTop,
-                newLabel, {
-                    width: newWidth,
-                    height: newHeight,
-                    boothType: newType,
-                    price: newPrice
-                }
-            );
+            let customProps = {
+                width: newWidth,
+                height: newHeight
+            };
 
-            newBooth.set({
-                angle: currentAngle
+            if (obj.elementType === 'booth') {
+                const newType = document.getElementById('propType')?.value || 'Standard';
+                const newPrice = parseFloat(document.getElementById('propPrice')?.value) || 0;
+                customProps.boothType = newType;
+                customProps.price = newPrice;
+            }
+
+            // Create a new element with updated properties
+            const newElement = createElement(obj.elementType, currentLeft, currentTop, newLabel, customProps);
+
+            // Restore position and angle
+            newElement.set({
+                left: currentLeft,
+                top: currentTop,
+                angle: currentAngle,
+                __internalId: currentId
             });
 
+            // Replace the old element with the new one
             canvas.remove(obj);
-            canvas.add(newBooth);
-            canvas.setActiveObject(newBooth);
+            canvas.add(newElement);
+            canvas.setActiveObject(newElement);
             canvas.renderAll();
 
-            updatePropertiesPanel(newBooth);
+            // Update the properties panel to reflect the new object
+            updatePropertiesPanel(newElement);
         }
 
-        canvas.on('selection:created', function(e) {
-            updatePropertiesPanel(e.selected[0]);
-        });
-
-        canvas.on('selection:updated', function(e) {
-            updatePropertiesPanel(e.selected[0]);
-        });
-
-        canvas.on('selection:cleared', function() {
-            updatePropertiesPanel(null);
-        });
-
-        canvas.on('mouse:dblclick', function(options) {
-            if (options.target && options.target.type === 'group') {
-                const group = options.target;
-                const textObject = group.getObjects('text')[0];
-
-                if (textObject) {
-                    const newText = prompt('Enter new label:', textObject.text);
-                    if (newText !== null && newText.trim() !== '') {
-                        textObject.set('text', newText.trim());
-                        group.set('elementLabel', newText.trim());
-                        canvas.renderAll();
-                        updatePropertiesPanel(group);
-                    }
-                }
-            }
-        });
+        function exportJSON() {
+            const canvasData = canvas.toJSON(trackedProperties);
+            return JSON.stringify(canvasData, null, 2);
+        }
 
         async function saveLayout() {
             const statusElement = document.getElementById('saveStatus');
             const saveBtn = document.getElementById('saveLayoutBtn');
 
-            if (!eventId) {
+            if (!initialEventId) {
                 statusElement.textContent = 'No event ID available. Please create an event first.';
                 statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-red-600';
                 return;
@@ -681,7 +740,7 @@
                     }
 
                     const payload = {
-                        event_id: parseInt(eventId, 10),
+                        event_id: parseInt(initialEventId, 10),
                         floor_number: floorNumber,
                         floor_name: floorName,
                         layout_json: JSON.stringify(layoutData),
@@ -716,7 +775,7 @@
 
                 // Show result
                 if (totalSaved > 0) {
-                    statusElement.textContent = `Successfully saved ${totalSaved} floor${totalSaved > 1 ? 's' : ''}!`;
+                    statusElement.textContent = `Successfully saved ${totalSaved} floor${totalSaved > 1 ? 's' : ''}`;
                     statusElement.className = 'mt-3 text-sm min-h-[18px] text-center text-green-600';
                 } else {
                     statusElement.textContent = 'No floors with booths to save. Add at least one booth to any floor.';
@@ -744,10 +803,10 @@
 
         // Load all floors for the event
         async function loadFloors() {
-            if (!eventId) return;
+            if (!initialEventId) return;
 
             try {
-                const response = await fetch(`{{ url('booth-layout/floors') }}/${eventId}`, {
+                const response = await fetch(`{{ url('booth-layout/floors') }}/${initialEventId}`, {
                     headers: {
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
@@ -871,12 +930,41 @@
             if (floorLayouts[currentFloorNumber]) {
                 // Load from memory if available
                 canvas.loadFromJSON(floorLayouts[currentFloorNumber], function() {
+                    // Re-apply locks and controls for specific element types
+                    canvas.getObjects().forEach(obj => {
+                        if (obj.elementType === 'booth') {
+                            obj.set({
+                                lockScalingX: true,
+                                lockScalingY: true
+                            });
+                        } else if (obj.elementType === 'wall') {
+                            // Restore wall control visibility
+                            obj.setControlsVisibility({
+                                mt: false,
+                                mb: false,
+                                ml: true,
+                                mr: true,
+                                tl: false,
+                                tr: false,
+                                bl: false,
+                                br: false,
+                                mtr: true
+                            });
+                            // Apply snapping properties
+                            obj.set({
+                                snapAngle: 90,
+                                snapThreshold: ANGLE_SNAP_THRESHOLD
+                            });
+                        }
+                    });
                     canvas.renderAll();
+                    updateCountersFromCanvas();
                 });
             } else {
                 // Load from server
                 try {
-                    const response = await fetch(`{{ url('booth-layout/data') }}/${eventId}?floor_number=${currentFloorNumber}`, {
+                    const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(initialEventId));
+                    const response = await fetch(`${endpoint}?floor_number=${currentFloorNumber}`, {
                         headers: {
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest',
@@ -887,17 +975,49 @@
                     if (response.ok) {
                         const data = await response.json();
                         if (data.layout) {
+                            isLoadingLayout = true;
                             canvas.loadFromJSON(data.layout, function() {
+                                // Re-apply locks and controls for specific element types
+                                canvas.getObjects().forEach(obj => {
+                                    if (obj.elementType === 'booth') {
+                                        obj.set({
+                                            lockScalingX: true,
+                                            lockScalingY: true
+                                        });
+                                    } else if (obj.elementType === 'wall') {
+                                        // Restore wall control visibility
+                                        obj.setControlsVisibility({
+                                            mt: false,
+                                            mb: false,
+                                            ml: true,
+                                            mr: true,
+                                            tl: false,
+                                            tr: false,
+                                            bl: false,
+                                            br: false,
+                                            mtr: true
+                                        });
+                                        // Apply snapping properties
+                                        obj.set({
+                                            snapAngle: 90,
+                                            snapThreshold: ANGLE_SNAP_THRESHOLD
+                                        });
+                                    }
+                                });
                                 canvas.renderAll();
+                                updateCountersFromCanvas();
+                                isLoadingLayout = false;
                             });
                             floorLayouts[currentFloorNumber] = data.layout;
                         }
                     } else {
                         // Floor doesn't exist in database yet, start with empty canvas
                         console.log(`Floor ${currentFloorNumber} not found in database, starting with empty canvas`);
+                        resetCounters();
                     }
                 } catch (error) {
                     console.error('Error loading floor layout:', error);
+                    resetCounters();
                 }
             }
 
@@ -912,52 +1032,39 @@
         // Add a new floor
         function addNewFloor() {
             const newFloorNumber = Math.max(...allFloors.map(f => f.floor_number), 0) + 1;
-            const floorName = prompt('Enter name for the new floor:', `Floor ${newFloorNumber}`);
+            const floorName = `Floor ${newFloorNumber}`;
 
-            if (floorName && floorName.trim() !== '') {
-                // Save current floor before switching
-                floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
+            // Save current floor before switching
+            floorLayouts[currentFloorNumber] = canvas.toJSON(trackedProperties);
 
-                // Add new floor to the list
-                allFloors.push({
-                    floor_number: newFloorNumber,
-                    floor_name: floorName.trim(),
-                    booth_count: 0
-                });
+            // Add new floor to the list
+            allFloors.push({
+                floor_number: newFloorNumber,
+                floor_name: floorName,
+                booth_count: 0
+            });
 
-                // Switch to the new floor
-                currentFloorNumber = newFloorNumber;
-                currentFloorName = floorName.trim();
+            // Switch to the new floor
+            currentFloorNumber = newFloorNumber;
+            currentFloorName = floorName;
 
-                // Clear canvas for new floor
-                canvas.clear();
-                canvas.backgroundColor = '#ffffff';
-                Object.keys(elementCounters).forEach(type => {
-                    elementCounters[type] = 1;
-                });
-                canvas.renderAll();
+            // Clear canvas for new floor
+            canvas.clear();
+            canvas.backgroundColor = '#ffffff';
+            Object.keys(elementCounters).forEach(type => {
+                elementCounters[type] = 1;
+            });
+            canvas.renderAll();
 
-                updateFloorSelector();
+            updateFloorSelector();
 
-                alert(`New floor "${floorName.trim()}" created. Add booths and save the layout.`);
-            }
+            alert(`New floor "${floorName}" created. Add booths and save the layout.`);
         }
 
         // Rename current floor
         function renameCurrentFloor() {
-            const newName = prompt('Enter new name for this floor:', currentFloorName);
-
-            if (newName && newName.trim() !== '' && newName.trim() !== currentFloorName) {
-                currentFloorName = newName.trim();
-
-                const floorIndex = allFloors.findIndex(f => f.floor_number === currentFloorNumber);
-                if (floorIndex !== -1) {
-                    allFloors[floorIndex].floor_name = currentFloorName;
-                }
-
-                updateFloorSelector();
-                alert(`Floor renamed to "${currentFloorName}". Remember to save the layout.`);
-            }
+            alert('Floor names cannot be changed.');
+            return;
         }
 
         // Delete current floor
@@ -972,7 +1079,7 @@
             }
 
             try {
-                const response = await fetch(`{{ url('booth-layout/floors') }}/${eventId}/${currentFloorNumber}`, {
+                const response = await fetch(`{{ url('booth-layout/floors') }}/${initialEventId}/${currentFloorNumber}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
@@ -1014,11 +1121,139 @@
             if (pageLoader) pageLoader.classList.remove('hidden');
 
             // Load existing floors on page load
-            loadFloors().finally(() => {
-                // Hide loader after loading
-                if (pageLoader) pageLoader.classList.add('hidden');
-            });
+            loadFloors();
+            // Note: loader will be hidden in window load event after layout is fully loaded
         });
+
+
+        function updateCountersFromCanvas() {
+            resetCounters();
+            canvas.getObjects().forEach(obj => {
+                if (!obj.elementType || !(obj.elementType in elementCounters)) {
+                    return;
+                }
+
+                ensureObjectId(obj);
+
+                const label = obj.elementLabel || '';
+                const numberMatch = label.match(/(\d+)\s*$/);
+                if (numberMatch) {
+                    const candidate = parseInt(numberMatch[1], 10) + 1;
+                    elementCounters[obj.elementType] = Math.max(elementCounters[obj.elementType], candidate);
+                } else {
+                    elementCounters[obj.elementType] = Math.max(elementCounters[obj.elementType], 2);
+                }
+            });
+        }
+
+
+
+
+
+
+        canvas.on('selection:created', function(e) {
+            updatePropertiesPanel(e.selected[0]);
+        });
+
+        canvas.on('selection:updated', function(e) {
+            updatePropertiesPanel(e.selected[0]);
+        });
+
+        canvas.on('selection:cleared', function() {
+            updatePropertiesPanel(null);
+        });
+
+        async function loadExistingLayout() {
+            if (!initialEventId) {
+                return false;
+            }
+
+            const endpoint = loadEndpointTemplate.replace('__EVENT__', encodeURIComponent(initialEventId));
+
+            try {
+                console.log('Loading existing layout for event ID:', initialEventId);
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.log('No existing layout found, starting with sample elements');
+                    return false;
+                }
+
+                const data = await response.json();
+                if (!data.layout) {
+                    console.log('No layout data found, starting with sample elements');
+                    return false;
+                }
+
+                console.log('Loading saved layout with', data.layout.objects?.length || 0, 'objects');
+                isLoadingLayout = true;
+                canvas.clear();
+                canvas.backgroundColor = '#ffffff';
+
+                await new Promise(resolve => {
+                    canvas.loadFromJSON(data.layout, () => {
+                        // Re-apply locks and controls for specific element types
+                        canvas.getObjects().forEach(obj => {
+                            if (obj.elementType === 'booth') {
+                                obj.set({
+                                    lockScalingX: true,
+                                    lockScalingY: true
+                                });
+                            } else if (obj.elementType === 'wall') {
+                                // Restore wall control visibility
+                                obj.setControlsVisibility({
+                                    mt: false,
+                                    mb: false,
+                                    ml: true,
+                                    mr: true,
+                                    tl: false,
+                                    tr: false,
+                                    bl: false,
+                                    br: false,
+                                    mtr: true
+                                });
+                                // Apply snapping properties
+                                obj.set({
+                                    snapAngle: 90,
+                                    snapThreshold: ANGLE_SNAP_THRESHOLD
+                                });
+                            }
+                        });
+                        canvas.renderAll();
+                        resolve();
+                    }, (revived, serialized) => {
+                        if (revived && revived.type === 'group') {
+                            ensureObjectId(revived);
+                        }
+                    });
+                });
+
+                canvas.getObjects().forEach(obj => {
+                    ensureObjectId(obj);
+                });
+
+                isLoadingLayout = false;
+                updateCountersFromCanvas();
+                updatePropertiesPanel(null);
+
+                zoomToFit();
+
+                const boothCount = canvas.getObjects().filter(obj => obj.elementType === 'booth').length;
+                console.log('Layout loaded successfully with', boothCount, 'booths');
+                return true;
+            } catch (error) {
+                console.error('Load layout error:', error);
+                return false;
+            }
+        }
+
+
+
+
 
         function clearCanvas() {
             if (confirm('Are you sure you want to clear the canvas?')) {
@@ -1033,6 +1268,49 @@
         }
 
         // Zoom functions
+        function zoomToFit() {
+            const objects = canvas.getObjects();
+            if (objects.length === 0) {
+                canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+                return;
+            }
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            
+            objects.forEach(obj => {
+                const bound = obj.getBoundingRect();
+                if (bound.left < minX) minX = bound.left;
+                if (bound.top < minY) minY = bound.top;
+                if (bound.left + bound.width > maxX) maxX = bound.left + bound.width;
+                if (bound.top + bound.height > maxY) maxY = bound.top + bound.height;
+            });
+            
+            const contentWidth = maxX - minX;
+            const contentHeight = maxY - minY;
+            const contentCenterX = minX + contentWidth / 2;
+            const contentCenterY = minY + contentHeight / 2;
+            
+            const padding = 50;
+            const availableWidth = canvas.width - (padding * 2);
+            const availableHeight = canvas.height - (padding * 2);
+            
+            let zoom = Math.min(
+                availableWidth / contentWidth,
+                availableHeight / contentHeight
+            );
+            
+            // Limit zoom level
+            zoom = Math.min(Math.max(zoom, 0.1), 1); // Max zoom 1 (100%), min zoom 0.1
+            
+            canvas.setZoom(zoom);
+            
+            const vpt = canvas.viewportTransform;
+            vpt[4] = (canvas.width / 2) - (contentCenterX * zoom);
+            vpt[5] = (canvas.height / 2) - (contentCenterY * zoom);
+            
+            canvas.requestRenderAll();
+        }
+
         function zoomIn() {
             let zoom = canvas.getZoom();
             zoom += 0.1;
@@ -1115,19 +1393,199 @@
             }
         });
 
+        // Snapping helper functions
+        function clearAlignmentLines() {
+            alignmentLines.forEach(line => canvas.remove(line));
+            alignmentLines = [];
+        }
+
+        function drawAlignmentLine(x1, y1, x2, y2) {
+            const line = new fabric.Line([x1, y1, x2, y2], {
+                stroke: '#ff7700',
+                strokeWidth: 1,
+                strokeDashArray: [5, 5],
+                selectable: false,
+                evented: false,
+                opacity: 0.8
+            });
+            canvas.add(line);
+            alignmentLines.push(line);
+        }
+
+        function getObjectEdges(obj) {
+            const matrix = obj.calcTransformMatrix();
+            const tl = fabric.util.transformPoint({
+                x: -obj.width / 2,
+                y: -obj.height / 2
+            }, matrix);
+            const tr = fabric.util.transformPoint({
+                x: obj.width / 2,
+                y: -obj.height / 2
+            }, matrix);
+            const bl = fabric.util.transformPoint({
+                x: -obj.width / 2,
+                y: obj.height / 2
+            }, matrix);
+            const br = fabric.util.transformPoint({
+                x: obj.width / 2,
+                y: obj.height / 2
+            }, matrix);
+
+            const left = Math.min(tl.x, tr.x, bl.x, br.x);
+            const right = Math.max(tl.x, tr.x, bl.x, br.x);
+            const top = Math.min(tl.y, tr.y, bl.y, br.y);
+            const bottom = Math.max(tl.y, tr.y, bl.y, br.y);
+
+            return {
+                left,
+                right,
+                top,
+                bottom,
+                centerX: (left + right) / 2,
+                centerY: (top + bottom) / 2,
+                points: {
+                    tl,
+                    tr,
+                    bl,
+                    br
+                }
+            };
+        }
+
+        // Object moving with snapping
+        canvas.on('object:moving', function(e) {
+            const obj = e.target;
+
+            // Prevent feedback loops
+            if (isSnapping) return;
+
+            clearAlignmentLines();
+
+            // Skip snapping if not a wall or booth
+            if (!obj.elementType) return;
+
+            const movingEdges = getObjectEdges(obj);
+
+            let bestSnapX = null;
+            let minDiffX = SNAP_THRESHOLD;
+
+            let bestSnapY = null;
+            let minDiffY = SNAP_THRESHOLD;
+
+            canvas.getObjects().forEach(target => {
+                if (target === obj || !target.elementType || target === canvas.getActiveObject()) return;
+
+                const targetEdges = getObjectEdges(target);
+
+                // Horizontal snapping
+                const diffLeft = targetEdges.left - movingEdges.left;
+                if (Math.abs(diffLeft) < minDiffX) {
+                    minDiffX = Math.abs(diffLeft);
+                    bestSnapX = {
+                        val: diffLeft,
+                        line: targetEdges.left
+                    };
+                }
+
+                const diffRight = targetEdges.right - movingEdges.right;
+                if (Math.abs(diffRight) < minDiffX) {
+                    minDiffX = Math.abs(diffRight);
+                    bestSnapX = {
+                        val: diffRight,
+                        line: targetEdges.right
+                    };
+                }
+
+                const diffCenterX = targetEdges.centerX - movingEdges.centerX;
+                if (Math.abs(diffCenterX) < minDiffX) {
+                    minDiffX = Math.abs(diffCenterX);
+                    bestSnapX = {
+                        val: diffCenterX,
+                        line: targetEdges.centerX
+                    };
+                }
+
+                // Vertical snapping
+                const diffTop = targetEdges.top - movingEdges.top;
+                if (Math.abs(diffTop) < minDiffY) {
+                    minDiffY = Math.abs(diffTop);
+                    bestSnapY = {
+                        val: diffTop,
+                        line: targetEdges.top
+                    };
+                }
+
+                const diffBottom = targetEdges.bottom - movingEdges.bottom;
+                if (Math.abs(diffBottom) < minDiffY) {
+                    minDiffY = Math.abs(diffBottom);
+                    bestSnapY = {
+                        val: diffBottom,
+                        line: targetEdges.bottom
+                    };
+                }
+
+                const diffCenterY = targetEdges.centerY - movingEdges.centerY;
+                if (Math.abs(diffCenterY) < minDiffY) {
+                    minDiffY = Math.abs(diffCenterY);
+                    bestSnapY = {
+                        val: diffCenterY,
+                        line: targetEdges.centerY
+                    };
+                }
+            });
+
+            if (bestSnapX) {
+                obj.left += bestSnapX.val;
+                drawAlignmentLine(bestSnapX.line, 0, bestSnapX.line, canvas.height);
+            }
+
+            if (bestSnapY) {
+                obj.top += bestSnapY.val;
+                drawAlignmentLine(0, bestSnapY.line, canvas.width, bestSnapY.line);
+            }
+
+            if (bestSnapX || bestSnapY) {
+                obj.setCoords();
+            }
+        });
+
+
+
+        // Clear alignment lines when object is released
+        canvas.on('object:modified', function() {
+            setTimeout(() => clearAlignmentLines(), 100);
+        });
+
+        canvas.on('selection:cleared', function() {
+            clearAlignmentLines();
+        });
+        window.addEventListener('load', async function() {
+            const pageLoader = document.getElementById('pageLoader');
+
+            // First try to load existing layout if event ID is provided
+            const layoutLoaded = await loadExistingLayout();
+
+            // If no layout was loaded, show sample elements
+            if (!layoutLoaded) {
+                // Canvas will be blank
+                canvas.renderAll();
+            }
+
+            // Hide loader after everything is loaded
+            if (pageLoader) pageLoader.classList.add('hidden');
+        });
+
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
                 e.preventDefault();
                 const activeObj = canvas.getActiveObject();
                 if (activeObj && activeObj.elementType) {
                     activeObj.clone(function(cloned) {
-                        const type = cloned.elementType;
                         cloned.set({
-                            left: activeObj.left + 20,
-                            top: activeObj.top + 20,
-                            elementLabel: `${elementTypes[type].defaultLabel} ${elementCounters[type]++}`
+                            left: cloned.left + 20,
+                            top: cloned.top + 20
                         });
-
+                        ensureObjectId(cloned);
                         canvas.add(cloned);
                         canvas.setActiveObject(cloned);
                         canvas.renderAll();

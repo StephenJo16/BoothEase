@@ -8,7 +8,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 </head>
 
 <body class="bg-gray-50 min-h-screen">
@@ -178,7 +179,17 @@
                         </div>
                     </section>
 
-
+                    <section class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">Terms and Conditions</h2>
+                            <p class="text-sm text-gray-500">Provide a link to your event's terms and conditions document.</p>
+                        </div>
+                        <div>
+                            <label for="terms_and_conditions" class="mb-2 block text-sm font-medium text-gray-700">Terms and Conditions Link <span class="text-red-500"> *</span></label>
+                            <input id="terms_and_conditions" name="terms_and_conditions" type="url" value="{{ old('terms_and_conditions') }}" required class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#ff7700] focus:outline-none focus:ring-2 focus:ring-[#ff7700]" placeholder="https://drive.google.com/file/d/...">
+                            <p class="mt-1 text-xs text-gray-500">Provide a Google Drive link or other accessible URL to your terms and conditions document.</p>
+                        </div>
+                    </section>
 
                     <section class="space-y-4">
                         <label class="flex items-start gap-3 text-sm text-gray-600">

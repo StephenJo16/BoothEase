@@ -23,7 +23,7 @@ $uniqueId = $name . '_' . uniqid();
             id="{{ $uniqueId }}"
             name="{{ $name }}"
             type="file"
-            accept="image/jpeg,image/png,image/jpg,image/webp"
+            accept="image/jpeg,image/png,image/jpg,image/webp,image/gif,image/svg+xml"
             class="hidden image-upload-input"
             data-preview="{{ $uniqueId }}-preview"
             data-placeholder="{{ $uniqueId }}-placeholder"
@@ -38,7 +38,7 @@ $uniqueId = $name . '_' . uniqid();
                 </div>
                 <div>
                     <p class="text-sm text-gray-600 font-medium">Click to upload image</p>
-                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, JPEG or WEBP (Max. 2MB)</p>
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, JPEG, WEBP, GIF or SVG (Max. 5MB)</p>
                 </div>
             </div>
             <img

@@ -1,4 +1,4 @@
-@props(['label' => 'Filter', 'type' => 'category', 'categories' => [], 'selectedCategories' => [], 'selectedStatuses' => [], 'provinces' => [], 'cities' => [], 'selectedProvinceId' => '', 'selectedCityId' => ''])
+@props(['label' => 'Filter', 'type' => 'category', 'categories' => [], 'selectedCategories' => [], 'selectedStatuses' => [], 'provinces' => [], 'cities' => [], 'selectedProvinceId' => '', 'selectedCityId' => '', 'refundable' => ''])
 
 <div class="relative inline-block">
     <button
@@ -53,7 +53,7 @@
                 </div>
                 @endif
 
-                @if(!empty($cities))
+                @if(!empty($cities) || !empty($provinces))
                 <div>
                     <label class="block text-xs text-gray-600 mb-1">City</label>
                     <select
@@ -70,7 +70,27 @@
                 @endif
             </div>
             @endif
-            @elseif($type === 'status')
+
+            @if($type === 'category' || $type === 'combined')
+            <!-- Refundable Filter Section -->
+            <div class="px-4 py-2 mt-2 text-sm font-semibold text-gray-900 border-t border-gray-200">
+                Filter by Refund Policy
+            </div>
+            <div class="px-4 py-2">
+                <label class="flex items-center px-2 py-2 hover:bg-gray-50 cursor-pointer rounded">
+                    <input
+                        type="checkbox"
+                        name="refundable"
+                        value="1"
+                        {{ !empty($refundable) ? 'checked' : '' }}
+                        class="filter-checkbox mr-3 accent-[#ff7700] focus:ring-[#ff7700] border-gray-300 rounded">
+                    <span class="text-sm text-gray-700">Show only refundable events</span>
+                </label>
+            </div>
+            @endif
+            @endif
+            
+            @if($type === 'status')
             <!-- Status Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
                 Filter by Status
@@ -97,7 +117,9 @@
                 <span class="text-sm text-gray-700">{{ $statusLabel }}</span>
             </label>
             @endforeach
-            @elseif($type === 'event-status' || $type === 'combined')
+            @endif
+            
+            @if($type === 'event-status' || $type === 'combined')
             <!-- Event Status Filter Section -->
             <div class="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
                 Filter by Status
@@ -161,6 +183,40 @@
                 chevron.classList.remove('rotate-180');
             }
         });
+
+        // Dynamic City Loading
+        const provinceSelect = document.querySelector('select[name="province_id"]');
+        const citySelect = document.querySelector('select[name="city_id"]');
+
+        if (provinceSelect && citySelect) {
+            provinceSelect.addEventListener('change', function() {
+                const provinceId = this.value;
+
+                // Clear current options
+                citySelect.innerHTML = '<option value="">All Cities</option>';
+
+                if (provinceId) {
+                    // Disable while loading
+                    citySelect.disabled = true;
+
+                    fetch(`/api/cities?province_id=${provinceId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                citySelect.appendChild(option);
+                            });
+                            citySelect.disabled = false;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching cities:', error);
+                            citySelect.disabled = false;
+                        });
+                }
+            });
+        }
     });
 
     function clearFilters() {

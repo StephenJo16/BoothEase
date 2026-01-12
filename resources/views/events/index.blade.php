@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 </head>
 
 @php
@@ -64,11 +65,12 @@ return !empty($prices) ? min($prices) : 0;
                         :provinces="$allProvinces"
                         :cities="$allCities"
                         :selectedProvinceId="$filters['province_id'] ?? ''"
-                        :selectedCityId="$filters['city_id'] ?? ''" />
+                        :selectedCityId="$filters['city_id'] ?? ''"
+                        :refundable="$filters['refundable'] ?? ''" />
                 </form>
 
                 <!-- Active Filters Display -->
-                @if(!empty($filters['categories'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? ''))
+                @if(!empty($filters['categories'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? '') || ($filters['refundable'] ?? ''))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
@@ -114,6 +116,15 @@ return !empty($prices) ? min($prices) : 0;
                     @endif
                     @endif
 
+                    @if($filters['refundable'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Refundable Only
+                        <button type="button" data-remove-filter="refundable" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
                     <a href="{{ route('events') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
                         Clear all filters
                     </a>
@@ -140,7 +151,7 @@ return !empty($prices) ? min($prices) : 0;
                         $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative flex flex-col h-full">
                             @if($event->image_path)
                             <div class="h-48 relative">
                                 <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
@@ -155,12 +166,12 @@ return !empty($prices) ? min($prices) : 0;
                                 </span>
                             </div>
                             @endif
-                            <div class="p-6">
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
-                                <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                        <span>{{ $event->display_location ?? 'Location TBA' }}</span>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">{{ $event->title }}</h3>
+                                <div class="space-y-2 text-sm text-gray-600 mb-4 flex-grow">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700] mt-1"></i>
+                                        <span class="line-clamp-2">{{ $event->display_location ?? 'Location TBA' }}</span>
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
@@ -183,7 +194,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     @endif
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center mt-auto">
                                     View Details
                                 </a>
                             </div>
@@ -208,7 +219,7 @@ return !empty($prices) ? min($prices) : 0;
                         $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-90">
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-90 flex flex-col h-full">
                             @if($event->image_path)
                             <div class="h-48 relative">
                                 <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
@@ -229,12 +240,12 @@ return !empty($prices) ? min($prices) : 0;
                                 </span>
                             </div>
                             @endif
-                            <div class="p-6">
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
-                                <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                        <span>{{ $event->display_location ?? 'Location TBA' }}</span>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">{{ $event->title }}</h3>
+                                <div class="space-y-2 text-sm text-gray-600 mb-4 flex-grow">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700] mt-1"></i>
+                                        <span class="line-clamp-2">{{ $event->display_location ?? 'Location TBA' }}</span>
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
@@ -257,7 +268,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     @endif
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center mt-auto">
                                     View Details
                                 </a>
                             </div>
@@ -282,7 +293,7 @@ return !empty($prices) ? min($prices) : 0;
                         $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative flex flex-col h-full">
                             @if($event->image_path)
                             <div class="h-48 relative">
                                 <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
@@ -297,12 +308,12 @@ return !empty($prices) ? min($prices) : 0;
                                 </span>
                             </div>
                             @endif
-                            <div class="p-6">
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
-                                <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700]"></i>
-                                        <span>{{ $event->display_location ?? 'Location TBA' }}</span>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">{{ $event->title }}</h3>
+                                <div class="space-y-2 text-sm text-gray-600 mb-4 flex-grow">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-map-marker-alt mr-2 text-[#ff7700] mt-1"></i>
+                                        <span class="line-clamp-2">{{ $event->display_location ?? 'Location TBA' }}</span>
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-[#ff7700]"></i>
@@ -319,7 +330,7 @@ return !empty($prices) ? min($prices) : 0;
                                     </div>
                                     @endif
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-100 hover:bg-[#ff7700] hover:text-white text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-center mt-auto">
                                     View Details
                                 </a>
                             </div>
@@ -344,7 +355,7 @@ return !empty($prices) ? min($prices) : 0;
                         $gradient = $colorScheme['gradient'];
                         $minPrice = getMinBoothPrice($event);
                         @endphp
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-75">
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative opacity-75 flex flex-col h-full">
                             @if($event->image_path)
                             <div class="h-48 relative grayscale">
                                 <img src="{{ asset('storage/' . $event->image_path) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
@@ -365,19 +376,19 @@ return !empty($prices) ? min($prices) : 0;
                                 </span>
                             </div>
                             @endif
-                            <div class="p-6">
-                                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $event->title }}</h3>
-                                <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-map-marker-alt mr-2 text-gray-500"></i>
-                                        <span>{{ $event->display_location ?? 'Location TBA' }}</span>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">{{ $event->title }}</h3>
+                                <div class="space-y-2 text-sm text-gray-600 mb-4 flex-grow">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-map-marker-alt mr-2 text-gray-500 mt-1"></i>
+                                        <span class="line-clamp-2">{{ $event->display_location ?? 'Location TBA' }}</span>
                                     </div>
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-gray-500"></i>
                                         <span>{{ $event->start_time ? $event->start_time->format('d F Y') : 'Date TBA' }}</span>
                                     </div>
                                 </div>
-                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-400 hover:bg-gray-500 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center">
+                                <a href="{{ route('events.show', $event->id) }}" class="block w-full bg-gray-400 hover:bg-gray-500 text-white text-sm py-2 px-3 rounded-lg transition-colors duration-200 text-center mt-auto">
                                     View Details
                                 </a>
                             </div>

@@ -8,7 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
     <style>
         .floor-item {
             position: relative;
@@ -300,7 +301,7 @@
             // Populate booth details
             document.getElementById('boothName').textContent = booth.name ?? 'N/A';
             document.getElementById('boothType').textContent = booth.type ?? 'Standard';
-            document.getElementById('boothSize').textContent = booth.size ?? 'N/A';
+            document.getElementById('boothSize').textContent = booth.size ? booth.size + ' cm' : 'N/A';
             document.getElementById('boothPrice').textContent = formatRupiah(booth.price ?? 0);
 
             // Show floor information
@@ -618,6 +619,8 @@
                 // Hide loader after successful load
                 if (pageLoader) pageLoader.classList.add('hidden');
 
+                zoomToFit();
+
             } catch (error) {
                 console.error('Load layout error:', error);
                 setCanvasMessage('An error occurred while loading the layout.', 'error');
@@ -647,6 +650,49 @@
         });
 
         // Zoom functions
+        function zoomToFit() {
+            const objects = canvas.getObjects();
+            if (objects.length === 0) {
+                canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+                return;
+            }
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            
+            objects.forEach(obj => {
+                const bound = obj.getBoundingRect();
+                if (bound.left < minX) minX = bound.left;
+                if (bound.top < minY) minY = bound.top;
+                if (bound.left + bound.width > maxX) maxX = bound.left + bound.width;
+                if (bound.top + bound.height > maxY) maxY = bound.top + bound.height;
+            });
+            
+            const contentWidth = maxX - minX;
+            const contentHeight = maxY - minY;
+            const contentCenterX = minX + contentWidth / 2;
+            const contentCenterY = minY + contentHeight / 2;
+            
+            const padding = 50;
+            const availableWidth = canvas.width - (padding * 2);
+            const availableHeight = canvas.height - (padding * 2);
+            
+            let zoom = Math.min(
+                availableWidth / contentWidth,
+                availableHeight / contentHeight
+            );
+            
+            // Limit zoom level
+            zoom = Math.min(Math.max(zoom, 0.1), 1); // Max zoom 1 (100%), min zoom 0.1
+            
+            canvas.setZoom(zoom);
+            
+            const vpt = canvas.viewportTransform;
+            vpt[4] = (canvas.width / 2) - (contentCenterX * zoom);
+            vpt[5] = (canvas.height / 2) - (contentCenterY * zoom);
+            
+            canvas.requestRenderAll();
+        }
+
         function zoomIn() {
             let zoom = canvas.getZoom();
             zoom += 0.1;

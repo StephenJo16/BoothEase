@@ -29,13 +29,23 @@ class UserController extends Controller
         $user = User::findOrFail(Auth::id());
 
         $validated = $request->validate([
-            'full_name'                 => ['required', 'string', 'max:255'],
+            'full_name'                 => ['required', 'string', 'max:255', Rule::unique('users', 'display_name')->ignore($user->id)],
             'business_name'             => ['required', 'string', 'max:255', Rule::unique('users', 'name')->ignore($user->id)],
             'mobile_number'             => ['required', 'string', 'max:20'],
             'category_id'               => ['required', 'exists:categories,id'],
         ]);
 
+        // Normalize phone number
         $phone = '+62' . ltrim($validated['mobile_number'], '0');
+
+        // Check if phone number is already taken by another user
+        $existingPhone = User::where('phone_number', $phone)
+            ->where('id', '!=', $user->id)
+            ->exists();
+
+        if ($existingPhone) {
+            return back()->withErrors(['mobile_number' => 'The mobile number has already been taken.'])->withInput();
+        }
 
         $user->display_name      = $validated['full_name'];
         $user->name              = $validated['business_name'];

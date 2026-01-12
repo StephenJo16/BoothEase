@@ -7,7 +7,8 @@
     <title>Book {{ $booth->name }} - {{ $event->title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 </head>
 
 @php
@@ -18,7 +19,11 @@ if ($event->start_time && $event->end_time) {
 $start = $event->start_time;
 $end = $event->end_time;
 $eventDuration = floor($start->diffInDays($end)) + 1;
+if ($eventDuration == 1) {
+$eventDates = $start->format('F d, Y') . ' (1 day)';
+} else {
 $eventDates = $start->format('F d') . ' - ' . $end->format('d, Y') . ' (' . $eventDuration . ' days)';
+}
 }
 
 $totalAmount = $booth->price;
@@ -98,7 +103,7 @@ $userPhone = $digits;
                                 </span>
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 font-medium">
                                     <i class="fas fa-ruler-combined mr-2"></i>
-                                    {{ $booth->size ?? 'Size not specified' }}
+                                    {{ $booth->size ? $booth->size . ' cm' : 'Size not specified' }}
                                 </span>
                             </div>
                         </div>
@@ -106,7 +111,7 @@ $userPhone = $digits;
                             <div class="text-sm text-slate-600 mb-1">Price</div>
                             <div class="text-3xl font-bold text-[#ff7700]">{{ formatRupiah($booth->price) }}</div>
                             @if($eventDuration > 0)
-                            <div class="text-xs text-slate-500 mt-1">for {{ $eventDuration }} days</div>
+                            <div class="text-xs text-slate-500 mt-1">for {{ $eventDuration }} {{ Str::plural('day', $eventDuration) }}</div>
                             @endif
                         </div>
                     </div>
@@ -204,7 +209,7 @@ $userPhone = $digits;
                         Your Information
                     </h2>
 
-                    <form id="bookingForm" method="POST" action="{{ route('bookings.store') }}" class="space-y-5">
+                    <form id="bookingForm" method="POST" action="{{ route('bookings.store') }}" enctype="multipart/form-data" class="space-y-5">
                         @csrf
                         <input type="hidden" name="booth_id" value="{{ $booth->id }}">
 
@@ -267,6 +272,35 @@ $userPhone = $digits;
                             </div>
                         </div>
 
+                        <!-- Product Picture Upload -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                Product Pictures <span class="text-red-500">*</span>
+                            </label>
+                            <p class="text-xs text-slate-600 mb-2">Upload pictures of your products - JPEG, JPG, or PNG (max 5MB each, up to 3 files)</p>
+                            <div class="relative">
+                                <input type="file" name="product_pictures[]" id="productPictureUpload" class="hidden" accept=".jpeg,.jpg,.png" multiple required>
+                                <button type="button" id="productUploadButton"
+                                    class="w-full px-4 py-3 border-2 border-dashed {{ $errors->has('product_pictures') ? 'border-red-500' : 'border-slate-300' }} rounded-lg text-sm text-slate-600 hover:border-[#ff7700] hover:text-[#ff7700] transition-colors duration-200 flex items-center justify-center gap-2">
+                                    <i class="fas fa-cloud-upload-alt text-lg"></i>
+                                    <span>Click to upload product pictures (JPEG, JPG, PNG - max 3)</span>
+                                </button>
+
+                                <!-- File Preview (Initially Hidden) -->
+                                <div id="productFilePreview" class="hidden space-y-2"></div>
+                            </div>
+                            @error('product_pictures')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            @error('product_pictures.*')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <p id="productPictureError" class="mt-1 text-sm text-red-600 hidden">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                Please upload at least one product picture (max 3 files).
+                            </p>
+                        </div>
+
                         <!-- Additional Notes -->
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2">
@@ -286,9 +320,15 @@ $userPhone = $digits;
                                 <input type="checkbox" id="agreeTerms" required
                                     class="mt-1 mr-3 w-5 h-5 accent-[#ff7700] focus:ring-[#ff7700] border-slate-300 rounded">
                                 <span class="text-sm text-slate-700">
-                                    I agree to the <a href="#" class="text-[#ff7700] hover:underline font-medium">Terms and Conditions</a>
-                                    and <a href="#" class="text-[#ff7700] hover:underline font-medium">Cancellation Policy</a>.
-                                    I understand that booth assignments are final once confirmed.
+                                    I agree to the
+                                    @if($event->terms_and_conditions)
+                                    <a href="{{ $event->terms_and_conditions }}" target="_blank" rel="noopener noreferrer" class="text-[#ff7700] hover:underline font-medium">
+                                        Terms and Conditions <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                                    </a>
+                                    @else
+                                    <span class="text-[#ff7700] font-medium">Terms and Conditions</span>
+                                    @endif
+                                    of the event.
                                 </span>
                             </label>
                         </div>
@@ -324,12 +364,16 @@ $userPhone = $digits;
                                         <span class="font-semibold text-slate-900">{{ $booth->name }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
+                                        <span class="text-slate-700">Floor no.</span>
+                                        <span class="font-semibold text-slate-900">{{ $booth->floor_number }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
                                         <span class="text-slate-700">Type</span>
                                         <span class="font-semibold text-slate-900">{{ ucfirst($booth->type ?? 'Standard') }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-700">Size</span>
-                                        <span class="font-semibold text-slate-900">{{ $booth->size ?? 'N/A' }}</span>
+                                        <span class="font-semibold text-slate-900">{{ $booth->size ? $booth->size . ' cm' : 'N/A' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -345,7 +389,7 @@ $userPhone = $digits;
                                     @if($eventDates)
                                     <div class="text-sm">
                                         <div class="text-slate-700 mb-1">Duration</div>
-                                        <div class="font-semibold text-slate-900">{{ $eventDuration }} days</div>
+                                        <div class="font-semibold text-slate-900">{{ $eventDuration }} {{ Str::plural('day', $eventDuration) }}</div>
                                     </div>
                                     @endif
                                     @if($event->venue || $event->display_location)
@@ -437,9 +481,177 @@ $userPhone = $digits;
             phoneInput.addEventListener('blur', applyFormattedPhone);
         }
 
+        // Product Picture Upload Functionality (Multiple Files)
+        const productFileInput = document.getElementById('productPictureUpload');
+        const productUploadButton = document.getElementById('productUploadButton');
+        const productFilePreview = document.getElementById('productFilePreview');
+        const productPictureError = document.getElementById('productPictureError');
+        const MAX_FILES = 3;
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
+        // Handle upload button click
+        if (productUploadButton) {
+            productUploadButton.addEventListener('click', function() {
+                productFileInput.click();
+            });
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Function to create preview item for a file
+        function createFilePreviewItem(file, index) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'w-full px-4 py-3 border-2 border-orange-500 rounded-lg bg-orange-50 flex items-center justify-between';
+            previewItem.dataset.index = index;
+
+            previewItem.innerHTML = `
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-[#ff7700]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">${file.name}</p>
+                        <p class="text-xs text-gray-500">${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <button type="button" class="remove-file-btn flex-shrink-0 ml-3 text-red-600 hover:text-red-800 transition-colors" data-index="${index}">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+
+            return previewItem;
+        }
+
+        // Handle file selection
+        if (productFileInput) {
+            productFileInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+
+                if (files.length > 0) {
+                    this.setCustomValidity('');
+
+                    // Check if more than MAX_FILES
+                    if (files.length > MAX_FILES) {
+                        alert(`You can only upload a maximum of ${MAX_FILES} files.`);
+                        productFileInput.value = '';
+                        return;
+                    }
+
+                    // Validate each file
+                    let hasError = false;
+                    for (let file of files) {
+                        // Check file size
+                        if (file.size > MAX_FILE_SIZE) {
+                            alert(`File "${file.name}" exceeds 5MB limit.`);
+                            hasError = true;
+                            break;
+                        }
+
+                        // Check file type
+                        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                        if (!validTypes.includes(file.type)) {
+                            alert(`File "${file.name}" is not a valid image type. Only JPG, JPEG, and PNG are allowed.`);
+                            hasError = true;
+                            break;
+                        }
+                    }
+
+                    if (hasError) {
+                        productFileInput.value = '';
+                        return;
+                    }
+
+                    // Clear previous previews
+                    productFilePreview.innerHTML = '';
+
+                    // Create preview for each file
+                    files.forEach((file, index) => {
+                        const previewItem = createFilePreviewItem(file, index);
+                        productFilePreview.appendChild(previewItem);
+                    });
+
+                    // Hide upload button and show preview
+                    productUploadButton.classList.add('hidden');
+                    productFilePreview.classList.remove('hidden');
+
+                    // Remove error styling and message
+                    productUploadButton.classList.remove('border-red-500');
+                    productUploadButton.classList.add('border-slate-300');
+                    if (productPictureError) {
+                        productPictureError.classList.add('hidden');
+                    }
+
+                    // Add event listeners to remove buttons
+                    document.querySelectorAll('.remove-file-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            // Clear all files and reset
+                            productFileInput.value = '';
+                            productUploadButton.classList.remove('hidden');
+                            productFilePreview.classList.add('hidden');
+                            productFilePreview.innerHTML = '';
+                        });
+                    });
+                }
+            });
+
+            // Handle invalid file input
+            productFileInput.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                this.setCustomValidity('Please upload at least one product picture.');
+
+                // Add red border to upload button
+                productUploadButton.classList.add('border-red-500');
+                productUploadButton.classList.remove('border-slate-300');
+
+                // Show error message
+                if (productPictureError) {
+                    productPictureError.classList.remove('hidden');
+                }
+
+                // Scroll to the upload section
+                productUploadButton.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            });
+        }
+
         // Simple form handling - let Laravel handle validation
         if (bookingForm) {
-            bookingForm.addEventListener('submit', function() {
+            bookingForm.addEventListener('submit', function(e) {
+                // Check if product pictures are uploaded
+                if (!productFileInput.files || productFileInput.files.length === 0) {
+                    e.preventDefault();
+
+                    // Show error message
+                    if (productPictureError) {
+                        productPictureError.classList.remove('hidden');
+                    }
+
+                    // Add red border to upload button
+                    productUploadButton.classList.add('border-red-500');
+                    productUploadButton.classList.remove('border-slate-300');
+
+                    // Scroll to the upload section
+                    productUploadButton.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+
+                    return false;
+                }
+
                 if (phoneInput) {
                     phoneInput.value = phoneInput.value.replace(/\D+/g, '');
                 }

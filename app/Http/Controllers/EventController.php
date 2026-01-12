@@ -12,11 +12,17 @@ use App\Models\Subdistrict;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
     public function publicIndex(Request $request)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         // Update event statuses before loading
         $this->updateEventStatuses();
 
@@ -27,9 +33,10 @@ class EventController extends Controller
         $categories = $request->input('categories', []);
         $provinceId = $request->input('province_id');
         $cityId = $request->input('city_id');
+        $refundable = $request->input('refundable');
 
         // Base query with filters
-        $baseQuery = function ($query) use ($search, $categories, $provinceId, $cityId) {
+        $baseQuery = function ($query) use ($search, $categories, $provinceId, $cityId, $refundable) {
             // Search filter
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -59,6 +66,11 @@ class EventController extends Controller
             // City filter
             if ($cityId) {
                 $query->where('city_id', $cityId);
+            }
+
+            // Refundable filter
+            if ($refundable) {
+                $query->where('refundable', true);
             }
         };
 
@@ -153,12 +165,18 @@ class EventController extends Controller
                 'categories' => $categories,
                 'province_id' => $provinceId,
                 'city_id' => $cityId,
+                'refundable' => $refundable,
             ],
         ]);
     }
 
     public function publicShow(Event $event)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         // Only show published, ongoing, or completed events (not draft or finalized)
         if (!in_array($event->status, [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED])) {
             abort(404, 'Event not found or not available');
@@ -166,11 +184,13 @@ class EventController extends Controller
 
         $event->load([
             'category',
-            'user',
-            'booths' => function ($query) {
-                $query->orderBy('name');
-            }
+            'user'
         ]);
+
+        // Paginate booths
+        $perPage = request('perPage', 5);
+        $booths = $event->booths()->orderBy('floor_number')->orderByRaw('LENGTH(name), name')->paginate($perPage);
+        $event->setRelation('booths', $booths);
 
         // Load all ratings for the organizer (across all events)
         $organizerRatings = \App\Models\Rating::with(['rater', 'ratee', 'event'])
@@ -234,6 +254,11 @@ class EventController extends Controller
 
     public function showBooths(Event $event)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         // Only show published events
         if ($event->status !== Event::STATUS_PUBLISHED) {
             abort(404, 'Event not found or not available');
@@ -273,6 +298,11 @@ class EventController extends Controller
 
     public function showBoothDetails($boothId)
     {
+        // Restrict access for event organizers
+        if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
+            return redirect()->route('my-events.index');
+        }
+
         $booth = \App\Models\Booth::with(['event.category', 'event.user'])
             ->findOrFail($boothId);
 
@@ -301,6 +331,9 @@ class EventController extends Controller
         $search = $request->input('search');
         $categories = $request->input('categories', []);
         $statuses = $request->input('statuses', []);
+        $provinceId = $request->input('province_id');
+        $cityId = $request->input('city_id');
+        $refundable = $request->input('refundable');
 
         // Build query with filters
         $query = Event::with([
@@ -314,6 +347,9 @@ class EventController extends Controller
                 'booths',
                 'booths as booked_booths_count' => function ($query) {
                     $query->where('status', 'booked');
+                },
+                'booths as available_booths_count' => function ($query) {
+                    $query->where('status', 'available');
                 }
             ])
             ->ownedBy($request->user());
@@ -344,6 +380,21 @@ class EventController extends Controller
             $query->whereIn('status', $statuses);
         }
 
+        // Province filter
+        if ($provinceId) {
+            $query->where('province_id', $provinceId);
+        }
+
+        // City filter
+        if ($cityId) {
+            $query->where('city_id', $cityId);
+        }
+
+        // Refundable filter
+        if ($refundable) {
+            $query->where('refundable', true);
+        }
+
         $events = $query->latest('created_at')->paginate(9);
 
         // Get all categories for filter dropdown
@@ -352,14 +403,21 @@ class EventController extends Controller
         // Get all provinces for filter dropdown
         $allProvinces = Province::orderBy('name')->get();
 
+        // Get cities based on selected province
+        $allCities = $provinceId ? City::where('province_id', $provinceId)->orderBy('name')->get() : collect();
+
         return view('my-events.index', [
             'events' => $events,
             'allCategories' => $allCategories,
             'allProvinces' => $allProvinces,
+            'allCities' => $allCities,
             'filters' => [
                 'search' => $search,
                 'categories' => $categories,
                 'statuses' => $statuses,
+                'province_id' => $provinceId,
+                'city_id' => $cityId,
+                'refundable' => $refundable,
             ],
         ]);
     }
@@ -501,13 +559,13 @@ class EventController extends Controller
                 ->with('error', "Cannot publish event. The number of booths ($boothCount) must match the event capacity ($capacity).");
         }
 
-        // Validate that the registration deadline is at least tomorrow
+        // Validate that the registration deadline is at least 1 day from today
         if ($event->registration_deadline) {
-            $now = now();
-            if ($event->registration_deadline->lt($now)) {
+            $tomorrow = now()->addDay()->startOfDay();
+            if ($event->registration_deadline->lt($tomorrow)) {
                 return redirect()
                     ->back()
-                    ->with('error', 'Cannot publish event. The registration deadline must be at least tomorrow. Please update the event details.');
+                    ->with('error', 'Cannot publish event. The registration deadline must be at least 1 day from today. Please update the event details.');
             }
         }
 
@@ -538,7 +596,7 @@ class EventController extends Controller
         $requiresFullValidation = in_array($action, ['publish', 'create_layout']);
 
         $rules = [
-            'image' => [$requiresFullValidation ? 'required' : 'nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => [$requiresFullValidation ? 'required' : 'nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif,svg', 'max:5120'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => [$requiresFullValidation ? 'required' : 'nullable', 'integer', 'exists:categories,id'],
@@ -556,6 +614,7 @@ class EventController extends Controller
             'registration_deadline' => ['nullable', 'date'],
             'registration_deadline_time' => ['nullable', 'date_format:H:i'],
             'refundable' => ['nullable', 'boolean'],
+            'terms_and_conditions' => [$requiresFullValidation ? 'required' : 'nullable', 'url', 'max:500'],
             'booth_standard_size' => ['nullable', 'string', 'max:50'],
             'booth_standard_price' => ['nullable', 'integer', 'min:0'],
             'booth_standard_qty' => ['nullable', 'integer', 'min:0'],
@@ -572,8 +631,8 @@ class EventController extends Controller
             'confirm_terms.accepted' => 'You must check the confirmation box at the bottom of the form before proceeding to set up booths.',
             'image.required' => 'Please upload an event image before proceeding.',
             'image.image' => 'The uploaded file must be an image.',
-            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, or webp.',
-            'image.max' => 'The image size must not exceed 2MB.',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif, or svg.',
+            'image.max' => 'The image size must not exceed 5MB.',
         ];
 
         return $request->validate($rules, $messages);
@@ -593,6 +652,7 @@ class EventController extends Controller
             'venue' => $data['venue'] ?? null,
             'address' => $data['address'] ?? null,
             'refundable' => $data['refundable'] ?? false,
+            'terms_and_conditions' => $data['terms_and_conditions'] ?? null,
         ]);
 
         $event->start_time = $this->combineDateAndTime($data['start_date'] ?? null, $data['start_time'] ?? null);

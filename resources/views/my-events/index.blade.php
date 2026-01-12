@@ -8,7 +8,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 </head>
 
 <body class="bg-gray-50 min-h-screen">
@@ -37,11 +38,14 @@
                         :selectedCategories="$filters['categories'] ?? []"
                         :selectedStatuses="$filters['statuses'] ?? []"
                         :provinces="$allProvinces"
-                        :cities="collect()" />
+                        :cities="$allCities"
+                        :selectedProvinceId="$filters['province_id'] ?? ''"
+                        :selectedCityId="$filters['city_id'] ?? ''"
+                        :refundable="$filters['refundable'] ?? ''" />
                 </form>
 
                 <!-- Active Filters Display -->
-                @if(!empty($filters['categories'] ?? []) || !empty($filters['statuses'] ?? []))
+                @if(!empty($filters['categories'] ?? []) || !empty($filters['statuses'] ?? []) || ($filters['province_id'] ?? '') || ($filters['city_id'] ?? '') || ($filters['refundable'] ?? ''))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
@@ -77,6 +81,43 @@
                     </span>
                     @endforeach
 
+                    @if($filters['province_id'] ?? '')
+                    @php
+                    $province = $allProvinces->find($filters['province_id']);
+                    @endphp
+                    @if($province)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        Province: {{ $province->name }}
+                        <button type="button" data-remove-filter="province_id" class="hover:cursor-pointer ml-2 hover:text-purple-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+                    @endif
+
+                    @if($filters['city_id'] ?? '')
+                    @php
+                    $city = $allCities->find($filters['city_id']);
+                    @endphp
+                    @if($city)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        City: {{ $city->name }}
+                        <button type="button" data-remove-filter="city_id" class="hover:cursor-pointer ml-2 hover:text-purple-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+                    @endif
+
+                    @if($filters['refundable'] ?? '')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        Refundable Only
+                        <button type="button" data-remove-filter="refundable" class="hover:cursor-pointer ml-2 hover:text-green-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    @endif
+
                     <a href="{{ route('my-events.index') }}" class="text-sm text-[#ff7700] hover:text-[#e66600] font-medium">
                         Clear all filters
                     </a>
@@ -86,12 +127,6 @@
         </section>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            @if(session('status'))
-            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800 text-sm">
-                {{ session('status') }}
-            </div>
-            @endif
-
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                 <div>
                     <p class="text-sm text-gray-600">View, edit, and publish the events you manage.</p>
@@ -117,6 +152,7 @@
                 $boothTypes = $event->booths->pluck('type')->unique()->count();
                 $boothTotal = $event->booths_count ?? 0;
                 $bookedBooths = $event->booked_booths_count ?? 0;
+                $availableBooths = $event->available_booths_count ?? 0;
 
                 // Format event dates and times using helper functions
                 $dateDisplay = formatEventDate($event);
@@ -149,8 +185,7 @@
                     <div class="border-b border-gray-100 px-5 py-4">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <h3 class="text-base font-semibold text-gray-900">{{ $event->title }}</h3>
-                                <p class="text-xs uppercase tracking-wide text-gray-500">{{ $category }}</p>
+                                <h3 class="text-base font-semibold text-gray-900 line-clamp-2">{{ $event->title }}</h3>
                             </div>
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $badge['class'] }}">
                                 {{ $badge['label'] }}
@@ -183,7 +218,7 @@
                                 @if($boothTotal > 0)
                                 <div class="mt-2 flex items-center justify-between">
                                     <span>Availability</span>
-                                    <span class="font-semibold">{{ $boothTotal - $bookedBooths }}/{{ $boothTotal }}</span>
+                                    <span class="font-semibold">{{ $availableBooths }}/{{ $boothTotal }}</span>
                                 </div>
                                 @endif
                             </div>
@@ -224,6 +259,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('filter-form');
+
+            // Handle removing individual filters
+            document.querySelectorAll('[data-remove-filter]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterName = this.getAttribute('data-remove-filter');
+                    const input = form.querySelector(`[name="${filterName}"]`);
+                    if (input) {
+                        input.value = '';
+                        form.submit();
+                    }
+                });
+            });
 
             // Handle removing individual category filters
             document.querySelectorAll('[data-remove-category]').forEach(button => {

@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @viteCss
+    @viteJs
 
 
 </head>
@@ -27,6 +28,7 @@ $headers=[
 ['title' => 'Tenant', 'class' => 'w-40'],
 ['title' => 'Contact Person', 'class' => 'w-32'],
 ['title' => 'Booth', 'class' => 'w-20'],
+['title' => 'Floor no.', 'class' => 'w-20'],
 ['title' => 'Price', 'class' => 'w-28'],
 ['title' => 'Request Date', 'class' => 'w-28'],
 ['title' => 'Status', 'class' => 'w-24'],
@@ -62,6 +64,10 @@ $rows[] = [
 ],
 [
 'content' => $booking->booth->name ?? 'N/A',
+'class' => 'font-medium text-gray-900 text-sm'
+],
+[
+'content' => $booking->booth->floor_number ?? 'N/A',
 'class' => 'font-medium text-gray-900 text-sm'
 ],
 [
@@ -101,7 +107,7 @@ $rows[] = [
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Requests</h1>
-                        <p class="text-gray-600">{{ $event->title }} • {{ $event->start_time->format('d') }} - {{ $event->end_time->format('d M Y') }}</p>
+                        <p class="text-gray-600">{{ $event->title }} • {{ $event->start_time->isSameDay($event->end_time) ? $event->start_time->format('d M Y') : $event->start_time->format('d') . ' - ' . $event->end_time->format('d M Y') }}</p>
                     </div>
                     <div class="flex items-center gap-3">
                     </div>
