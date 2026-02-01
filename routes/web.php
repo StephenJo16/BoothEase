@@ -111,17 +111,17 @@ Route::get('/faq', function () {
     return view('faq.index');
 })->name('faq');
 
-Route::get('/events', [EventController::class, 'publicIndex'])->name('events');
+Route::get('/events', [EventController::class, 'viewAllEvents'])->name('events');
 
-Route::get('/events/{event}', [EventController::class, 'publicShow'])->name('events.show');
+Route::get('/events/{event}', [EventController::class, 'viewEventDetails'])->name('events.show');
 
 Route::get('/events/{event}/booths', [EventController::class, 'showBooths'])->name('booths.index');
 
 Route::get('/booths/{booth}/details', [EventController::class, 'showBoothDetails'])->name('booths.details');
 
 Route::middleware(['auth', 'verified', 'role:tenant'])->group(function () {
-    Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings');
-    Route::get('/my-bookings/{booking}', [BookingController::class, 'show'])->name('my-booking-details');
+    Route::get('/my-bookings', [BookingController::class, 'viewMyBookings'])->name('my-bookings');
+    Route::get('/my-bookings/{booking}', [BookingController::class, 'viewMyBookingDetails'])->name('my-booking-details');
     Route::get('/my-bookings/{booking}/invoice', [BookingController::class, 'downloadInvoice'])->name('booking.invoice');
 });
 
@@ -147,27 +147,27 @@ Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function 
     })->name('my-event-edit');
 
     Route::prefix('my-events')->name('my-events.')->group(function () {
-        Route::get('/', [EventController::class, 'index'])->name('index');
-        Route::get('/create', [EventController::class, 'create'])->name('create');
-        Route::post('/', [EventController::class, 'store'])->name('store');
+        Route::get('/', [EventController::class, 'viewMyEvents'])->name('index');
+        Route::get('/create', [EventController::class, 'newMyEvents'])->name('create');
+        Route::post('/', [EventController::class, 'createEvent'])->name('store');
         Route::get('/{event}', [EventController::class, 'show'])->name('show');
-        Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
-        Route::put('/{event}', [EventController::class, 'update'])->name('update');
-        Route::post('/{event}/publish', [EventController::class, 'publish'])->name('publish');
-        Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+        Route::get('/{event}/edit', [EventController::class, 'editMyEvents'])->name('edit');
+        Route::put('/{event}', [EventController::class, 'editEvents'])->name('update');
+        Route::post('/{event}/publish', [EventController::class, 'publishEvents'])->name('publish');
+        Route::delete('/{event}', [EventController::class, 'deleteEvent'])->name('destroy');
     });
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'create'])->name('request-refund');
-    Route::post('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'store'])->name('refund-request.store');
+    Route::post('/request-refund/{booking}', [\App\Http\Controllers\RefundRequestController::class, 'createRefundRequest'])->name('refund-request.store');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/events/{event}/refund-requests', [\App\Http\Controllers\RefundRequestController::class, 'index'])->name('refund-requests');
-    Route::get('/events/{event}/refund-requests/{refundRequest}', [\App\Http\Controllers\RefundRequestController::class, 'show'])->name('refund-requests.show');
-    Route::patch('/events/{event}/refund-requests/{refundRequest}/approve', [\App\Http\Controllers\RefundRequestController::class, 'approve'])->name('refund-requests.approve');
-    Route::patch('/events/{event}/refund-requests/{refundRequest}/reject', [\App\Http\Controllers\RefundRequestController::class, 'reject'])->name('refund-requests.reject');
+    Route::get('/events/{event}/refund-requests', [\App\Http\Controllers\RefundRequestController::class, 'viewRefundList'])->name('refund-requests');
+    Route::get('/events/{event}/refund-requests/{refundRequest}', [\App\Http\Controllers\RefundRequestController::class, 'viewRefundDetails'])->name('refund-requests.show');
+    Route::patch('/events/{event}/refund-requests/{refundRequest}/approve', [\App\Http\Controllers\RefundRequestController::class, 'approveRefund'])->name('refund-requests.approve');
+    Route::patch('/events/{event}/refund-requests/{refundRequest}/reject', [\App\Http\Controllers\RefundRequestController::class, 'rejectRefund'])->name('refund-requests.reject');
 });
 
 Route::get('/refund-requests/details', function () {
@@ -176,46 +176,46 @@ Route::get('/refund-requests/details', function () {
 
 // Booking requests routes (for event organizers)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/events/{event}/booking-requests', [BookingController::class, 'bookingRequests'])
+    Route::get('/events/{event}/booking-requests', [BookingController::class, 'viewBookings'])
         ->name('booking-requests');
 
-    Route::get('/events/{event}/booking-requests/{booking}', [BookingController::class, 'bookingRequestDetails'])
+    Route::get('/events/{event}/booking-requests/{booking}', [BookingController::class, 'viewBookingDetails'])
         ->name('booking-request-details');
 
-    Route::post('/events/{event}/booking-requests/{booking}/confirm', [BookingController::class, 'confirmBookingRequest'])
+    Route::post('/events/{event}/booking-requests/{booking}/confirm', [BookingController::class, 'approveBooking'])
         ->name('booking-requests.confirm');
 
     Route::post('/events/{event}/booking-requests/{booking}/reject', [BookingController::class, 'rejectBookingRequest'])
         ->name('booking-requests.reject');
 });
 
-Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+Route::post('/bookings', [BookingController::class, 'createBooking'])->name('bookings.store');
 
 // Payment routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payment.create');
-    Route::post('/bookings/{booking}/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])->name('payment.initiate');
-    Route::post('/bookings/{booking}/payment/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payment.check-status');
-    Route::get('/bookings/{booking}/payment/success', [\App\Http\Controllers\PaymentController::class, 'success'])->name('payment.success');
+    Route::post('/bookings/{booking}/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'makePayment'])->name('payment.initiate');
+    Route::post('/bookings/{booking}/payment/check-status', [\App\Http\Controllers\PaymentController::class, 'checkPaymentStatus'])->name('payment.check-status');
+    Route::get('/bookings/{booking}/payment/success', [\App\Http\Controllers\PaymentController::class, 'handleSuccess'])->name('payment.success');
     Route::get('/bookings/{booking}/payment/pending', [\App\Http\Controllers\PaymentController::class, 'pending'])->name('payment.pending');
     Route::get('/bookings/{booking}/payment/error', [\App\Http\Controllers\PaymentController::class, 'error'])->name('payment.error');
 });
 
 // Midtrans callback (no auth required)
-Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'callback'])->name('payment.callback');
+Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class, 'processCallback'])->name('payment.callback');
 
 // Rating routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'store'])->name('rating.store');
+    Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'rateOrganizer'])->name('rating.store');
     Route::get('/bookings/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkRating'])->name('rating.check');
 
     // Organizer rating tenant routes
     Route::get('/events/{event}/attendants/{booking}', [BookingController::class, 'showAttendant'])->name('attendant.details');
-    Route::post('/events/{event}/attendants/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'storeOrganizerRating'])->name('attendant.rating.store');
+    Route::post('/events/{event}/attendants/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'rateTenant'])->name('attendant.rating.store');
     Route::get('/events/{event}/attendants/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkOrganizerRating'])->name('attendant.rating.check');
 });
 
-Route::get('/booth-layout/data/{event}', [BoothController::class, 'show'])->name('booth-layout.data');
+Route::get('/booth-layout/data/{event}', [BoothController::class, 'viewLayout'])->name('booth-layout.data');
 Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
 
 // Protected booth layout editing (Organizer only)
@@ -244,7 +244,7 @@ Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function 
         ]);
     })->name('booth-layout.view');
 
-    Route::post('/booth-layout/save', [BoothController::class, 'store'])->name('booth-layout.save');
+    Route::post('/booth-layout/save', [BoothController::class, 'saveLayout'])->name('booth-layout.save');
     Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
 });
 

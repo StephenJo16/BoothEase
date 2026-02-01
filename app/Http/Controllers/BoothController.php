@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class BoothController extends Controller
 {
-    public function store(StoreBoothRequest $request): JsonResponse
+    public function saveLayout(StoreBoothRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
@@ -114,7 +114,7 @@ class BoothController extends Controller
         ], 201);
     }
 
-    public function show(int $eventId): JsonResponse
+    public function viewLayout(int $eventId): JsonResponse
     {
         $event = Event::find($eventId);
         if (!$event) {
@@ -128,9 +128,9 @@ class BoothController extends Controller
         // Note: 'ongoing' and 'completed' events were once published, so they should be visible too if needed.
         // Assuming public should see layout for published/ongoing/completed events.
         $publicStatuses = [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED];
-        
+
         if (!in_array($event->status, $publicStatuses) && !$isOwner) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $floorNumber = request()->input('floor_number', 1);
@@ -182,9 +182,9 @@ class BoothController extends Controller
         $user = request()->user();
         $isOwner = $user && $user->id === $event->user_id;
         $publicStatuses = [Event::STATUS_PUBLISHED, Event::STATUS_ONGOING, Event::STATUS_COMPLETED];
-        
+
         if (!in_array($event->status, $publicStatuses) && !$isOwner) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $floors = EventLayout::where('event_id', $eventId)
@@ -203,7 +203,7 @@ class BoothController extends Controller
     public function deleteFloor(int $eventId, int $floorNumber): JsonResponse
     {
         $event = Event::findOrFail($eventId);
-        
+
         // Ensure ownership
         if ($event->user_id !== request()->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);

@@ -49,7 +49,7 @@ class PaymentController extends Controller
     /**
      * Initialize payment with Midtrans Snap
      */
-    public function initiate(Request $request, Booking $booking)
+    public function makePayment(Request $request, Booking $booking)
     {
         // Check if booking belongs to authenticated user
         if ($booking->user_id !== Auth::id()) {
@@ -163,7 +163,7 @@ class PaymentController extends Controller
     /**
      * Handle payment callback/notification from Midtrans
      */
-    public function callback(Request $request)
+    public function processCallback(Request $request)
     {
         try {
             $serverKey = config('services.midtrans.server_key');
@@ -217,7 +217,7 @@ class PaymentController extends Controller
             if ($payment->payment_status === 'completed') {
                 $payment->booking->update(['status' => 'paid']);
                 // Update booth status to 'booked' after successful payment
-                $payment->booking->booth?->update(['status' => 'booked']);
+                $payment->booking->booth?->updateBoothStatus('booked');
             }
 
             return response()->json(['message' => 'Callback processed']);
@@ -310,7 +310,7 @@ class PaymentController extends Controller
     /**
      * Handle payment success (user redirect)
      */
-    public function success(Booking $booking)
+    public function handleSuccess(Booking $booking)
     {
         // Check if booking belongs to authenticated user
         if ($booking->user_id !== Auth::id()) {
@@ -390,7 +390,7 @@ class PaymentController extends Controller
 
                         // Update booking status and booth status
                         $payment->booking->update(['status' => 'paid']);
-                        $payment->booking->booth?->update(['status' => 'booked']);
+                        $payment->booking->booth?->updateBoothStatus('booked');
                     }
                 } else if ($transactionStatus == 'settlement') {
                     $payment->payment_status = 'completed';
@@ -399,7 +399,7 @@ class PaymentController extends Controller
 
                     // Update booking status and booth status
                     $payment->booking->update(['status' => 'paid']);
-                    $payment->booking->booth?->update(['status' => 'booked']);
+                    $payment->booking->booth?->updateBoothStatus('booked');
                 } else if (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
                     $payment->payment_status = 'failed';
                     $payment->save();
@@ -427,7 +427,7 @@ class PaymentController extends Controller
     /**
      * Manually check payment status (AJAX endpoint)
      */
-    public function checkStatus(Booking $booking)
+    public function checkPaymentStatus(Booking $booking)
     {
         // Check if booking belongs to authenticated user
         if ($booking->user_id !== Auth::id()) {

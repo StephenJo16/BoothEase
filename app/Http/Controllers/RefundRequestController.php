@@ -17,7 +17,7 @@ class RefundRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, Event $event)
+    public function viewRefundList(Request $request, Event $event)
     {
         // Verify the event belongs to the current user
         if ($event->user_id !== $request->user()->id) {
@@ -144,7 +144,7 @@ class RefundRequestController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, $bookingId)
+    public function createRefundRequest(Request $request, $bookingId)
     {
         $booking = \App\Models\Booking::with(['booth.event'])
             ->findOrFail($bookingId);
@@ -205,7 +205,7 @@ class RefundRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, Event $event, RefundRequest $refundRequest)
+    public function viewRefundDetails(Request $request, Event $event, RefundRequest $refundRequest)
     {
         // Load relationships
         $refundRequest->load([
@@ -274,7 +274,7 @@ class RefundRequestController extends Controller
     /**
      * Approve a refund request.
      */
-    public function approve(Request $request, Event $event, RefundRequest $refundRequest)
+    public function approveRefund(Request $request, Event $event, RefundRequest $refundRequest)
     {
         // Load relationships
         $refundRequest->load('booking.booth.event');
@@ -300,9 +300,7 @@ class RefundRequestController extends Controller
         ]);
 
         // Change booth status back to available
-        $refundRequest->booking->booth->update([
-            'status' => 'available',
-        ]);
+        $refundRequest->booking->booth->updateBoothStatus('available');
 
         // Send email notification to tenant
         $tenant = $refundRequest->user;
@@ -315,7 +313,7 @@ class RefundRequestController extends Controller
     /**
      * Reject a refund request.
      */
-    public function reject(Request $request, Event $event, RefundRequest $refundRequest)
+    public function rejectRefund(Request $request, Event $event, RefundRequest $refundRequest)
     {
         // Load relationships
         $refundRequest->load('booking.booth.event');

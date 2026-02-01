@@ -14,7 +14,7 @@ class RatingController extends Controller
     /**
      * Store a newly created rating for a booking.
      */
-    public function store(Request $request, Booking $booking)
+    public function rateOrganizer(Request $request, Booking $booking)
     {
         // Validate that the booking belongs to the authenticated user
         if ($booking->user_id !== Auth::id()) {
@@ -92,7 +92,7 @@ class RatingController extends Controller
     /**
      * Store a rating from organizer to tenant
      */
-    public function storeOrganizerRating(Request $request, $eventId, $bookingId)
+    public function rateTenant(Request $request, $eventId, $bookingId)
     {
         $booking = Booking::findOrFail($bookingId);
         $event = $booking->booth->event;

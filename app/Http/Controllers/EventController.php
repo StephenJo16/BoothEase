@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
-    public function publicIndex(Request $request)
+    public function viewAllEvents(Request $request)
     {
         // Restrict access for event organizers
         if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
@@ -170,7 +170,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function publicShow(Event $event)
+    public function viewEventDetails(Event $event)
     {
         // Restrict access for event organizers
         if (Auth::check() && Auth::user()->role->name === 'event_organizer') {
@@ -322,7 +322,7 @@ class EventController extends Controller
         return view('booths.details', compact('booth', 'event'));
     }
 
-    public function index(Request $request)
+    public function viewMyEvents(Request $request)
     {
         // Update event statuses before loading
         $this->updateEventStatuses();
@@ -422,7 +422,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function newMyEvents(Request $request)
     {
         $categories = Category::orderBy('name')->get();
         $provinces = Province::orderBy('name')->get();
@@ -450,7 +450,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function createEvent(Request $request)
     {
         $action = $request->input('action', 'draft');
         $data = $this->validatePayload($request, $action);
@@ -492,7 +492,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Event $event)
+    public function editMyEvents(Request $request, Event $event)
     {
         $this->ensureOwnership($request, $event);
 
@@ -512,7 +512,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function update(Request $request, Event $event)
+    public function editEvents(Request $request, Event $event)
     {
         $this->ensureOwnership($request, $event);
 
@@ -538,7 +538,7 @@ class EventController extends Controller
             ->with('status', $statusMessage);
     }
 
-    public function publish(Request $request, Event $event)
+    public function publishEvents(Request $request, Event $event)
     {
         $this->ensureOwnership($request, $event);
 
@@ -580,7 +580,7 @@ class EventController extends Controller
             ->with('status', 'Event published successfully!');
     }
 
-    public function destroy(Request $request, Event $event)
+    public function deleteEvent(Request $request, Event $event)
     {
         $this->ensureOwnership($request, $event);
 

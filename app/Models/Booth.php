@@ -34,4 +34,12 @@ class Booth extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    /**
+     * Update booth status
+     */
+    public function updateBoothStatus(string $status): void
+    {
+        $this->update(['status' => $status]);
+    }
 }

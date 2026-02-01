@@ -22,7 +22,7 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function viewMyBookings(Request $request)
     {
         // Update booking statuses before loading
         $this->updateBookingStatuses();
@@ -129,7 +129,7 @@ class BookingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBookingRequest $request)
+    public function createBooking(StoreBookingRequest $request)
     {
         try {
             // Get validated data
@@ -192,7 +192,7 @@ class BookingController extends Controller
             }
 
             // Update booth status to pending (will become 'booked' after payment)
-            $booth->update(['status' => 'pending']);
+            $booth->updateBoothStatus('pending');
 
             // Send email notification to event organizer
             $booking->load(['booth.event.user', 'user']);
@@ -213,7 +213,7 @@ class BookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Booking $booking)
+    public function viewMyBookingDetails(Booking $booking)
     {
         // Check if user is authorized to view this booking
         if (Auth::id() !== $booking->user_id) {
@@ -262,7 +262,7 @@ class BookingController extends Controller
     /**
      * Display booking requests for an event (for event organizers)
      */
-    public function bookingRequests(Request $request, $eventId)
+    public function viewBookings(Request $request, $eventId)
     {
         // Get the event
         $event = \App\Models\Event::with('category')->findOrFail($eventId);
@@ -332,7 +332,7 @@ class BookingController extends Controller
     /**
      * Display a specific booking request details
      */
-    public function bookingRequestDetails(Request $request, $eventId, $bookingId)
+    public function viewBookingDetails(Request $request, $eventId, $bookingId)
     {
         $event = \App\Models\Event::with('category')->findOrFail($eventId);
 
@@ -355,7 +355,7 @@ class BookingController extends Controller
         return view('booking-requests.details', compact('event', 'booking'));
     }
 
-    public function confirmBookingRequest(Request $request, $eventId, $bookingId)
+    public function approveBooking(Request $request, $eventId, $bookingId)
     {
         return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'confirmed');
     }
@@ -403,7 +403,7 @@ class BookingController extends Controller
             $booking->update($updateData);
 
             if ($targetStatus === 'rejected') {
-                $booking->booth?->update(['status' => 'available']);
+                $booking->booth?->updateBoothStatus('available');
 
                 // Send email notification to tenant
                 try {
@@ -416,7 +416,7 @@ class BookingController extends Controller
                 }
             } elseif ($targetStatus === 'confirmed') {
                 // Keep booth as 'pending' until payment is completed
-                $booking->booth?->update(['status' => 'pending']);
+                $booking->booth?->updateBoothStatus('pending');
 
                 // Send email notification to tenant
                 try {
