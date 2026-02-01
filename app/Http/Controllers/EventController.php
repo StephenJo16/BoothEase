@@ -475,7 +475,7 @@ class EventController extends Controller
             ->with('status', 'Draft saved successfully.');
     }
 
-    public function show(Request $request, Event $event)
+    public function viewMyEventDetails(Request $request, Event $event)
     {
         $this->ensureOwnership($request, $event);
 

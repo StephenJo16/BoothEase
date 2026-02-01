@@ -150,7 +150,7 @@ Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function 
         Route::get('/', [EventController::class, 'viewMyEvents'])->name('index');
         Route::get('/create', [EventController::class, 'newMyEvents'])->name('create');
         Route::post('/', [EventController::class, 'createEvent'])->name('store');
-        Route::get('/{event}', [EventController::class, 'show'])->name('show');
+        Route::get('/{event}', [EventController::class, 'viewMyEventDetails'])->name('show');
         Route::get('/{event}/edit', [EventController::class, 'editMyEvents'])->name('edit');
         Route::put('/{event}', [EventController::class, 'editEvents'])->name('update');
         Route::post('/{event}/publish', [EventController::class, 'publishEvents'])->name('publish');
