@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Auth;
 class RatingController extends Controller
 {
     /**
-     * Store a newly created rating for a booking.
+     * HTTP endpoint to store a rating for an organizer.
      */
-    public function rateOrganizer(Request $request, Booking $booking)
+    public function rateOrganizerEndpoint(Request $request, Booking $booking)
     {
         // Validate that the booking belongs to the authenticated user
         if ($booking->user_id !== Auth::id()) {
@@ -50,19 +50,33 @@ class RatingController extends Controller
             'feedback' => 'nullable|string|max:1000',
         ]);
 
-        // Create the rating
-        $rating = Rating::create([
-            'event_id' => $booking->booth->event_id,
-            'rater_id' => Auth::id(),
-            'ratee_id' => $booking->booth->event->user_id, // Event organizer
-            'rating' => $validated['rating'],
-            'feedback' => $validated['feedback'] ?? null,
-        ]);
+        // Call the core business logic method
+        $rating = $this->rateOrganizer(
+            Auth::id(),
+            $booking->booth->event->user_id,
+            $booking->booth->event_id,
+            $validated['rating'],
+            $validated['feedback'] ?? null
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Thank you for your rating!',
             'rating' => $rating
+        ]);
+    }
+
+    /**
+     * Core business logic: Create a rating for an organizer.
+     */
+    public function rateOrganizer(int $raterId, int $rateeId, int $eventId, int $rating, ?string $feedback)
+    {
+        return Rating::create([
+            'event_id' => $eventId,
+            'rater_id' => $raterId,
+            'ratee_id' => $rateeId,
+            'rating' => $rating,
+            'feedback' => $feedback,
         ]);
     }
 
@@ -90,9 +104,9 @@ class RatingController extends Controller
     }
 
     /**
-     * Store a rating from organizer to tenant
+     * HTTP endpoint to store a rating from organizer to tenant.
      */
-    public function rateTenant(Request $request, $eventId, $bookingId)
+    public function rateTenantEndpoint(Request $request, $eventId, $bookingId)
     {
         $booking = Booking::findOrFail($bookingId);
         $event = $booking->booth->event;
@@ -132,19 +146,33 @@ class RatingController extends Controller
             'feedback' => 'nullable|string|max:1000',
         ]);
 
-        // Create the rating
-        $rating = Rating::create([
-            'event_id' => $event->id,
-            'rater_id' => Auth::id(), // Event organizer
-            'ratee_id' => $booking->user_id, // Tenant
-            'rating' => $validated['rating'],
-            'feedback' => $validated['feedback'] ?? null,
-        ]);
+        // Call the core business logic method
+        $rating = $this->rateTenant(
+            Auth::id(),
+            $booking->user_id,
+            $event->id,
+            $validated['rating'],
+            $validated['feedback'] ?? null
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Thank you for your rating!',
             'rating' => $rating
+        ]);
+    }
+
+    /**
+     * Core business logic: Create a rating from organizer to tenant.
+     */
+    public function rateTenant(int $raterId, int $rateeId, int $eventId, int $rating, ?string $feedback)
+    {
+        return Rating::create([
+            'event_id' => $eventId,
+            'rater_id' => $raterId,
+            'ratee_id' => $rateeId,
+            'rating' => $rating,
+            'feedback' => $feedback,
         ]);
     }
 

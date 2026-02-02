@@ -170,10 +170,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events/{event}/booking-requests/{booking}', [BookingController::class, 'viewBookingDetails'])
         ->name('booking-request-details');
 
-    Route::post('/events/{event}/booking-requests/{booking}/confirm', [BookingController::class, 'approveBooking'])
+    Route::post('/events/{event}/booking-requests/{booking}/confirm', [BookingController::class, 'confirmBooking'])
         ->name('booking-requests.confirm');
 
-    Route::post('/events/{event}/booking-requests/{booking}/reject', [BookingController::class, 'rejectBookingRequest'])
+    Route::post('/events/{event}/booking-requests/{booking}/reject', [BookingController::class, 'rejectBooking'])
         ->name('booking-requests.reject');
 });
 
@@ -194,12 +194,12 @@ Route::post('/payment/callback', [\App\Http\Controllers\PaymentController::class
 
 // Rating routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'rateOrganizer'])->name('rating.store');
+    Route::post('/bookings/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'rateOrganizerEndpoint'])->name('rating.store');
     Route::get('/bookings/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkRating'])->name('rating.check');
 
     // Organizer rating tenant routes
     Route::get('/events/{event}/attendants/{booking}', [BookingController::class, 'showAttendant'])->name('attendant.details');
-    Route::post('/events/{event}/attendants/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'rateTenant'])->name('attendant.rating.store');
+    Route::post('/events/{event}/attendants/{booking}/rating', [\App\Http\Controllers\RatingController::class, 'rateTenantEndpoint'])->name('attendant.rating.store');
     Route::get('/events/{event}/attendants/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkOrganizerRating'])->name('attendant.rating.check');
 });
 

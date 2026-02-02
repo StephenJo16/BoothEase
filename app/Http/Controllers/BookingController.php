@@ -355,29 +355,29 @@ class BookingController extends Controller
         return view('booking-requests.details', compact('event', 'booking'));
     }
 
-    public function approveBooking(Request $request, $eventId, $bookingId)
+    public function confirmBooking(Request $request, $eventId, $bookingId)
     {
-        return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'confirmed');
+        return $this->updateBookingStatus($request, $eventId, $bookingId, 'confirmed');
     }
 
-    public function rejectBookingRequest(Request $request, $eventId, $bookingId)
+    public function rejectBooking(Request $request, $eventId, $bookingId)
     {
         // Validate rejection reason
         $request->validate([
             'rejection_reason' => 'required|string|min:10|max:1000',
         ]);
 
-        return $this->changeBookingRequestStatus($request, $eventId, $bookingId, 'rejected');
+        return $this->updateBookingStatus($request, $eventId, $bookingId, 'rejected');
     }
 
-    private function changeBookingRequestStatus(Request $request, $eventId, $bookingId, string $targetStatus)
+    public function updateBookingStatus(Request $request, $eventId, $bookingId, string $status)
     {
         [$event, $booking] = $this->resolveAuthorizedBooking($request, $eventId, $bookingId);
 
-        if ($booking->status === $targetStatus) {
+        if ($booking->status === $status) {
             return redirect()
                 ->route('booking-request-details', ['event' => $eventId, 'booking' => $bookingId])
-                ->with('info', "Booking request is already {$targetStatus}.");
+                ->with('info', "Booking request is already {$status}.");
         }
 
         if ($booking->status !== 'pending') {
@@ -386,23 +386,23 @@ class BookingController extends Controller
                 ->with('error', 'Only pending booking requests can be updated.');
         }
 
-        DB::transaction(function () use ($booking, $targetStatus, $request) {
-            $updateData = ['status' => $targetStatus];
+        DB::transaction(function () use ($booking, $status, $request) {
+            $updateData = ['status' => $status];
 
             // Set confirmed_at timestamp when confirming a booking
-            if ($targetStatus === 'confirmed') {
+            if ($status === 'confirmed') {
                 $updateData['confirmed_at'] = now();
             }
 
             // Set rejection_reason and rejected_at when rejecting
-            if ($targetStatus === 'rejected') {
+            if ($status === 'rejected') {
                 $updateData['rejection_reason'] = $request->input('rejection_reason');
                 $updateData['rejected_at'] = now();
             }
 
             $booking->update($updateData);
 
-            if ($targetStatus === 'rejected') {
+            if ($status === 'rejected') {
                 $booking->booth?->updateBoothStatus('available');
 
                 // Send email notification to tenant
@@ -414,7 +414,7 @@ class BookingController extends Controller
                     Log::error('Failed to send booking rejection email: ' . $e->getMessage());
                     // Don't fail the transaction, just log the error
                 }
-            } elseif ($targetStatus === 'confirmed') {
+            } elseif ($status === 'confirmed') {
                 // Keep booth as 'pending' until payment is completed
                 $booking->booth?->updateBoothStatus('pending');
 
@@ -430,7 +430,7 @@ class BookingController extends Controller
             }
         });
 
-        $message = $targetStatus === 'confirmed'
+        $message = $status === 'confirmed'
             ? 'Booking request confirmed successfully.'
             : 'Booking request rejected successfully.';
 
@@ -555,6 +555,84 @@ class BookingController extends Controller
 
     /**
      * Show attendant details for event organizer
+     */
+    /**
+     * Display list of confirmed attendants for an event
+     */
+    public function viewAttendants(Request $request, $eventId)
+    {
+        // Get the event
+        $event = \App\Models\Event::with('category')->findOrFail($eventId);
+
+        // Check if the authenticated user is the event owner
+        if ($event->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to this event\'s attendants.');
+        }
+
+        // Get all booth IDs for this event
+        $boothIds = $event->booths()->pluck('id');
+
+        // Build query for confirmed/paid bookings only (actual attendants)
+        $query = \App\Models\Booking::whereIn('booth_id', $boothIds)
+            ->whereIn('status', ['confirmed', 'paid', 'completed'])
+            ->with(['user', 'booth', 'payment']);
+
+        // Apply filters if provided
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('display_name', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('booth', function ($boothQuery) use ($search) {
+                        $boothQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhere('id', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('floor')) {
+            $query->whereHas('booth', function ($boothQuery) use ($request) {
+                $boothQuery->where('floor_number', $request->input('floor'));
+            });
+        }
+
+        // Order by booth floor and name
+        $query->orderBy(DB::raw('(SELECT floor_number FROM booths WHERE booths.id = bookings.booth_id)'))
+            ->orderBy(DB::raw('(SELECT name FROM booths WHERE booths.id = bookings.booth_id)'));
+
+        // Get per page value from request, default to 10
+        $perPage = $request->integer('perPage', 10);
+
+        // Paginate results
+        $attendants = $query->paginate($perPage)->withQueryString();
+
+        // Calculate statistics (all confirmed attendants)
+        $allAttendants = \App\Models\Booking::whereIn('booth_id', $boothIds)
+            ->whereIn('status', ['confirmed', 'paid', 'completed'])
+            ->get();
+
+        $stats = [
+            'total' => $allAttendants->count(),
+            'confirmed' => $allAttendants->where('status', 'confirmed')->count(),
+            'paid' => $allAttendants->where('status', 'paid')->count(),
+            'completed' => $allAttendants->where('status', 'completed')->count(),
+        ];
+
+        // Get available floors for filter
+        $floors = $event->booths()->distinct()->pluck('floor_number')->sort();
+
+        return view('attendants.index', compact('event', 'attendants', 'stats', 'floors'));
+    }
+
+    /**
+     * Display detailed information about a specific attendant
      */
     public function showAttendant(Request $request, $eventId, $bookingId)
     {

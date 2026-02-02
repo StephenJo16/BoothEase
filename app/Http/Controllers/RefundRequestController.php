@@ -276,44 +276,26 @@ class RefundRequestController extends Controller
      */
     public function approveRefund(Request $request, Event $event, RefundRequest $refundRequest)
     {
-        // Load relationships
-        $refundRequest->load('booking.booth.event');
-
-        // Verify the refund request belongs to the specified event
-        if ($refundRequest->booking->booth->event->id !== $event->id) {
-            abort(403, 'This refund request does not belong to this event.');
-        }
-
-        // Verify the event belongs to the current user
-        if ($event->user_id !== $request->user()->id) {
-            abort(403, 'Unauthorized access to this event.');
-        }
-
-        // Update refund request status to approved
-        $refundRequest->update([
-            'status' => RefundRequest::STATUS_APPROVED,
-        ]);
-
-        // Update booking status to cancelled
-        $refundRequest->booking->update([
-            'status' => \App\Models\Booking::STATUS_CANCELLED,
-        ]);
-
-        // Change booth status back to available
-        $refundRequest->booking->booth->updateBoothStatus('available');
-
-        // Send email notification to tenant
-        $tenant = $refundRequest->user;
-        Mail::to($tenant->email)->send(new RefundRequestApprovedMail($refundRequest));
-
-        return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
-            ->with('success', 'Refund request has been approved successfully! The booking has been cancelled and the booth is now available.');
+        return $this->updateRefundStatus($request, $event, $refundRequest, 'approved');
     }
 
     /**
      * Reject a refund request.
      */
     public function rejectRefund(Request $request, Event $event, RefundRequest $refundRequest)
+    {
+        // Validate the rejection reason
+        $request->validate([
+            'rejection_reason' => ['required', 'string', 'min:10', 'max:1000'],
+        ]);
+
+        return $this->updateRefundStatus($request, $event, $refundRequest, 'rejected');
+    }
+
+    /**
+     * Update refund request status (approve or reject)
+     */
+    public function updateRefundStatus(Request $request, Event $event, RefundRequest $refundRequest, string $status)
     {
         // Load relationships
         $refundRequest->load('booking.booth.event');
@@ -328,23 +310,46 @@ class RefundRequestController extends Controller
             abort(403, 'Unauthorized access to this event.');
         }
 
-        // Validate the rejection reason
-        $validated = $request->validate([
-            'rejection_reason' => ['required', 'string', 'min:10', 'max:1000'],
-        ]);
+        // Verify refund request is still pending
+        if ($refundRequest->status !== RefundRequest::STATUS_PENDING) {
+            return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
+                ->with('error', 'This refund request has already been processed.');
+        }
 
-        // Update status to rejected with reason
-        $refundRequest->update([
-            'status' => RefundRequest::STATUS_REJECTED,
-            'rejection_reason' => $validated['rejection_reason'],
-            'rejected_at' => now(),
-        ]);
+        if ($status === 'approved') {
+            // Update refund request status to approved
+            $refundRequest->update([
+                'status' => RefundRequest::STATUS_APPROVED,
+            ]);
 
-        // Send email notification to tenant
-        $tenant = $refundRequest->user;
-        Mail::to($tenant->email)->send(new RefundRequestRejectedMail($refundRequest));
+            // Update booking status to cancelled
+            $refundRequest->booking->update([
+                'status' => \App\Models\Booking::STATUS_CANCELLED,
+            ]);
 
-        return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
-            ->with('success', 'Refund request has been rejected.');
+            // Change booth status back to available
+            $refundRequest->booking->booth->updateBoothStatus('available');
+
+            // Send email notification to tenant
+            $tenant = $refundRequest->user;
+            Mail::to($tenant->email)->send(new RefundRequestApprovedMail($refundRequest));
+
+            return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
+                ->with('success', 'Refund request has been approved successfully! The booking has been cancelled and the booth is now available.');
+        } else {
+            // Update status to rejected with reason
+            $refundRequest->update([
+                'status' => RefundRequest::STATUS_REJECTED,
+                'rejection_reason' => $request->input('rejection_reason'),
+                'rejected_at' => now(),
+            ]);
+
+            // Send email notification to tenant
+            $tenant = $refundRequest->user;
+            Mail::to($tenant->email)->send(new RefundRequestRejectedMail($refundRequest));
+
+            return redirect()->route('refund-requests.show', ['event' => $event->id, 'refundRequest' => $refundRequest->id])
+                ->with('success', 'Refund request has been rejected.');
+        }
     }
 }
