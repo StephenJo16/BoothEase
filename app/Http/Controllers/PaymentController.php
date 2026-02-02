@@ -215,7 +215,7 @@ class PaymentController extends Controller
 
             // Update booking status if payment is completed
             if ($payment->payment_status === 'completed') {
-                $payment->booking->update(['status' => 'paid']);
+                $payment->booking->updateBookingStatus('paid');
                 // Update booth status to 'booked' after successful payment
                 $payment->booking->booth?->updateBoothStatus('booked');
             }

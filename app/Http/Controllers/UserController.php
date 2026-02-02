@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function show()
+    public function getProfile()
     {
         $user = User::findOrFail(Auth::id());
 
@@ -24,7 +24,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function editProfile(Request $request)
     {
         $user = User::findOrFail(Auth::id());
 

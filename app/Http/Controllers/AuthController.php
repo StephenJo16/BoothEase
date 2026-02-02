@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -39,7 +40,7 @@ class AuthController extends Controller
         return $digits;
     }
 
-    public function signup(Request $request)
+    public function signupTenant(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
@@ -47,7 +48,6 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email',
             'phone_number' => 'required|string|max:20',
             'password' => 'required|string|min:8',
-            'user_type' => ['required', 'string', Rule::in(['tenant', 'event_organizer'])],
             'category_id' => 'required|exists:categories,id',
         ]);
 
@@ -66,22 +66,11 @@ class AuthController extends Controller
             return redirect()->route('signup')->withErrors($validator)->withInput();
         }
 
-        // Find role with case-insensitive search and better error handling
-        $roleName = $request->user_type;
-        $role = Role::whereRaw('LOWER(name) = ?', [strtolower($roleName)])->first();
-
+        $role = Role::where('name', 'tenant')->first();
         if (!$role) {
-            // Fallback: try exact match or default to tenant role
-            $role = Role::where('name', $roleName)
-                ->orWhere('name', ucfirst($roleName))
-                ->orWhere('name', ucwords(str_replace('_', ' ', $roleName)))
-                ->first();
-
-            if (!$role) {
-                return redirect()->route('signup')
-                    ->withErrors(['user_type' => 'Invalid user type selected.'])
-                    ->withInput();
-            }
+            return redirect()->route('signup')
+                ->withErrors(['error' => 'Tenant role not found.'])
+                ->withInput();
         }
 
         try {
@@ -95,7 +84,62 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
         } catch (\Exception $e) {
-            Log::error('Signup failed: ' . $e->getMessage());
+            Log::error('Tenant signup failed: ' . $e->getMessage());
+            return redirect()->route('signup')
+                ->withErrors(['error' => 'Registration failed. Please try again or contact support.'])
+                ->withInput();
+        }
+
+        event(new Registered($user));
+
+        return redirect()->route('verification.notice')->with('message', 'Registration successful! Please check your email to verify your account.');
+    }
+
+    public function signupEventOrganizer(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'business_name' => 'required|string|max:255|unique:users,name',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'phone_number' => 'required|string|max:20',
+            'password' => 'required|string|min:8',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $normalizedPhone = $this->normalizeIndoPhone($request->phone_number);
+        if (!$normalizedPhone) {
+            $validator->errors()->add('phone_number', 'Invalid phone number format.');
+        }
+
+        $validator->after(function ($validator) use ($normalizedPhone) {
+            if ($normalizedPhone && User::where('phone_number', $normalizedPhone)->exists()) {
+                $validator->errors()->add('phone_number', 'The mobile number has already been taken.');
+            }
+        });
+
+        if ($validator->fails()) {
+            return redirect()->route('signup')->withErrors($validator)->withInput();
+        }
+
+        $role = Role::where('name', 'event_organizer')->first();
+        if (!$role) {
+            return redirect()->route('signup')
+                ->withErrors(['error' => 'Event organizer role not found.'])
+                ->withInput();
+        }
+
+        try {
+            $user = User::create([
+                'role_id' => $role->id,
+                'category_id' => $request->category_id,
+                'display_name' => $request->full_name,
+                'name' => $request->business_name,
+                'email' => $request->email,
+                'phone_number' => $normalizedPhone,
+                'password' => Hash::make($request->password),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Event organizer signup failed: ' . $e->getMessage());
             return redirect()->route('signup')
                 ->withErrors(['error' => 'Registration failed. Please try again or contact support.'])
                 ->withInput();
@@ -182,7 +226,7 @@ class AuthController extends Controller
             'business_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
             'category_id' => 'required|exists:categories,id',
-            'user_type' => ['required', 'string', Rule::in(['tenant', 'event_organizer'])],
+            'role_id' => 'required|integer|exists:roles,id',
         ]);
 
         $userId = Auth::id();
@@ -203,8 +247,8 @@ class AuthController extends Controller
             return back()->withErrors(['phone_number' => 'The mobile number has already been taken.'])->withInput();
         }
 
-        $roleName = $request->input('user_type', 'tenant');
-        $roleId = Role::where('name', $roleName)->value('id') ?? $user->role_id;
+        $roleId = $request->role_id;
+        $role = Role::find($roleId);
 
         $user->name = $request->business_name;
         $user->phone_number = $normalizedPhone;
@@ -212,9 +256,9 @@ class AuthController extends Controller
         $user->role_id = $roleId;
         $user->save();
 
-        if ($roleName === 'tenant') {
+        if ($role && $role->name === 'tenant') {
             return redirect()->route('events');
-        } elseif ($roleName === 'event_organizer') {
+        } elseif ($role && $role->name === 'event_organizer') {
             return redirect()->route('my-events.index');
         }
         return redirect()->route('events');
@@ -293,5 +337,24 @@ class AuthController extends Controller
             return redirect()->route('my-events.index')->with('success', $welcomeMessage);
         }
         return redirect()->route('events')->with('success', $welcomeMessage);
+    }
+
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            abort(403);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            if ($user->markEmailAsVerified()) {
+                event(new Verified($user));
+            }
+        }
+
+        Auth::login($user);
+
+        return redirect('/events')->with('success', 'Email verified successfully!');
     }
 }

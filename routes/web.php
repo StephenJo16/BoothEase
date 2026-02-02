@@ -47,8 +47,10 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 Route::middleware('guest')->group(function () {
     // Menampilkan halaman signup
     Route::get('/signup', [AuthController::class, 'showSignupForm'])->name('signup');
-    // Memproses data dari form signup
-    Route::post('/signup', [AuthController::class, 'signup']);
+    // Memproses data dari form signup untuk tenant
+    Route::post('/signup/tenant', [AuthController::class, 'signupTenant'])->name('signup.tenant');
+    // Memproses data dari form signup untuk event organizer
+    Route::post('/signup/organizer', [AuthController::class, 'signupEventOrganizer'])->name('signup.organizer');
 
     // Menampilkan halaman login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -66,23 +68,9 @@ Route::get('/email/verify', function () {
     return view('verify-email.index');
 })->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
-    $user = User::findOrFail($id);
-
-    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-        abort(403);
-    }
-
-    if (! $user->hasVerifiedEmail()) {
-        if ($user->markEmailAsVerified()) {
-            event(new Verified($user));
-        }
-    }
-
-    Auth::login($user);
-
-    return redirect('/events')->with('success', 'Email verified successfully!');
-})->middleware(['signed'])->name('verification.verify');
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
 
 // --- ROUTE UNTUK LOGOUT (HARUS SUDAH LOGIN) ---   
 Route::middleware('auth')->group(function () {
@@ -95,8 +83,8 @@ Route::middleware('auth')->group(function () {
         return back()->with('message', 'Verification link sent!');
     })->middleware('throttle:6,1')->name('verification.send');
 
-    Route::get('/profile', [UserController::class, 'show'])->name('profile');
-    Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
+    Route::get('/profile', [UserController::class, 'getProfile'])->name('profile');
+    Route::put('/profile', [UserController::class, 'editProfile'])->name('profile.update');
     Route::put('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
 
 
@@ -215,8 +203,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/events/{event}/attendants/{booking}/rating/check', [\App\Http\Controllers\RatingController::class, 'checkOrganizerRating'])->name('attendant.rating.check');
 });
 
-Route::get('/booth-layout/data/{event}', [BoothController::class, 'viewLayout'])->name('booth-layout.data');
-Route::get('/booth-layout/floors/{event}', [BoothController::class, 'getFloors'])->name('booth-layout.floors');
+Route::get('/booth-layout/data/{event}', [\App\Http\Controllers\EventLayoutController::class, 'viewLayout'])->name('booth-layout.data');
+Route::get('/booth-layout/floors/{event}', [\App\Http\Controllers\EventLayoutController::class, 'getFloors'])->name('booth-layout.floors');
 
 // Protected booth layout editing (Organizer only)
 Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function () {
@@ -244,8 +232,8 @@ Route::middleware(['auth', 'verified', 'role:event_organizer'])->group(function 
         ]);
     })->name('booth-layout.view');
 
-    Route::post('/booth-layout/save', [BoothController::class, 'saveLayout'])->name('booth-layout.save');
-    Route::delete('/booth-layout/floors/{event}/{floor}', [BoothController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
+    Route::post('/booth-layout/save', [\App\Http\Controllers\EventLayoutController::class, 'saveLayout'])->name('booth-layout.save');
+    Route::delete('/booth-layout/floors/{event}/{floor}', [\App\Http\Controllers\EventLayoutController::class, 'deleteFloor'])->name('booth-layout.deleteFloor');
 });
 
 // Location API routes for cascading dropdowns

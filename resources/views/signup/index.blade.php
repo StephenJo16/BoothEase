@@ -73,7 +73,7 @@
                         </button>
                     </div>
 
-                    <form class="space-y-4" action="{{ route('signup') }}" method="POST">
+                    <form id="signup-form" class="space-y-4" action="{{ route('signup.tenant') }}" method="POST">
                         @csrf
                         <input type="hidden" name="user_type" id="user_type" value="{{ old('user_type', 'tenant') }}">
 
@@ -231,6 +231,7 @@
             const userTypeInput = document.getElementById('user_type');
             const businessNameInput = document.getElementById('business_name');
             const categoryPlaceholder = document.querySelector('#category_id option[disabled]');
+            const signupForm = document.getElementById('signup-form');
 
             // Reset styles
             tenantTab.classList.remove('active');
@@ -241,11 +242,13 @@
                 businessNameInput.placeholder = 'Business Name';
                 if (categoryPlaceholder) categoryPlaceholder.textContent = 'Choose a Business Category';
                 userTypeInput.value = 'tenant';
+                signupForm.action = '{{ route("signup.tenant") }}';
             } else { // event_organizer
                 organizerTab.classList.add('active');
                 businessNameInput.placeholder = 'Organization Name';
                 if (categoryPlaceholder) categoryPlaceholder.textContent = 'Choose a Business Category';
                 userTypeInput.value = 'event_organizer';
+                signupForm.action = '{{ route("signup.organizer") }}';
             }
         }
 

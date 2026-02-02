@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\EventPublished;
+use App\Http\Controllers\BoothController;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Province;
@@ -83,14 +84,14 @@ class EventController extends Controller
             })
             ->where('start_time', '>', $now) // Not started yet
             ->where($baseQuery)
-            ->withCount([
-                'booths',
-                'booths as available_booths_count' => function ($query) {
-                    $query->where('status', 'available');
-                }
-            ])
+            ->withCount('booths')
             ->latest('start_time')
             ->get();
+
+        // Add available booths count using BoothController
+        $openForRegistration->each(function ($event) {
+            $event->available_booths_count = BoothController::countAvailableBooths($event);
+        });
 
         // 2. Published events past registration deadline but not started yet
         $registrationClosed = Event::with(['category', 'booths'])
@@ -98,14 +99,14 @@ class EventController extends Controller
             ->where('registration_deadline', '<', $now)
             ->where('start_time', '>', $now) // Not started yet
             ->where($baseQuery)
-            ->withCount([
-                'booths',
-                'booths as available_booths_count' => function ($query) {
-                    $query->where('status', 'available');
-                }
-            ])
+            ->withCount('booths')
             ->latest('start_time')
             ->get();
+
+        // Add available booths count using BoothController
+        $registrationClosed->each(function ($event) {
+            $event->available_booths_count = BoothController::countAvailableBooths($event);
+        });
 
         // 3. Ongoing events (started but not completed)
         $ongoingEvents = Event::with(['category', 'booths'])
@@ -116,14 +117,14 @@ class EventController extends Controller
             ->where('start_time', '<=', $now)
             ->where('end_time', '>=', $now)
             ->where($baseQuery)
-            ->withCount([
-                'booths',
-                'booths as available_booths_count' => function ($query) {
-                    $query->where('status', 'available');
-                }
-            ])
+            ->withCount('booths')
             ->latest('start_time')
             ->get();
+
+        // Add available booths count using BoothController
+        $ongoingEvents->each(function ($event) {
+            $event->available_booths_count = BoothController::countAvailableBooths($event);
+        });
 
         // 4. Completed events
         $completedEvents = Event::with(['category', 'booths'])
@@ -134,14 +135,14 @@ class EventController extends Controller
             })
             ->where('end_time', '<', $now)
             ->where($baseQuery)
-            ->withCount([
-                'booths',
-                'booths as available_booths_count' => function ($query) {
-                    $query->where('status', 'available');
-                }
-            ])
+            ->withCount('booths')
             ->latest('end_time')
             ->get();
+
+        // Add available booths count using BoothController
+        $completedEvents->each(function ($event) {
+            $event->available_booths_count = BoothController::countAvailableBooths($event);
+        });
 
         // Get all categories for filter dropdown
         $allCategories = Category::orderBy('name')->get();
@@ -187,9 +188,9 @@ class EventController extends Controller
             'user'
         ]);
 
-        // Paginate booths
+        // Get paginated booths using BoothController
         $perPage = request('perPage', 5);
-        $booths = $event->booths()->orderBy('floor_number')->orderByRaw('LENGTH(name), name')->paginate($perPage);
+        $booths = BoothController::getBooths($event, $perPage);
         $event->setRelation('booths', $booths);
 
         // Load all ratings for the organizer (across all events)
@@ -206,9 +207,9 @@ class EventController extends Controller
         $totalReviews = \App\Models\Rating::where('ratee_id', $event->user_id)
             ->count();
 
-        // Get booth statistics
+        // Get booth statistics using BoothController
         $totalBooths = $event->booths()->count();
-        $availableBooths = $event->booths()->where('status', 'available')->count();
+        $availableBooths = BoothController::countAvailableBooths($event);
         $bookedBooths = $event->booths()->where('status', 'booked')->count();
 
         // Get price range from booth configuration
@@ -274,7 +275,7 @@ class EventController extends Controller
 
         // Get booth statistics
         $totalBooths = $event->booths()->count();
-        $availableBooths = $event->booths()->where('status', 'available')->count();
+        $availableBooths = BoothController::countAvailableBooths($event);
 
         // Get price range from booth configuration
         $boothConfig = $event->booth_configuration ?? [];
@@ -343,15 +344,7 @@ class EventController extends Controller
                 $query->where('bookings.status', '!=', 'cancelled');
             }
         ])
-            ->withCount([
-                'booths',
-                'booths as booked_booths_count' => function ($query) {
-                    $query->where('status', 'booked');
-                },
-                'booths as available_booths_count' => function ($query) {
-                    $query->where('status', 'available');
-                }
-            ])
+            ->withCount('booths')
             ->ownedBy($request->user());
 
         // Search filter
@@ -396,6 +389,12 @@ class EventController extends Controller
         }
 
         $events = $query->latest('created_at')->paginate(9);
+
+        // Add booth counts using BoothController
+        $events->each(function ($event) {
+            $event->available_booths_count = BoothController::countAvailableBooths($event);
+            $event->booked_booths_count = $event->booths()->where('status', 'booked')->count();
+        });
 
         // Get all categories for filter dropdown
         $allCategories = Category::orderBy('name')->get();
@@ -481,11 +480,12 @@ class EventController extends Controller
 
         $event->load([
             'category',
-            'booths' => function ($query) {
-                $query->with('bookings.user')
-                    ->orderBy('name');
-            }
         ]);
+
+        // Get paginated booths using BoothController
+        $perPage = (int) request('perPage', 5);
+        $booths = BoothController::getBooths($event, $perPage)->withQueryString();
+        $event->setRelation('booths', $booths);
 
         return view('my-events.details', [
             'event' => $event,
@@ -569,8 +569,7 @@ class EventController extends Controller
             }
         }
 
-        $event->status = Event::STATUS_PUBLISHED;
-        $event->save();
+        $this->updateEventStatus($event, Event::STATUS_PUBLISHED);
 
         // Dispatch event to notify matching tenants
         EventPublished::dispatch($event);
@@ -578,6 +577,12 @@ class EventController extends Controller
         return redirect()
             ->route('my-events.show', $event)
             ->with('status', 'Event published successfully!');
+    }
+
+    public function updateEventStatus(Event $event, string $status): void
+    {
+        $event->status = $status;
+        $event->save();
     }
 
     public function deleteEvent(Request $request, Event $event)
@@ -591,7 +596,7 @@ class EventController extends Controller
             ->with('status', 'Event deleted successfully.');
     }
 
-    protected function validatePayload(Request $request, string $action): array
+    public function validatePayload(Request $request, string $action): array
     {
         $requiresFullValidation = in_array($action, ['publish', 'create_layout']);
 
@@ -638,7 +643,7 @@ class EventController extends Controller
         return $request->validate($rules, $messages);
     }
 
-    protected function applyPayload(Event $event, array $data, $user, string $action): void
+    public function applyPayload(Event $event, array $data, $user, string $action): void
     {
         $event->fill([
             'category_id' => $data['category_id'] ?? null,
@@ -703,7 +708,7 @@ class EventController extends Controller
         }
     }
 
-    protected function extractBoothConfig(array $data): array
+    public function extractBoothConfig(array $data): array
     {
         $types = ['standard', 'premium', 'vip'];
         $booths = [];
@@ -723,7 +728,7 @@ class EventController extends Controller
         return $booths;
     }
 
-    protected function combineDateAndTime(?string $date, ?string $time): ?Carbon
+    public function combineDateAndTime(?string $date, ?string $time): ?Carbon
     {
         if (!$date) {
             return null;
@@ -734,7 +739,7 @@ class EventController extends Controller
         return Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $time);
     }
 
-    protected function ensureOwnership(Request $request, Event $event): void
+    public function ensureOwnership(Request $request, Event $event): void
     {
         if ($event->user_id !== $request->user()->id) {
             abort(403);
@@ -754,7 +759,7 @@ class EventController extends Controller
     /**
      * Update event statuses based on current date and time
      */
-    private function updateEventStatuses(): void
+    public function updateEventStatuses(): void
     {
         $now = now();
 

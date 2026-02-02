@@ -140,4 +140,16 @@ class Booking extends Model
 
         return false;
     }
+
+    /**
+     * Update the booking status
+     *
+     * @param string $status
+     * @return bool
+     */
+    public function updateBookingStatus(string $status): bool
+    {
+        $this->status = $status;
+        return $this->save();
+    }
 }

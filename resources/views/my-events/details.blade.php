@@ -33,9 +33,8 @@ $headers = [
 ['title' => 'Status', 'class' => 'text-left'],
 ];
 
-// Paginate booths
-$perPage = (int) request('perPage', 5);
-$paginatedBooths = $event->booths()->orderBy('floor_number')->orderByRaw('LENGTH(name), name')->paginate($perPage)->withQueryString();
+// Get paginated booths (already set from controller)
+$paginatedBooths = $event->booths;
 
 // Transform booths data into rows format
 $rows = [];
