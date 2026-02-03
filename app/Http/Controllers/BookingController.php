@@ -135,66 +135,71 @@ class BookingController extends Controller
             // Get validated data
             $validated = $request->validated();
 
-            // Get the booth
-            $booth = \App\Models\Booth::with('event')->findOrFail($validated['booth_id']);
+            // Wrap in database transaction to prevent race conditions
+            $booking = DB::transaction(function () use ($validated, $request) {
+                // Get the booth with a pessimistic lock (prevents concurrent access)
+                $booth = \App\Models\Booth::with('event')
+                    ->lockForUpdate()
+                    ->findOrFail($validated['booth_id']);
 
-            // Check if booth is still available
-            if ($booth->status !== 'available') {
-                return redirect()->back()
-                    ->with('error', 'Sorry, this booth is no longer available.')
-                    ->withInput();
-            }
-
-            // Get or create user based on email
-            $fullName = $validated['full_name'];
-            $user = \App\Models\User::where('email', $validated['email'])->first();
-
-            if (!$user) {
-                // Get default role (user role) - usually role_id = 2 for regular users
-                $defaultRole = \App\Models\Role::where('name', 'user')->first();
-                if (!$defaultRole) {
-                    $defaultRole = \App\Models\Role::first(); // Fallback to first role if 'user' role doesn't exist
+                // Check if booth is still available
+                if ($booth->status !== 'available') {
+                    throw new \Exception('Sorry, this booth is no longer available.');
                 }
 
-                // Get a default category (first one available)
-                $defaultCategory = \App\Models\Category::first();
+                // Get or create user based on email
+                $fullName = $validated['full_name'];
+                $user = \App\Models\User::where('email', $validated['email'])->first();
 
-                $user = \App\Models\User::create([
-                    'role_id' => $defaultRole->id,
-                    'category_id' => $defaultCategory ? $defaultCategory->id : null,
-                    'name' => $validated['business_name'],
-                    'display_name' => $fullName,
-                    'email' => $validated['email'],
-                    'phone_number' => '+62' . $validated['phone'],
-                    'password' => Hash::make(Str::random(16)), // Generate random password
+                if (!$user) {
+                    // Get default role (user role) - usually role_id = 2 for regular users
+                    $defaultRole = \App\Models\Role::where('name', 'user')->first();
+                    if (!$defaultRole) {
+                        $defaultRole = \App\Models\Role::first(); // Fallback to first role if 'user' role doesn't exist
+                    }
+
+                    // Get a default category (first one available)
+                    $defaultCategory = \App\Models\Category::first();
+
+                    $user = \App\Models\User::create([
+                        'role_id' => $defaultRole->id,
+                        'category_id' => $defaultCategory ? $defaultCategory->id : null,
+                        'name' => $validated['business_name'],
+                        'display_name' => $fullName,
+                        'email' => $validated['email'],
+                        'phone_number' => '+62' . $validated['phone'],
+                        'password' => Hash::make(Str::random(16)), // Generate random password
+                    ]);
+                }
+
+                // Create booking
+                $booking = Booking::create([
+                    'user_id' => $user->id,
+                    'booth_id' => $booth->id,
+                    'status' => 'pending',
+                    'booking_date' => now(),
+                    'total_price' => $booth->price,
+                    'notes' => $validated['notes'] ?? null,
                 ]);
-            }
 
-            // Create booking
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'booth_id' => $booth->id,
-                'status' => 'pending',
-                'booking_date' => now(),
-                'total_price' => $booth->price,
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            // Handle product pictures upload (multiple files)
-            if ($request->hasFile('product_pictures')) {
-                $filePaths = [];
-                foreach ($request->file('product_pictures') as $index => $file) {
-                    $fileName = 'product_picture_' . $booking->id . '_' . time() . '_' . $index . '.' . $file->getClientOriginalExtension();
-                    $filePath = $file->storeAs('product_pictures', $fileName, 'public');
-                    $filePaths[] = $filePath;
+                // Handle product pictures upload (multiple files)
+                if ($request->hasFile('product_pictures')) {
+                    $filePaths = [];
+                    foreach ($request->file('product_pictures') as $index => $file) {
+                        $fileName = 'product_picture_' . $booking->id . '_' . time() . '_' . $index . '.' . $file->getClientOriginalExtension();
+                        $filePath = $file->storeAs('product_pictures', $fileName, 'public');
+                        $filePaths[] = $filePath;
+                    }
+                    $booking->update(['product_picture' => json_encode($filePaths)]);
                 }
-                $booking->update(['product_picture' => json_encode($filePaths)]);
-            }
 
-            // Update booth status to pending (will become 'booked' after payment)
-            $booth->updateBoothStatus('pending');
+                // Update booth status to pending (will become 'booked' after payment)
+                $booth->updateBoothStatus('pending');
 
-            // Send email notification to event organizer
+                return $booking;
+            });
+
+            // Send email notification to event organizer (outside transaction)
             $booking->load(['booth.event.user', 'user']);
             $eventOrganizer = $booking->booth->event->user;
             Mail::to($eventOrganizer->email)->send(new BookingRequestCreatedMail($booking));
